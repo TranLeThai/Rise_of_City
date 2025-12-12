@@ -14,12 +14,15 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
+    private BottomNavigationView bottomNav;
+    private int previousSelectedItemId = R.id.nav_home;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+        bottomNav = findViewById(R.id.bottom_navigation);
 
         // Đặt Fragment mặc định là HomeFragment khi mở app
         if (savedInstanceState == null) {
@@ -34,6 +37,12 @@ public class MainActivity extends AppCompatActivity {
 
             // Giả sử menu của bạn có id là nav_home (bạn cần check file menu xml)
             int itemId = item.getItemId();
+            
+            // Lưu lại item được chọn trước đó (trước khi thay đổi)
+            int currentSelectedId = bottomNav.getSelectedItemId();
+            if (currentSelectedId != itemId && currentSelectedId != 0) {
+                previousSelectedItemId = currentSelectedId;
+            }
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
@@ -54,5 +63,22 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    // Method để quay lại fragment trước đó
+    public void navigateToPreviousFragment() {
+        if (bottomNav != null) {
+            bottomNav.setSelectedItemId(previousSelectedItemId);
+        }
+    }
+
+    // Getter để lấy previous fragment ID
+    public int getPreviousSelectedItemId() {
+        return previousSelectedItemId;
+    }
+
+    // Getter để lấy BottomNavigationView
+    public BottomNavigationView getBottomNavigationView() {
+        return bottomNav;
     }
 }

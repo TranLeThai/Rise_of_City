@@ -68,6 +68,7 @@
             android:paddingTop="30dp">
 
             <View
+                android:id="@+id/line_1_to_2"
                 android:layout_width="4dp"
                 android:layout_height="100dp"
                 android:background="#B2EBF2"
@@ -78,6 +79,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/btnStage2"/>
 
             <View
+                android:id="@+id/line_2_to_3"
                 android:layout_width="4dp"
                 android:layout_height="100dp"
                 android:background="#B2EBF2"
@@ -88,6 +90,7 @@
                 app:layout_constraintBottom_toTopOf="@+id/btnStage3"/>
 
             <View
+                android:id="@+id/line_3_to_4"
                 android:layout_width="4dp"
                 android:layout_height="100dp"
                 android:background="#E0E0E0"

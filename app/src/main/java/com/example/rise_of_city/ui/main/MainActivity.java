@@ -1,10 +1,11 @@
-package com.example.rise_of_city; // Đổi thành package của bạn
+package com.example.rise_of_city.ui.main; // Đổi thành package của bạn
 
 import android.os.Bundle;
-import androidx.annotation.NonNull;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
+import com.example.rise_of_city.R;
 import com.example.rise_of_city.fragment.HomeFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 

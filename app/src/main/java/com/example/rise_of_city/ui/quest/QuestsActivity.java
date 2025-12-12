@@ -1,12 +1,14 @@
-package com.example.rise_of_city;
+package com.example.rise_of_city.ui.quest;
 
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.Quest;
 
 import java.util.ArrayList;
 import java.util.List;

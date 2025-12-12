@@ -11,9 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
-import com.example.rise_of_city.MainActivity;
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.auth.LoginActivity;
+import com.example.rise_of_city.ui.auth.LoginActivity;
+import com.example.rise_of_city.ui.main.MainActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;

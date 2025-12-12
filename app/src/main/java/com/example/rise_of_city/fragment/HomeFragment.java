@@ -1,6 +1,6 @@
 package com.example.rise_of_city.fragment;
 
-import com.example.rise_of_city.InGameActivity;
+import com.example.rise_of_city.ui.ingame.InGameActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;

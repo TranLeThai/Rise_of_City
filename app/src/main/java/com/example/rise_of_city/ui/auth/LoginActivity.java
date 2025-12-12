@@ -1,4 +1,4 @@
-package com.example.rise_of_city.auth;
+package com.example.rise_of_city.ui.auth;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -18,7 +18,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.rise_of_city.MainActivity;
+import com.example.rise_of_city.ui.main.MainActivity;
 import com.example.rise_of_city.R;
 //import com.example.rise_of_city.activities.customer.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;

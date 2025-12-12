@@ -1,0 +1,292 @@
+package com.example.rise_of_city.ui.ingame; // Đổi package nếu cần
+
+import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
+import android.widget.ScrollView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.WindowCompat;
+import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
+import androidx.lifecycle.ViewModelProvider;
+
+import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.ui.viewmodel.GameViewModel;
+
+public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
+
+    // 1. Khai báo ViewModel
+    private GameViewModel viewModel;
+
+    // 2. Các biến View cơ bản
+    private ScrollView vScroll;
+    private HorizontalScrollView hScroll;
+
+    // 3. Các biến cho Menu tương tác (Popup)
+    private View layoutMenu;
+    private TextView tvName, tvLevel, tvProgressText;
+    private ProgressBar pbProgress;
+    private Button btnUpgrade, btnMission;
+
+    // Biến lưu view vừa bấm để tính toạ độ hiện menu
+    private View currentClickedView;
+    private long backPressedTime;
+    private Toast mToast;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_in_game);
+
+        hideSystemUI();
+        setupDoubleBackToExit();
+
+        View btnMenu = findViewById(R.id.btnOpenMenu); // Nút menu của bạn trên màn hình game
+        btnMenu.setOnClickListener(v -> {
+            MenuDialogFragment menuDialog = new MenuDialogFragment();
+            menuDialog.show(getSupportFragmentManager(), "MenuDialog");
+        });
+
+        // --- KHỞI TẠO VIEWMODEL ---
+        viewModel = new ViewModelProvider(this).get(GameViewModel.class);
+
+        viewModel.init(this);
+
+        // --- ÁNH XẠ VIEW & SETUP ---
+        initViews();
+        setupBuildingEvents();
+
+        // --- LẮNG NGHE DỮ LIỆU (OBSERVE) ---
+        // Đây là trái tim của MVVM: Khi dữ liệu thay đổi, hàm này tự chạy
+        viewModel.getSelectedBuilding().observe(this, building -> {
+            if (building != null) {
+                // Có dữ liệu -> Hiện menu
+                showBuildingMenu(building);
+            } else {
+                // Dữ liệu null -> Ẩn menu
+                layoutMenu.setVisibility(View.GONE);
+            }
+        });
+
+        // Bấm ra nền map thì đóng menu
+        findViewById(R.id.img_map_background).setOnClickListener(v -> viewModel.closeMenu());
+
+        // --- XỬ LÝ SCROLL MAP (Giữ nguyên logic cũ) ---
+        vScroll = findViewById(R.id.vertical_scroll);
+        hScroll = findViewById(R.id.horizontal_scroll);
+        if (vScroll != null && hScroll != null) {
+            vScroll.post(this::scrollToCenter);
+        }
+    }
+
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if (hasFocus) {
+            hideSystemUI();
+        }
+    }
+
+    private void hideSystemUI() {
+        Window window = getWindow();
+        View decorView = window.getDecorView();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        WindowInsetsControllerCompat controller = WindowCompat.getInsetsController(window, decorView);
+        if (controller != null) {
+            controller.hide(WindowInsetsCompat.Type.systemBars());
+            controller.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+        }
+    }
+
+    private void setupDoubleBackToExit() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Kiểm tra: Nếu thời gian hiện tại ít hơn thời gian bấm trước đó + 2000ms (2 giây)
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    // Hủy Toast đang hiện để giao diện sạch sẽ
+                    if (mToast != null) mToast.cancel();
+
+                    finish();
+                } else {
+                    mToast = Toast.makeText(InGameActivity.this, "Bấm lần nữa để thoát", Toast.LENGTH_SHORT);
+                    mToast.show();
+
+                    backPressedTime = System.currentTimeMillis();
+                }
+            }
+        });
+    }
+
+    private void initViews() {
+        // Ánh xạ các thành phần của Menu Popup
+        layoutMenu = findViewById(R.id.layout_building_menu);
+        tvName = findViewById(R.id.tv_menu_name);
+        tvLevel = findViewById(R.id.tv_menu_level);
+        pbProgress = findViewById(R.id.pb_menu_progress);
+        tvProgressText = findViewById(R.id.tv_menu_progress_text);
+        btnUpgrade = findViewById(R.id.btn_menu_upgrade);
+        btnMission = findViewById(R.id.btn_menu_mission);
+
+        // Sự kiện nút bấm trong menu
+        if (btnMission != null) {
+            btnMission.setOnClickListener(v -> Toast.makeText(this, "Vào làm bài tập!", Toast.LENGTH_SHORT).show());
+        }
+    }
+
+    // Hàm helper để gán sự kiện click và ID cho từng tòa nhà
+    private void setupBuildingEvents() {
+        // Tham số thứ 2 ("school", "library") phải khớp với ID trong ViewModel
+        setupBuilding(R.id.school, "school");
+        setupBuilding(R.id.library, "library");
+        setupBuilding(R.id.park, "park");
+        setupBuilding(R.id.farmer, "farmer");
+        setupBuilding(R.id.coffee, "coffee");
+        setupBuilding(R.id.clothers, "clothers");
+        setupBuilding(R.id.bakery, "bakery");
+        setupBuilding(R.id.house, "house");
+        // imgTree để trang trí, không cần setup
+    }
+
+    private void setupBuilding(int viewId, String buildingIdTag) {
+        View view = findViewById(viewId);
+        if (view != null) {
+            view.setTag(buildingIdTag); // Lưu ID chuỗi vào Tag để dùng sau
+            view.setOnClickListener(this);
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        // Lấy cái ID chuỗi ("school", "park"...) từ Tag ra
+        String buildingId = (String) v.getTag();
+
+        if (buildingId != null) {
+            currentClickedView = v; // Lưu lại view để tí nữa tính toạ độ
+            // Gửi thông báo sang ViewModel
+            viewModel.onBuildingClicked(buildingId);
+        }
+    }
+
+    // Hàm hiển thị Menu (Chỉ chạy khi ViewModel báo có dữ liệu)
+    private void showBuildingMenu(Building data) {
+        // 1. Đổ dữ liệu vào UI (Giữ nguyên)
+        tvName.setText(data.getName());
+        tvLevel.setText("Level: " + data.getLevel());
+        pbProgress.setMax(data.getMaxExp());
+        pbProgress.setProgress(data.getCurrentExp());
+        tvProgressText.setText(data.getCurrentExp() + "/" + data.getMaxExp());
+
+        if (data.isHasMission()) {
+            btnUpgrade.setVisibility(View.GONE);
+            btnMission.setVisibility(View.VISIBLE);
+        } else {
+            btnUpgrade.setVisibility(View.VISIBLE);
+            btnMission.setVisibility(View.GONE);
+        }
+
+        // 2. TÍNH TOÁN VỊ TRÍ THÔNG MINH
+        if (currentClickedView != null) {
+            layoutMenu.setVisibility(View.VISIBLE);
+
+            layoutMenu.post(() -> {
+                // --- A. Lấy thông số cần thiết ---
+                int scrollX = hScroll.getScrollX();
+                int scrollY = vScroll.getScrollY();
+                int menuW = layoutMenu.getWidth();
+                int menuH = layoutMenu.getHeight();
+                int buildingW = currentClickedView.getWidth();
+                int buildingH = currentClickedView.getHeight();
+
+                // Lấy kích thước màn hình
+                DisplayMetrics displayMetrics = new DisplayMetrics();
+                getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+                int screenW = displayMetrics.widthPixels;
+                int screenH = displayMetrics.heightPixels;
+
+                // --- B. Tính toán toạ độ thực tế của nhà trên màn hình ---
+                // (Toạ độ map - Khoảng đã cuộn = Toạ độ trên màn hình)
+                float buildingScreenX = currentClickedView.getX() - scrollX;
+                float buildingScreenY = currentClickedView.getY() - scrollY;
+
+                // --- C. Xử lý chiều Dọc (Y): Trên hay Dưới? ---
+                // Mặc định: Hiển thị Ở TRÊN
+                float finalY = buildingScreenY - menuH + 20; // +20 để đè nhẹ lên nóc
+
+                // KIỂM TRA: Nếu menu bị trôi ra khỏi mép trên (y < 50px chừa chỗ cho thanh trạng thái)
+                if (finalY < 50) {
+                    // -> ĐỔI: Hiển thị XUỐNG DƯỚI chân nhà
+                    finalY = buildingScreenY + buildingH - 20;
+                }
+
+                // (Optional) Kiểm tra nếu hiển thị bên dưới mà bị tràn đáy màn hình
+                // thì ép nó nằm sát đáy (nhưng trường hợp này ít xảy ra hơn)
+                if (finalY + menuH > screenH) {
+                    finalY = screenH - menuH - 20;
+                }
+
+                // --- D. Xử lý chiều Ngang (X): Trái hay Phải? ---
+                // Mặc định: Căn giữa
+                float finalX = buildingScreenX + (buildingW / 2f) - (menuW / 2f);
+
+                // KIỂM TRA:
+                // 1. Nếu bị tràn sang trái (X < 0) -> Gán bằng mép trái (+10px padding)
+                if (finalX < 10) {
+                    finalX = 10;
+                }
+                // 2. Nếu bị tràn sang phải -> Gán bằng mép phải
+                else if (finalX + menuW > screenW) {
+                    finalX = screenW - menuW - 10;
+                }
+
+                // --- E. Chốt vị trí ---
+                layoutMenu.setX(finalX);
+                layoutMenu.setY(finalY);
+            });
+        }
+    }
+
+    // Hàm căn giữa bản đồ (Giữ nguyên từ code cũ)
+    private void scrollToCenter() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenWidth = displayMetrics.widthPixels;
+        int screenHeight = displayMetrics.heightPixels;
+
+        ImageView imgMap = findViewById(R.id.img_map_background);
+        int mapWidth = imgMap.getWidth();
+        int mapHeight = imgMap.getHeight();
+
+        if (mapWidth == 0) {
+            float density = getResources().getDisplayMetrics().density;
+            mapWidth = (int) (1500 * density); // Đảm bảo số này khớp XML
+
+            // Sửa lỗi findViewById ở đây bằng cách dùng hScroll
+            if (hScroll.getChildCount() > 0) {
+                View content = hScroll.getChildAt(0);
+                mapHeight = content.getHeight();
+            }
+        }
+
+        int xTarget = (mapWidth - screenWidth) / 2;
+        int yTarget = (mapHeight - screenHeight) / 2;
+
+        if (xTarget < 0) xTarget = 0;
+        if (yTarget < 0) yTarget = 0;
+
+        hScroll.scrollTo(xTarget, 0);
+        vScroll.scrollTo(0, yTarget);
+    }
+}

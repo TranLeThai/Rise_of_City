@@ -1,4 +1,4 @@
-package com.example.rise_of_city;
+package com.example.rise_of_city.data.model;
 
 public class Quest {
     private String name;

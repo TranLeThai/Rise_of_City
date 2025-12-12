@@ -6,6 +6,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.fragment.HomeFragment;
+import com.example.rise_of_city.fragment.ChatAiFragment;
+import com.example.rise_of_city.fragment.RoadMapFragment;
+import com.example.rise_of_city.fragment.SearchFragment;
+import com.example.rise_of_city.fragment.ProfileFragment;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -33,9 +37,15 @@ public class MainActivity extends AppCompatActivity {
 
             if (itemId == R.id.nav_home) {
                 selectedFragment = new HomeFragment();
+            } else if (itemId == R.id.nav_search) {
+                selectedFragment = new SearchFragment();
+            } else if (itemId == R.id.nav_explore) {
+                selectedFragment = new RoadMapFragment();
+            } else if (itemId == R.id.nav_chat) {
+                selectedFragment = new ChatAiFragment();
+            } else if (itemId == R.id.nav_profile) {
+                selectedFragment = new ProfileFragment();
             }
-            // Thêm các case khác nếu bạn có fragment Profile, Store, v.v.
-            // else if (itemId == R.id.nav_profile) { ... }
 
             if (selectedFragment != null) {
                 getSupportFragmentManager().beginTransaction()

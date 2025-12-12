@@ -1,14 +1,252 @@
 package com.example.rise_of_city.auth;
 
-import androidx.appcompat.app.AppCompatActivity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.util.Patterns;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ProgressBar;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.example.rise_of_city.R;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
+    private EditText edtEmail, edtPassword, edtConfirmPassword;
+    private Button signUp;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private static final String TAG = "SignUpActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_sign_up);
+        setContentView(R.layout.activity_signup);
+
+        // Khởi tạo Firebase
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+
+        // Tìm view
+        edtEmail = findViewById(R.id.edtSignEmail);
+        edtPassword = findViewById(R.id.editSignPassword);
+        edtConfirmPassword = findViewById(R.id.edtPasswordConfirm);
+        signUp = findViewById(R.id.SignUpBtn);
+
+        signUp.setOnClickListener(e -> CreateUser());
+    }
+
+    private void CreateUser() {
+        // Lấy dữ liệu
+        String email = edtEmail.getText().toString().trim();
+        String password = edtPassword.getText().toString().trim();
+        String confirmPassword = edtConfirmPassword.getText().toString().trim();
+
+        // VALIDATION NÂNG CAO
+        if (!validateInputs(email, password, confirmPassword)) {
+            return;
+        }
+
+        // Hiển thị progress bar
+        signUp.setEnabled(false);
+
+        // Tạo người dùng trong Firebase Authentication
+        mAuth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        FirebaseUser user = mAuth.getCurrentUser();
+                        if (user != null) {
+                            saveUserToFirestore(user.getUid(), email);
+                        }
+                    } else {
+                        signUp.setEnabled(true);
+                        String err = task.getException() != null ?
+                                task.getException().getMessage() : "Lỗi không xác định";
+                        Toast.makeText(this, "Đăng ký thất bại: " + err, Toast.LENGTH_LONG).show();
+                        Log.e(TAG, "Đăng ký thất bại: ", task.getException());
+                    }
+                });
+    }
+
+    // VALIDATION CHI TIẾT
+    private boolean validateInputs(String email, String password, String confirmPassword) {
+        // Validate email
+        if (email.isEmpty()) {
+            edtEmail.setError("Vui lòng nhập email");
+            edtEmail.requestFocus();
+            return false;
+        }
+
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            edtEmail.setError("Email không hợp lệ");
+            edtEmail.requestFocus();
+            return false;
+        }
+
+        // Validate mật khẩu
+        if (password.isEmpty()) {
+            edtPassword.setError("Vui lòng nhập mật khẩu");
+            edtPassword.requestFocus();
+            return false;
+        }
+
+        if (password.length() < 6) {
+            edtPassword.setError("Mật khẩu phải có ít nhất 6 kí tự");
+            edtPassword.requestFocus();
+            return false;
+        }
+
+        // Check password strength
+        PasswordValidationResult validationResult = validatePasswordStrength(password);
+        if (!validationResult.isValid) {
+            Toast.makeText(this, validationResult.message, Toast.LENGTH_LONG).show();
+            return false;
+        }
+
+
+        // Validate xác nhận mật khẩu
+        if (confirmPassword.isEmpty()) {
+            edtConfirmPassword.setError("Vui lòng xác nhận mật khẩu");
+            edtConfirmPassword.requestFocus();
+            return false;
+        }
+
+        if (!password.equals(confirmPassword)) {
+            edtConfirmPassword.setError("Mật khẩu không khớp");
+            edtConfirmPassword.requestFocus();
+            return false;
+        }
+
+        return true;
+    }
+
+    private PasswordValidationResult validatePasswordStrength(String password) {
+        boolean hasUpper = password.matches(".*[A-Z].*");
+        boolean hasLower = password.matches(".*[a-z].*");
+        boolean hasDigit = password.matches(".*[0-9].*");
+        boolean hasSpecial = password.matches(".*[^a-zA-Z0-9].*");
+
+        StringBuilder message = new StringBuilder("Mật khẩu cần có: ");
+        boolean isValid = true;
+
+        if (!hasUpper) {
+            message.append("chữ hoa, ");
+            isValid = false;
+        }
+        if (!hasLower) {
+            message.append("chữ thường, ");
+            isValid = false;
+        }
+        if (!hasDigit) {
+            message.append("số, ");
+            isValid = false;
+        }
+        if (!hasSpecial) {
+            message.append("ký tự đặc biệt");
+            isValid = false;
+        }
+
+        if (!isValid) {
+            if (message.toString().endsWith(", ")) {
+                message.delete(message.length() - 2, message.length());
+            }
+        }
+
+        return new PasswordValidationResult(isValid, message.toString());
+    }
+
+    private void updateUserProfile(FirebaseUser user, String fullName) {
+        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                .setDisplayName(fullName)
+                .build();
+
+        user.updateProfile(profileUpdates)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "User profile updated.");
+                    } else {
+                        Log.e(TAG, "Failed to update user profile.");
+                    }
+                });
+    }
+
+    private void saveUserToFirestore(String uid, String email) {
+        // Tạo dữ liệu user với validation
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", uid); // Lưu cả UID trong document
+        userData.put("email", email);
+        userData.put("createdAt", FieldValue.serverTimestamp()); // Dùng server timestamp
+        userData.put("updatedAt", FieldValue.serverTimestamp());
+        userData.put("lastLogin", FieldValue.serverTimestamp());
+        userData.put("role", "customer");
+        userData.put("isActive", true);
+        userData.put("emailVerified", false);
+        userData.put("courses", new HashMap<String, Object>()); // Khởi tạo empty courses
+        userData.put("phone", "");
+        userData.put("address", "");
+
+        // Lưu vào Firestore với UID làm Document ID
+        db.collection("user_profiles")
+                .document(uid) // DÙNG UID LÀM DOCUMENT ID
+                .set(userData)
+                .addOnCompleteListener(task -> {
+                    signUp.setEnabled(true);
+
+                    if (task.isSuccessful()) {
+                        Log.d(TAG, "User profile saved to Firestore with UID: " + uid);
+                        Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
+
+                        // Gửi email xác thực
+                        sendEmailVerification();
+
+                        // Chuyển đến màn hình đăng nhập
+                        startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                        finish();
+                    } else {
+                        Log.e(TAG, "Failed to save user profile: ", task.getException());
+                        Toast.makeText(this, "Lỗi lưu thông tin. Vui lòng thử lại.", Toast.LENGTH_LONG).show();
+
+                        // Rollback: xóa user khỏi Auth nếu lưu Firestore thất bại
+                        mAuth.getCurrentUser().delete();
+                    }
+                });
+    }
+
+    private void sendEmailVerification() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user != null) {
+            user.sendEmailVerification()
+                    .addOnCompleteListener(task -> {
+                        if (task.isSuccessful()) {
+                            Toast.makeText(this,
+                                    "Đã gửi email xác thực. Vui lòng kiểm tra hộp thư.",
+                                    Toast.LENGTH_LONG).show();
+                        }
+                    });
+        }
+    }
+
+    // Helper class for password validation
+    private static class PasswordValidationResult {
+        boolean isValid;
+        String message;
+
+        PasswordValidationResult(boolean isValid, String message) {
+            this.isValid = isValid;
+            this.message = message;
+        }
     }
 }

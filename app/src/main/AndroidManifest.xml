@@ -11,8 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Rise_of_City">
+
+        <!-- LoginActivity là activity khởi động -->
         <activity
-            android:name=".MainActivity"
+            android:name=".auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -21,7 +23,11 @@
             </intent-filter>
         </activity>
 
+        <!-- MainActivity không tự chạy nữa -->
+        <activity android:name=".MainActivity" />
+
         <activity android:name=".QuestsActivity" />
+        <activity android:name=".auth.SignUpActivity" />
 
     </application>
 

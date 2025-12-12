@@ -2,6 +2,7 @@ package com.example.rise_of_city;
 
 import android.content.Intent;
 import android.os.Bundle;
+import com.example.rise_of_city.R;
 import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;

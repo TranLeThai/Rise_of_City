@@ -32,10 +32,12 @@ public class QuestsAdapter extends RecyclerView.Adapter<QuestsAdapter.QuestViewH
     public void onBindViewHolder(@NonNull QuestViewHolder holder, int position) {
         Quest quest = questList.get(position);
         holder.questName.setText(quest.getName());
-        holder.rewards.setText(quest.getRewards());
+        holder.rewards.setText("+" + quest.getGoldReward());
+        holder.rewardsXp.setText("+" + quest.getXpReward());
         holder.questIcon.setImageResource(quest.getIconResId());
-        holder.progressBar.setMax(quest.getMaxProgress());
-        holder.progressBar.setProgress(quest.getProgress());
+
+        String progressText = quest.getProgress() + "/" + quest.getMaxProgress();
+        holder.progressText.setText(progressText);
     }
 
     @Override
@@ -47,7 +49,8 @@ public class QuestsAdapter extends RecyclerView.Adapter<QuestsAdapter.QuestViewH
         ImageView questIcon;
         TextView questName;
         TextView rewards;
-        ProgressBar progressBar;
+        TextView rewardsXp;
+        TextView progressText;
         ImageButton goButton;
 
         public QuestViewHolder(@NonNull View itemView) {
@@ -55,7 +58,8 @@ public class QuestsAdapter extends RecyclerView.Adapter<QuestsAdapter.QuestViewH
             questIcon = itemView.findViewById(R.id.imageView_quest_icon);
             questName = itemView.findViewById(R.id.textView_quest_name);
             rewards = itemView.findViewById(R.id.textView_rewards);
-            progressBar = itemView.findViewById(R.id.progressBar_quest);
+            rewardsXp = itemView.findViewById(R.id.textView_rewards_xp);
+            progressText = itemView.findViewById(R.id.textView_progress_text);
             goButton = itemView.findViewById(R.id.button_go);
         }
     }

@@ -1,15 +1,12 @@
-package com.example.rise_of_city;
+package com.example.rise_of_city; // Đổi thành package của bạn
 
-import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
-
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
 
-import com.example.rise_of_city.fragment.HomeFragment; // Import Fragment của bạn
+import com.example.rise_of_city.fragment.HomeFragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -18,23 +15,34 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (savedInstanceState == null) {
-            loadFragment(new HomeFragment());
-        }
-        Button questsButton = findViewById(R.id.button_quests);
-        // Kiểm tra null để tránh crash nếu layout quên chưa thêm nút này
-        if (questsButton != null) {
-            questsButton.setOnClickListener(v -> {
-                Intent intent = new Intent(MainActivity.this, QuestsActivity.class);
-                startActivity(intent);
-            });
-        }
-    }
+        BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
 
-    private void loadFragment(Fragment fragment) {
-        FragmentManager fragmentManager = getSupportFragmentManager();
-        FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        fragmentTransaction.replace(R.id.fragment_container, fragment);
-        fragmentTransaction.commit();
+        // Đặt Fragment mặc định là HomeFragment khi mở app
+        if (savedInstanceState == null) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new HomeFragment())
+                    .commit();
+        }
+
+        // Xử lý sự kiện khi bấm vào menu dưới đáy
+        bottomNav.setOnItemSelectedListener(item -> {
+            Fragment selectedFragment = null;
+
+            // Giả sử menu của bạn có id là nav_home (bạn cần check file menu xml)
+            int itemId = item.getItemId();
+
+            if (itemId == R.id.nav_home) {
+                selectedFragment = new HomeFragment();
+            }
+            // Thêm các case khác nếu bạn có fragment Profile, Store, v.v.
+            // else if (itemId == R.id.nav_profile) { ... }
+
+            if (selectedFragment != null) {
+                getSupportFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, selectedFragment)
+                        .commit();
+            }
+            return true;
+        });
     }
 }

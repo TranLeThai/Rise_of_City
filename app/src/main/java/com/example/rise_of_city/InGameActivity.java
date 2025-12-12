@@ -1,8 +1,11 @@
 package com.example.rise_of_city;
 
 import android.os.Bundle;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -12,7 +15,8 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     // Khai báo các biến cho các tòa nhà
     private ImageView imgSchool, imgLibrary, imgPark, imgFarmer, imgCoffee, imgClothers, imgBakery, imgHouse, imgTree;
-
+    private ScrollView vScroll;
+    private HorizontalScrollView hScroll;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,7 +43,37 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         imgBakery.setOnClickListener(this);
         imgHouse.setOnClickListener(this);
 
-        // imgTree có thể chỉ để trang trí, không cần click, hoặc thêm nếu muốn
+        vScroll = findViewById(R.id.vertical_scroll);
+        hScroll = findViewById(R.id.horizontal_scroll);
+        if (vScroll != null && hScroll != null) {
+            vScroll.post(this::scrollToCenter);
+        }
+    }
+    private void scrollToCenter() {
+        DisplayMetrics displayMetrics = new DisplayMetrics();
+        getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        int screenWidth = displayMetrics.widthPixels;
+        int screenHeight = displayMetrics.heightPixels;
+
+        ImageView imgMap = findViewById(R.id.img_map_background);
+        int mapWidth = imgMap.getWidth();
+        int mapHeight = imgMap.getHeight();
+
+        if (mapWidth == 0) {
+            float density = getResources().getDisplayMetrics().density;
+            mapWidth = (int) (1500 * density);
+            View content = hScroll.getChildAt(0);
+            mapHeight = content.getHeight();
+        }
+
+        int xTarget = (mapWidth - screenWidth) / 2;
+        int yTarget = (mapHeight - screenHeight) / 2;
+
+        if (xTarget < 0) xTarget = 0;
+        if (yTarget < 0) yTarget = 0;
+
+        hScroll.scrollTo(xTarget, 0);
+        vScroll.scrollTo(0, yTarget);
     }
 
     @Override

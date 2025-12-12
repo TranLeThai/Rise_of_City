@@ -6,16 +6,20 @@
     android:layout_height="match_parent">
 
     <ScrollView
+        android:id="@+id/vertical_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fillViewport="true"
         android:scrollbars="none"
+        android:layout_gravity="center"
         tools:layout_editor_absoluteX="-118dp"
         tools:layout_editor_absoluteY="30dp">
 
         <HorizontalScrollView
+            android:id="@+id/horizontal_scroll"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:fillViewport="true"
             android:scrollbars="none">
 
             <androidx.constraintlayout.widget.ConstraintLayout

@@ -42,6 +42,13 @@ public class SignUpActivity extends AppCompatActivity {
         edtConfirmPassword = findViewById(R.id.edtPasswordConfirm);
         signUp = findViewById(R.id.SignUpBtn);
 
+        // Nút back - Navigate về màn hình đăng nhập
+        findViewById(R.id.btnBack).setOnClickListener(v -> {
+            Intent intent = new Intent(SignUpActivity.this, LoginActivity.class);
+            startActivity(intent);
+            finish(); // Đóng màn hình đăng ký sau khi mở màn hình đăng nhập
+        });
+
         signUp.setOnClickListener(e -> CreateUser());
     }
 

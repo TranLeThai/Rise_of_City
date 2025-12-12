@@ -55,8 +55,11 @@
 
     <Button
         android:id="@+id/btn_play"
-        android:layout_width="259dp"
-        android:layout_height="240dp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="200dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@android:color/transparent"
         android:text="\n \n \n \n \n \n \nVÀO GAME"
         android:textAlignment="center"
@@ -66,7 +69,9 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.498" />
+        app:layout_constraintVertical_bias="0.498"
+        app:layout_constraintWidth_max="300dp"
+        app:layout_constraintWidth_percent="0.9" />
 
     <ImageView
         android:id="@+id/money"

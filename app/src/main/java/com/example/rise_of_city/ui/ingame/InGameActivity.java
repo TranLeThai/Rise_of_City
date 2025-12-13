@@ -23,6 +23,7 @@ import android.content.Intent;
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.fragment.UnlockFragment;
 import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
 import com.example.rise_of_city.ui.dialog.MissionDialogFragment;
 import com.example.rise_of_city.ui.lesson.LessonActivity;
@@ -80,13 +81,17 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
                     showLockAreaDialog(building);
                     // Đóng menu nếu đang mở
                     layoutMenu.setVisibility(View.GONE);
+                    hideUnlockFragment();
                 } else {
-                    // Có dữ liệu và không bị khóa -> Hiện menu
-                    showBuildingMenu(building);
+                    // Có dữ liệu và không bị khóa -> Hiện UnlockFragment (thay vì menu popup nhỏ)
+                    showUnlockFragment(building);
+                    // Ẩn menu popup cũ
+                    layoutMenu.setVisibility(View.GONE);
                 }
             } else {
-                // Dữ liệu null -> Ẩn menu
+                // Dữ liệu null -> Ẩn menu và fragment
                 layoutMenu.setVisibility(View.GONE);
+                hideUnlockFragment();
             }
         });
 
@@ -126,6 +131,21 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                // Kiểm tra nếu UnlockFragment đang hiển thị -> đóng fragment trước
+                View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+                if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
+                    hideUnlockFragment();
+                    viewModel.closeMenu(); // Reset selected building
+                    return;
+                }
+                
+                // Kiểm tra nếu menu popup đang hiển thị -> đóng menu
+                if (layoutMenu != null && layoutMenu.getVisibility() == View.VISIBLE) {
+                    layoutMenu.setVisibility(View.GONE);
+                    viewModel.closeMenu();
+                    return;
+                }
+                
                 // Kiểm tra: Nếu thời gian hiện tại ít hơn thời gian bấm trước đó + 2000ms (2 giây)
                 if (backPressedTime + 2000 > System.currentTimeMillis()) {
                     // Hủy Toast đang hiện để giao diện sạch sẽ
@@ -364,6 +384,41 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         });
         
         dialog.show(getSupportFragmentManager(), "MissionDialog");
+    }
+
+    // Hiển thị UnlockFragment khi click vào building đã unlock
+    private void showUnlockFragment(Building building) {
+        View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.VISIBLE);
+            
+            UnlockFragment unlockFragment = UnlockFragment.newInstance(building);
+            
+            // Set callbacks
+            unlockFragment.setOnHarvestClickListener(b -> {
+                // Xử lý thu hoạch
+                Toast.makeText(this, "Thu hoạch: " + b.getName(), Toast.LENGTH_SHORT).show();
+                // TODO: Thêm logic thu hoạch
+            });
+            
+            unlockFragment.setOnUpgradeClickListener(b -> {
+                // Xử lý nâng cấp
+                Toast.makeText(this, "Nâng cấp: " + b.getName(), Toast.LENGTH_SHORT).show();
+                // TODO: Thêm logic nâng cấp
+            });
+            
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_unlock_container, unlockFragment)
+                    .commit();
+        }
+    }
+    
+    // Ẩn UnlockFragment
+    private void hideUnlockFragment() {
+        View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.GONE);
+        }
     }
 
     // Hiển thị mission dialog random khi click vào icon mission (clipboard)

@@ -34,12 +34,12 @@ public class GameRepository {
         buildingList = new ArrayList<>();
 
         // Thêm dữ liệu giả lập (Khớp với các ID trong InGameActivity)
-        // Building unlocked (không bị khóa)
+        // Buildings unlocked (không bị khóa) - để test fragment Unlock
         addBuilding(new Building("house", "Nhà Của Tôi", 1, 100, 100, true, false, null));
+        addBuilding(new Building("library", "Thư Viện", 5, 50, 100, false, false, null)); // Unlocked để test
+        addBuilding(new Building("school", "Trường học", 3, 75, 150, true, false, null)); // Unlocked để test
         
         // Buildings locked (bị khóa - cần hoàn thành bài học)
-        addBuilding(new Building("school", "Trường học", 0, 0, 100, true, true, "Thì hiện tại đơn"));
-        addBuilding(new Building("library", "Thư viện", 0, 0, 150, false, true, "Thì quá khứ đơn"));
         addBuilding(new Building("park", "Công viên", 0, 0, 100, false, true, "Thì tương lai đơn"));
         addBuilding(new Building("farmer", "Nông trại", 0, 0, 200, true, true, "Thì hiện tại tiếp diễn"));
         addBuilding(new Building("coffee", "Tiệm Cafe", 0, 0, 120, true, true, "Thì quá khứ tiếp diễn"));

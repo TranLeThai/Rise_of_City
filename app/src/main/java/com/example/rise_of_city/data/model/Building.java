@@ -1,6 +1,8 @@
 package com.example.rise_of_city.data.model;
 
-public class Building {
+import java.io.Serializable;
+
+public class Building implements Serializable {
     private String id;
     private String name;
     private int level;

@@ -24,6 +24,7 @@ import android.content.Intent;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Building;
 import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
+import com.example.rise_of_city.ui.dialog.MissionDialogFragment;
 import com.example.rise_of_city.ui.lesson.LessonActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
@@ -153,7 +154,22 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
         // Sự kiện nút bấm trong menu
         if (btnMission != null) {
-            btnMission.setOnClickListener(v -> Toast.makeText(this, "Vào làm bài tập!", Toast.LENGTH_SHORT).show());
+            btnMission.setOnClickListener(v -> {
+                // Lấy building hiện tại từ ViewModel
+                Building currentBuilding = viewModel.getSelectedBuilding().getValue();
+                if (currentBuilding != null) {
+                    showMissionDialog(currentBuilding);
+                }
+            });
+        }
+
+        // Icon mission (clipboard) ở góc trên trái - click để hiển thị mission dialog
+        ImageView ivMission = findViewById(R.id.mission);
+        if (ivMission != null) {
+            ivMission.setOnClickListener(v -> {
+                // Hiển thị mission dialog với mission random
+                showRandomMissionDialog();
+            });
         }
     }
 
@@ -323,5 +339,57 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         Intent intent = new Intent(this, LessonActivity.class);
         intent.putExtra("lessonName", lessonName);
         startActivity(intent);
+    }
+
+    // Hiển thị mission dialog khi bấm nút mission
+    private void showMissionDialog(Building building) {
+        // Tạo mission text dựa trên building
+        String missionText = "Hoàn thành bài học về '" + building.getName() + "' để nhận được phần thưởng!";
+        String missionTitle = "Mission " + building.getName();
+        
+        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, missionText);
+        
+        dialog.setOnAcceptClickListener(() -> {
+            // Khi chấp nhận mission, chuyển sang màn hình học
+            // TODO: Có thể cần thêm logic lưu mission đã accept
+            Toast.makeText(this, "Đã chấp nhận mission!", Toast.LENGTH_SHORT).show();
+            // Có thể chuyển sang màn hình học hoặc làm bài tập
+            // navigateToLessonScreen(building.getName());
+        });
+        
+        dialog.setOnDenyClickListener(() -> {
+            Toast.makeText(this, "Đã từ chối mission!", Toast.LENGTH_SHORT).show();
+            // Đóng building menu
+            viewModel.closeMenu();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "MissionDialog");
+    }
+
+    // Hiển thị mission dialog random khi click vào icon mission (clipboard)
+    private void showRandomMissionDialog() {
+        // Tạo mission text ngẫu nhiên
+        String[] missions = {
+            "Hoàn thành 10 câu hỏi về thì hiện tại đơn để nhận được 100 coin và 50 XP!",
+            "Trả lời đúng 5 câu liên tiếp về từ vựng để nhận được 80 coin!",
+            "Hoàn thành bài tập ngữ pháp để nhận được 120 coin và 75 XP!",
+            "Thực hành phát âm 15 từ để nhận được 90 coin và 60 XP!"
+        };
+        
+        String randomMissionText = missions[(int) (Math.random() * missions.length)];
+        String missionTitle = "Mission random";
+        
+        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, randomMissionText);
+        
+        dialog.setOnAcceptClickListener(() -> {
+            Toast.makeText(this, "Đã chấp nhận mission!", Toast.LENGTH_SHORT).show();
+            // TODO: Có thể chuyển sang màn hình làm bài tập
+        });
+        
+        dialog.setOnDenyClickListener(() -> {
+            Toast.makeText(this, "Đã từ chối mission!", Toast.LENGTH_SHORT).show();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "RandomMissionDialog");
     }
 }

@@ -1,0 +1,58 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="150dp"
+    android:height="200dp"
+    android:viewportWidth="150"
+    android:viewportHeight="200">
+    
+    <!-- Background -->
+    <path
+        android:fillColor="#FFE1E1"
+        android:pathData="M0,0h150v200h-150z"/>
+    
+    <!-- Face (light brown) -->
+    <path
+        android:fillColor="#D4A574"
+        android:pathData="M40,80 Q40,50 75,50 Q110,50 110,80 Q110,110 75,110 Q40,110 40,80 Z"/>
+    
+    <!-- Hijab (cream) -->
+    <path
+        android:fillColor="#F5F5DC"
+        android:pathData="M30,60 Q30,30 75,30 Q120,30 120,60 L120,90 Q120,100 110,105 Q100,110 90,110 L60,110 Q50,110 40,105 Q30,100 30,90 Z"/>
+    
+    <!-- Top (green) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M35,120 Q35,110 75,110 Q115,110 115,120 L115,170 Q115,180 105,185 Q95,190 85,190 L65,190 Q55,190 45,185 Q35,180 35,170 Z"/>
+    
+    <!-- Eyes (simple dots - sử dụng path để vẽ circle) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M60,75 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0"/>
+    <path
+        android:fillColor="#000000"
+        android:pathData="M90,75 m-3,0 a3,3 0 1,1 6,0 a3,3 0 1,1 -6,0"/>
+    
+    <!-- Smile (curved line) -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#000000"
+        android:strokeWidth="2"
+        android:pathData="M65,90 Q75,95 85,90"/>
+    
+    <!-- Backpack straps (blue) -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M50,120 L50,160 L55,160 L55,125 Z"/>
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M95,120 L95,160 L100,160 L100,125 Z"/>
+    
+    <!-- Hands holding straps (sử dụng path để vẽ circle) -->
+    <path
+        android:fillColor="#D4A574"
+        android:pathData="M48,145 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0"/>
+    <path
+        android:fillColor="#D4A574"
+        android:pathData="M102,145 m-8,0 a8,8 0 1,1 16,0 a8,8 0 1,1 -16,0"/>
+</vector>
+

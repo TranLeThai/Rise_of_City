@@ -47,6 +47,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.test.TestMissionDialogActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.lesson.LessonActivity"
             android:screenOrientation="portrait"
             android:exported="false" />

@@ -19,8 +19,12 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
+
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
 public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -70,8 +74,15 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         // Đây là trái tim của MVVM: Khi dữ liệu thay đổi, hàm này tự chạy
         viewModel.getSelectedBuilding().observe(this, building -> {
             if (building != null) {
-                // Có dữ liệu -> Hiện menu
-                showBuildingMenu(building);
+                // Kiểm tra nếu building bị khóa -> hiển thị dialog locked
+                if (building.isLocked()) {
+                    showLockAreaDialog(building);
+                    // Đóng menu nếu đang mở
+                    layoutMenu.setVisibility(View.GONE);
+                } else {
+                    // Có dữ liệu và không bị khóa -> Hiện menu
+                    showBuildingMenu(building);
+                }
             } else {
                 // Dữ liệu null -> Ẩn menu
                 layoutMenu.setVisibility(View.GONE);
@@ -288,5 +299,29 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
         hScroll.scrollTo(xTarget, 0);
         vScroll.scrollTo(0, yTarget);
+    }
+
+    // Hiển thị dialog khi building bị khóa
+    private void showLockAreaDialog(Building building) {
+        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(building.getRequiredLessonName());
+        
+        dialog.setOnLearnNowClickListener(() -> {
+            // Chuyển sang màn hình học
+            navigateToLessonScreen(building.getRequiredLessonName());
+        });
+        
+        dialog.setOnCloseClickListener(() -> {
+            // Đóng dialog và reset selected building
+            viewModel.closeMenu();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "LockAreaDialog");
+    }
+
+    // Chuyển sang màn hình học
+    private void navigateToLessonScreen(String lessonName) {
+        Intent intent = new Intent(this, LessonActivity.class);
+        intent.putExtra("lessonName", lessonName);
+        startActivity(intent);
     }
 }

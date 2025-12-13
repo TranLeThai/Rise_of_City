@@ -34,16 +34,17 @@ public class GameRepository {
         buildingList = new ArrayList<>();
 
         // Thêm dữ liệu giả lập (Khớp với các ID trong InGameActivity)
-        addBuilding(new Building("school", "Trường học", 5, 80, 100, true));
-        addBuilding(new Building("library", "Thư viện", 2, 20, 150, false));
-        addBuilding(new Building("park", "Công viên", 1, 0, 100, false));
-        addBuilding(new Building("farmer", "Nông trại", 3, 50, 200, true));
-
-        // Thêm các nhà khác cho khớp với InGameActivity
-        addBuilding(new Building("coffee", "Tiệm Cafe", 2, 40, 120, true));
-        addBuilding(new Building("clothers", "Shop Quần Áo", 4, 60, 180, false));
-        addBuilding(new Building("bakery", "Tiệm Bánh", 3, 45, 130, true));
-        addBuilding(new Building("house", "Nhà Của Tôi", 1, 100, 100, true));
+        // Building unlocked (không bị khóa)
+        addBuilding(new Building("house", "Nhà Của Tôi", 1, 100, 100, true, false, null));
+        
+        // Buildings locked (bị khóa - cần hoàn thành bài học)
+        addBuilding(new Building("school", "Trường học", 0, 0, 100, true, true, "Thì hiện tại đơn"));
+        addBuilding(new Building("library", "Thư viện", 0, 0, 150, false, true, "Thì quá khứ đơn"));
+        addBuilding(new Building("park", "Công viên", 0, 0, 100, false, true, "Thì tương lai đơn"));
+        addBuilding(new Building("farmer", "Nông trại", 0, 0, 200, true, true, "Thì hiện tại tiếp diễn"));
+        addBuilding(new Building("coffee", "Tiệm Cafe", 0, 0, 120, true, true, "Thì quá khứ tiếp diễn"));
+        addBuilding(new Building("clothers", "Shop Quần Áo", 0, 0, 180, false, true, "Thì tương lai tiếp diễn"));
+        addBuilding(new Building("bakery", "Tiệm Bánh", 0, 0, 130, true, true, "Thì hiện tại hoàn thành"));
     }
 
     // Hàm phụ trợ để thêm vào cả Map và List

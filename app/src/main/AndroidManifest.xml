@@ -52,7 +52,17 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.test.TestVocabularyQuizActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.lesson.LessonActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.quiz.VocabularyQuizActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 

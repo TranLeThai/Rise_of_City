@@ -27,6 +27,7 @@ import com.example.rise_of_city.fragment.UnlockFragment;
 import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
 import com.example.rise_of_city.ui.dialog.MissionDialogFragment;
 import com.example.rise_of_city.ui.lesson.LessonActivity;
+import com.example.rise_of_city.ui.quiz.VocabularyQuizActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
 public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -361,6 +362,12 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         startActivity(intent);
     }
 
+    // Chuyển sang màn hình Vocabulary Quiz
+    private void navigateToVocabularyQuiz() {
+        Intent intent = new Intent(this, VocabularyQuizActivity.class);
+        startActivity(intent);
+    }
+
     // Hiển thị mission dialog khi bấm nút mission
     private void showMissionDialog(Building building) {
         // Tạo mission text dựa trên building
@@ -370,11 +377,8 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, missionText);
         
         dialog.setOnAcceptClickListener(() -> {
-            // Khi chấp nhận mission, chuyển sang màn hình học
-            // TODO: Có thể cần thêm logic lưu mission đã accept
-            Toast.makeText(this, "Đã chấp nhận mission!", Toast.LENGTH_SHORT).show();
-            // Có thể chuyển sang màn hình học hoặc làm bài tập
-            // navigateToLessonScreen(building.getName());
+            // Khi chấp nhận mission, chuyển sang màn hình quiz từ vựng
+            navigateToVocabularyQuiz();
         });
         
         dialog.setOnDenyClickListener(() -> {
@@ -396,9 +400,10 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
             
             // Set callbacks
             unlockFragment.setOnHarvestClickListener(b -> {
-                // Xử lý thu hoạch
-                Toast.makeText(this, "Thu hoạch: " + b.getName(), Toast.LENGTH_SHORT).show();
-                // TODO: Thêm logic thu hoạch
+                // Khi click Thu Hoạch, mở quiz từ vựng để thu hoạch
+                navigateToVocabularyQuiz();
+                // Đóng fragment sau khi mở quiz
+                hideUnlockFragment();
             });
             
             unlockFragment.setOnUpgradeClickListener(b -> {
@@ -437,8 +442,8 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, randomMissionText);
         
         dialog.setOnAcceptClickListener(() -> {
-            Toast.makeText(this, "Đã chấp nhận mission!", Toast.LENGTH_SHORT).show();
-            // TODO: Có thể chuyển sang màn hình làm bài tập
+            // Khi chấp nhận mission random, chuyển sang màn hình quiz từ vựng
+            navigateToVocabularyQuiz();
         });
         
         dialog.setOnDenyClickListener(() -> {

@@ -35,41 +35,66 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/btnBack" />
 
+    <!-- Thêm EditText cho tên -->
+
+
+    <EditText
+        android:id="@+id/edtFullName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="36dp"
+        android:layout_marginEnd="20dp"
+        android:background="@drawable/edit_text_bg"
+        android:ems="10"
+        android:hint="Họ và tên"
+        android:inputType="textPersonName"
+        android:minHeight="56dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/titleSignUp" />
+
     <EditText
         android:id="@+id/edtSignEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="56dp"
-        android:background="@drawable/edit_text_bg"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="36dp"
         android:layout_marginEnd="20dp"
+        android:background="@drawable/edit_text_bg"
         android:ems="10"
-        android:textColor="@color/white"
         android:hint="Email or username"
         android:inputType="textEmailAddress"
+        android:minHeight="56dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/titleSignUp" />
+        app:layout_constraintTop_toBottomOf="@+id/edtFullName" />
 
     <EditText
         android:id="@+id/editSignPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="56dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="32dp"
         android:layout_marginEnd="20dp"
-        android:hint="Password"
-        android:ems="10"
-        android:textColor="@color/white"
-        android:inputType="textPassword"
         android:background="@drawable/edit_text_bg"
+        android:ems="10"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:minHeight="56dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/edtSignEmail" />
 
@@ -77,18 +102,19 @@
         android:id="@+id/edtPasswordConfirm"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="56dp"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="40dp"
         android:layout_marginEnd="20dp"
         android:background="@drawable/edit_text_bg"
-        android:hint="Confirm Password"
-        android:textColor="@color/white"
         android:ems="10"
+        android:hint="Confirm Password"
         android:inputType="textPassword"
+        android:minHeight="56dp"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
+        android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/editSignPassword" />
 
@@ -96,17 +122,19 @@
         android:id="@+id/SignUpBtn"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:minHeight="56dp"
         android:layout_marginStart="20dp"
         android:layout_marginTop="32dp"
         android:layout_marginEnd="20dp"
         android:layout_marginBottom="24dp"
+        android:minHeight="56dp"
         android:text="Đăng Ký"
         android:textSize="18sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/edtPasswordConfirm" />
+        app:layout_constraintTop_toBottomOf="@id/edtPasswordConfirm"
+        app:layout_constraintVertical_bias="0.346" />
 
 
 </androidx.constraintlayout.widget.ConstraintLayout>

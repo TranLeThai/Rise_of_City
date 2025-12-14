@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class SignUpActivity extends AppCompatActivity {
-    private EditText edtEmail, edtPassword, edtConfirmPassword;
+    private EditText edtEmail, edtPassword, edtConfirmPassword, edtFullName;
     private Button signUp;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
@@ -37,6 +37,7 @@ public class SignUpActivity extends AppCompatActivity {
         db = FirebaseFirestore.getInstance();
 
         // Tìm view
+        edtFullName = findViewById(R.id.edtFullName);
         edtEmail = findViewById(R.id.edtSignEmail);
         edtPassword = findViewById(R.id.editSignPassword);
         edtConfirmPassword = findViewById(R.id.edtPasswordConfirm);
@@ -57,9 +58,11 @@ public class SignUpActivity extends AppCompatActivity {
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
         String confirmPassword = edtConfirmPassword.getText().toString().trim();
+        String fullName = edtFullName.getText().toString().trim();
+
 
         // VALIDATION NÂNG CAO
-        if (!validateInputs(email, password, confirmPassword)) {
+        if (!validateInputs(email, password, confirmPassword, fullName)) {
             return;
         }
 
@@ -72,7 +75,11 @@ public class SignUpActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            saveUserToFirestore(user.getUid(), email);
+                            // Cập nhật thông tin tên trong Auth
+                            updateUserProfile(user, fullName); // Thêm dòng này
+
+                            // Lưu thông tin vào Firestore
+                            saveUserToFirestore(user.getUid(), email, fullName); // Thêm fullName
                         }
                     } else {
                         signUp.setEnabled(true);
@@ -85,11 +92,17 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     // VALIDATION CHI TIẾT
-    private boolean validateInputs(String email, String password, String confirmPassword) {
+    private boolean validateInputs(String email, String password, String confirmPassword, String fullName) {
         // Validate email
         if (email.isEmpty()) {
             edtEmail.setError("Vui lòng nhập email");
             edtEmail.requestFocus();
+            return false;
+        }
+
+        if (fullName.isEmpty()) {
+            edtFullName.setError("Vui lòng nhập họ và tên");
+            edtFullName.requestFocus();
             return false;
         }
 
@@ -179,17 +192,18 @@ public class SignUpActivity extends AppCompatActivity {
         user.updateProfile(profileUpdates)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d(TAG, "User profile updated.");
+                        Log.d(TAG, "User profile updated with name: " + fullName);
                     } else {
                         Log.e(TAG, "Failed to update user profile.");
                     }
                 });
     }
 
-    private void saveUserToFirestore(String uid, String email) {
+    private void saveUserToFirestore(String uid, String email, String fullName) {
         // Tạo dữ liệu user với validation
         Map<String, Object> userData = new HashMap<>();
         userData.put("uid", uid); // Lưu cả UID trong document
+        userData.put("name", fullName);
         userData.put("email", email);
         userData.put("createdAt", FieldValue.serverTimestamp()); // Dùng server timestamp
         userData.put("updatedAt", FieldValue.serverTimestamp());

@@ -2,6 +2,7 @@ package com.example.rise_of_city.fragment;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +18,8 @@ import com.example.rise_of_city.ui.main.MainActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ProfileFragment extends Fragment {
 
@@ -78,22 +81,67 @@ public class ProfileFragment extends Fragment {
     private void loadUserInfo() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
-            // Hiển thị tên người dùng
-            String displayName = user.getDisplayName();
-            if (displayName != null && !displayName.isEmpty()) {
-                tvUserName.setText(displayName);
-            } else {
-                // Nếu không có display name, dùng email
-                String email = user.getEmail();
-                if (email != null) {
-                    String name = email.substring(0, email.indexOf("@"));
-                    tvUserName.setText(name);
-                }
-            }
+            // Ưu tiên hiển thị tên từ Firestore (nếu có)
+            loadUserNameFromFirestore(user.getUid(), user);
         } else {
-            // Nếu chưa đăng nhập, chuyển về màn hình đăng nhập
             navigateToLogin();
         }
+    }
+
+    private void loadUserNameFromFirestore(String uid, FirebaseUser user) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("user_profiles")
+                .document(uid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            // Ưu tiên 1: Lấy tên từ Firestore
+                            String name = document.getString("name");
+                            if (name != null && !name.isEmpty()) {
+                                tvUserName.setText(name);
+                                return;
+                            }
+                        }
+
+                        // Ưu tiên 2: Lấy displayName từ Firebase Auth
+                        String displayName = user.getDisplayName();
+                        if (displayName != null && !displayName.isEmpty()) {
+                            tvUserName.setText(displayName);
+                            return;
+                        }
+
+                        // Ưu tiên 3: Lấy từ email
+                        String email = user.getEmail();
+                        if (email != null) {
+                            String nameFromEmail = email.substring(0, email.indexOf("@"));
+                            tvUserName.setText(nameFromEmail);
+                        }
+                    } else {
+                        // Nếu không lấy được từ Firestore, dùng thông tin từ Auth
+                        String displayName = user.getDisplayName();
+                        if (displayName != null && !displayName.isEmpty()) {
+                            tvUserName.setText(displayName);
+                        } else {
+                            String email = user.getEmail();
+                            if (email != null) {
+                                String name = email.substring(0, email.indexOf("@"));
+                                tvUserName.setText(name);
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ProfileFragment", "Error loading user name: ", e);
+                    // Fallback: dùng email
+                    String email = user.getEmail();
+                    if (email != null) {
+                        String name = email.substring(0, email.indexOf("@"));
+                        tvUserName.setText(name);
+                    }
+                });
     }
 
     private void logout() {

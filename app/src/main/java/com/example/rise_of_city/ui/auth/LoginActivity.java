@@ -32,6 +32,8 @@ import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -295,6 +297,7 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         updateLastLogin(user.getUid());
+        updateUserNameIfMissing(user.getUid(), user.getDisplayName());
 
         Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "User logged in: " + user.getEmail());
@@ -310,6 +313,43 @@ public class LoginActivity extends AppCompatActivity {
 
         // No Firestore/Database write here: implement server-side logic or add Firestore dependency if needed
         Log.d(TAG, "Last login updated (local): " + userId);
+    }
+
+    private void updateUserNameIfMissing(String uid, String displayName) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+
+        db.collection("user_profiles")
+                .document(uid)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            // Kiểm tra nếu chưa có trường name
+                            if (!document.contains("name") || document.getString("name") == null || document.getString("name").isEmpty()) {
+                                // Tạo tên từ email nếu không có displayName
+                                String nameToSet = displayName;
+                                if (nameToSet == null || nameToSet.isEmpty()) {
+                                    FirebaseUser currentUser = mAuth.getCurrentUser();
+                                    if (currentUser != null && currentUser.getEmail() != null) {
+                                        String email = currentUser.getEmail();
+                                        nameToSet = email.substring(0, email.indexOf("@"));
+                                    }
+                                }
+
+                                // Cập nhật Firestore
+                                final String finalNameToSet = nameToSet;
+                                if (finalNameToSet != null && !finalNameToSet.isEmpty()) {
+                                    db.collection("user_profiles")
+                                            .document(uid)
+                                            .update("name", finalNameToSet)
+                                            .addOnSuccessListener(aVoid -> Log.d(TAG, "Đã cập nhật tên cho user cũ: " + finalNameToSet))
+                                            .addOnFailureListener(e -> Log.e(TAG, "Lỗi cập nhật tên: ", e));
+                                }
+                            }
+                        }
+                    }
+                });
     }
 
     private void handleFailedLogin(Task<?> task) {

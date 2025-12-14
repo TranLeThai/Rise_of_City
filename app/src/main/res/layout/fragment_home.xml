@@ -7,96 +7,173 @@
     android:background="#87CEEB"
     android:layout_height="match_parent">
 
+    <!-- Center: Floating Island Image - Full screen background -->
+    <ImageView
+        android:id="@+id/img_island"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_home" />
+
+    <!-- Top Right: Menu icon -->
+    <ImageButton
+        android:id="@+id/btn_menu"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/bg_red_circle"
+        android:src="@drawable/icon_menu"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        android:elevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- Top Left: Yellow banner with sun icon and coins -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="#DBB693"
-        android:orientation="vertical"
-        app:cardCornerRadius="30dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.057"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="#FFD700"
+        app:cardCornerRadius="12dp"
+        app:cardElevation="8dp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.055">
+        app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:background="#EDCC90"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#FFD700"
             android:orientation="horizontal"
-            android:padding="5dp">
+            android:padding="10dp"
+            android:gravity="center_vertical">
 
             <ImageView
-                android:id="@+id/imageView4"
+                android:id="@+id/icon_sun"
                 android:layout_width="20dp"
                 android:layout_height="20dp"
-                android:layout_weight="1"
-                app:srcCompat="@drawable/ic_coin" />
+                android:src="@drawable/ic_sun" />
 
             <TextView
                 android:id="@+id/count_coin"
-                android:layout_width="159dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Số tiền còn lại" />
+                android:layout_marginStart="6dp"
+                android:text="số xu tích lũy được"
+                android:textColor="#000000"
+                android:textSize="11sp" />
+
+            <View
+                android:layout_width="1dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="6dp"
+                android:background="#FF8C00" />
+
+            <TextView
+                android:id="@+id/tv_coin_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="0"
+                android:textColor="#FF0000"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
             <ImageView
-                android:id="@+id/plus"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:layout_weight="1"
-                app:srcCompat="@drawable/icon_plus" />
-
+                android:id="@+id/icon_plus"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_plus_red" />
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/btn_play"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:minHeight="200dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:background="@android:color/transparent"
-        android:text="\n \n \n \n \n \n \nVÀO GAME"
-        android:textAlignment="center"
-        android:textColor="#AD3D3D"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.498"
-        app:layout_constraintWidth_max="300dp"
-        app:layout_constraintWidth_percent="0.9" />
-
+    <!-- Top Left: Money sack icon -->
     <ImageView
         android:id="@+id/money"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="14dp"
-        android:layout_marginEnd="355dp"
-        android:layout_marginBottom="7dp"
-        app:layout_constraintBottom_toTopOf="@+id/mission"
-        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="10dp"
+        android:elevation="8dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cardView"
         app:srcCompat="@drawable/ic_money" />
 
+    <!-- Top Left: Battery/Energy icon -->
+    <ImageView
+        android:id="@+id/battery"
+        android:layout_width="45dp"
+        android:layout_height="45dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="10dp"
+        android:elevation="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/money"
+        app:srcCompat="@drawable/ic_battery" />
+
+    <!-- Top Right: Clipboard/Checklist icon -->
     <ImageView
         android:id="@+id/mission"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginStart="11dp"
-        android:layout_marginTop="7dp"
-        android:layout_marginEnd="351dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:elevation="8dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/money"
+        app:layout_constraintTop_toBottomOf="@+id/btn_menu"
         app:srcCompat="@drawable/icon_mission" />
+
+    <!-- Left Side: Zoom/Pan Control Button -->
+    <ImageButton
+        android:id="@+id/btn_zoom"
+        android:layout_width="56dp"
+        android:layout_height="56dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bg_green_circle"
+        android:src="@drawable/ic_zoom"
+        android:padding="14dp"
+        android:elevation="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- Play Button (invisible overlay on island) -->
+    <Button
+        android:id="@+id/btn_play"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@android:color/transparent"
+        android:text=""
+        android:elevation="2dp"
+        app:layout_constraintBottom_toBottomOf="@+id/img_island"
+        app:layout_constraintEnd_toEndOf="@+id/img_island"
+        app:layout_constraintStart_toStartOf="@+id/img_island"
+        app:layout_constraintTop_toTopOf="@+id/img_island" />
+
+    <!-- Start Game Button - Below island, center of screen -->
+    <Button
+        android:id="@+id/btn_start_game"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="80dp"
+        android:text="Start Game"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:background="@drawable/bg_button_start_game"
+        android:elevation="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintHorizontal_bias="0.5" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

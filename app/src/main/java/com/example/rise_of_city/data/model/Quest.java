@@ -2,14 +2,16 @@ package com.example.rise_of_city.data.model;
 
 public class Quest {
     private String name;
-    private String rewards;
+    private int goldReward;
+    private int xpReward;
     private int progress;
     private int maxProgress;
     private int iconResId; // Resource ID for the icon
 
-    public Quest(String name, String rewards, int progress, int maxProgress, int iconResId) {
+    public Quest(String name, int goldReward, int xpReward, int progress, int maxProgress, int iconResId) {
         this.name = name;
-        this.rewards = rewards;
+        this.goldReward = goldReward;
+        this.xpReward = xpReward;
         this.progress = progress;
         this.maxProgress = maxProgress;
         this.iconResId = iconResId;
@@ -20,8 +22,12 @@ public class Quest {
         return name;
     }
 
-    public String getRewards() {
-        return rewards;
+    public int getGoldReward() {
+        return goldReward;
+    }
+
+    public int getXpReward() {
+        return xpReward;
     }
 
     public int getProgress() {

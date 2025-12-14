@@ -169,12 +169,7 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            // If Firestore is available in your project, you can re-enable saving user profile.
-                            // For now we just update last login timestamp via your server or logging mechanism.
-                            updateLastLogin(user.getUid());
-                            Toast.makeText(LoginActivity.this, "Đăng nhập Google thành công!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                            finish();
+                            handleSuccessfulLogin(user);
                         }
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Lỗi không xác định";
@@ -311,8 +306,7 @@ public class LoginActivity extends AppCompatActivity {
         updates.put("lastLogin", System.currentTimeMillis());
         updates.put("updatedAt", System.currentTimeMillis());
 
-        // No Firestore/Database write here: implement server-side logic or add Firestore dependency if needed
-        Log.d(TAG, "Last login updated (local): " + userId);
+        // No Firestore/Database write here: implement server-side logic or add Firesto
     }
 
     private void updateUserNameIfMissing(String uid, String displayName) {

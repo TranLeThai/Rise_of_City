@@ -1,12 +1,14 @@
 package com.example.rise_of_city.fragment;
 
 import com.example.rise_of_city.ui.ingame.InGameActivity;
+import com.example.rise_of_city.ui.quest.QuestsActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -22,10 +24,24 @@ public class HomeFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
 
         Button btnPlay = view.findViewById(R.id.btn_play);
+        Button btnStartGame = view.findViewById(R.id.btn_start_game);
+        ImageView missionIcon = view.findViewById(R.id.mission);
 
-        // Sự kiện bấm nút Play -> Chuyển sang InGameActivity
+        // Sự kiện bấm nút Play (overlay trên đảo) -> Chuyển sang InGameActivity
         btnPlay.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), InGameActivity.class);
+            startActivity(intent);
+        });
+
+        // Sự kiện bấm nút Start Game -> Chuyển sang InGameActivity
+        btnStartGame.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), InGameActivity.class);
+            startActivity(intent);
+        });
+
+        // Sự kiện bấm icon mission -> Chuyển sang QuestsActivity
+        missionIcon.setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), QuestsActivity.class);
             startActivity(intent);
         });
 

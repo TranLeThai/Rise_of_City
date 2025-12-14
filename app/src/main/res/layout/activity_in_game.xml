@@ -48,7 +48,7 @@
                     app:layout_constraintEnd_toEndOf="@+id/img_map_background"
                     app:layout_constraintStart_toStartOf="@+id/img_map_background"
                     app:layout_constraintTop_toTopOf="@+id/img_map_background"
-                    app:srcCompat="@drawable/vector_school_lock" />
+                    app:srcCompat="@drawable/vector_school" />
 
                 <ImageView
                     android:id="@+id/library"
@@ -59,7 +59,7 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="@+id/img_map_background"
                     app:layout_constraintVertical_bias="0.472"
-                    app:srcCompat="@drawable/vector_library_lock" />
+                    app:srcCompat="@drawable/vector_library" />
 
                 <ImageView
                     android:id="@+id/park"
@@ -316,5 +316,16 @@
                 android:visibility="gone"/> </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Fragment Container cho UnlockFragment -->
+    <FrameLayout
+        android:id="@+id/fragment_unlock_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -35,8 +35,17 @@ public class GameViewModel extends ViewModel {
             // Hỏi Repository xem có nhà này không
             Building building = repository.getBuildingById(buildingId);
 
-            // Cập nhật giá trị -> InGameActivity sẽ tự nhận được thông báo
-            selectedBuilding.setValue(building);
+            if (building != null) {
+                // Kiểm tra nếu building bị khóa thì không set selectedBuilding
+                // (để InGameActivity có thể xử lý hiển thị dialog locked)
+                if (!building.isLocked()) {
+                    // Cập nhật giá trị -> InGameActivity sẽ tự nhận được thông báo
+                    selectedBuilding.setValue(building);
+                } else {
+                    // Building bị khóa, trả về building để InGameActivity hiển thị dialog
+                    selectedBuilding.setValue(building);
+                }
+            }
         }
     }
 

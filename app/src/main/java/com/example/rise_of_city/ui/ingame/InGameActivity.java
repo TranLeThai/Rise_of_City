@@ -19,8 +19,15 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 import androidx.lifecycle.ViewModelProvider;
 
+import android.content.Intent;
+
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.fragment.UnlockFragment;
+import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
+import com.example.rise_of_city.ui.dialog.MissionDialogFragment;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
+import com.example.rise_of_city.ui.quiz.VocabularyQuizActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
 public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -70,11 +77,22 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         // Đây là trái tim của MVVM: Khi dữ liệu thay đổi, hàm này tự chạy
         viewModel.getSelectedBuilding().observe(this, building -> {
             if (building != null) {
-                // Có dữ liệu -> Hiện menu
-                showBuildingMenu(building);
+                // Kiểm tra nếu building bị khóa -> hiển thị dialog locked
+                if (building.isLocked()) {
+                    showLockAreaDialog(building);
+                    // Đóng menu nếu đang mở
+                    layoutMenu.setVisibility(View.GONE);
+                    hideUnlockFragment();
+                } else {
+                    // Có dữ liệu và không bị khóa -> Hiện UnlockFragment (thay vì menu popup nhỏ)
+                    showUnlockFragment(building);
+                    // Ẩn menu popup cũ
+                    layoutMenu.setVisibility(View.GONE);
+                }
             } else {
-                // Dữ liệu null -> Ẩn menu
+                // Dữ liệu null -> Ẩn menu và fragment
                 layoutMenu.setVisibility(View.GONE);
+                hideUnlockFragment();
             }
         });
 
@@ -114,6 +132,21 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                // Kiểm tra nếu UnlockFragment đang hiển thị -> đóng fragment trước
+                View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+                if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
+                    hideUnlockFragment();
+                    viewModel.closeMenu(); // Reset selected building
+                    return;
+                }
+                
+                // Kiểm tra nếu menu popup đang hiển thị -> đóng menu
+                if (layoutMenu != null && layoutMenu.getVisibility() == View.VISIBLE) {
+                    layoutMenu.setVisibility(View.GONE);
+                    viewModel.closeMenu();
+                    return;
+                }
+                
                 // Kiểm tra: Nếu thời gian hiện tại ít hơn thời gian bấm trước đó + 2000ms (2 giây)
                 if (backPressedTime + 2000 > System.currentTimeMillis()) {
                     // Hủy Toast đang hiện để giao diện sạch sẽ
@@ -142,7 +175,22 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
         // Sự kiện nút bấm trong menu
         if (btnMission != null) {
-            btnMission.setOnClickListener(v -> Toast.makeText(this, "Vào làm bài tập!", Toast.LENGTH_SHORT).show());
+            btnMission.setOnClickListener(v -> {
+                // Lấy building hiện tại từ ViewModel
+                Building currentBuilding = viewModel.getSelectedBuilding().getValue();
+                if (currentBuilding != null) {
+                    showMissionDialog(currentBuilding);
+                }
+            });
+        }
+
+        // Icon mission (clipboard) ở góc trên trái - click để hiển thị mission dialog
+        ImageView ivMission = findViewById(R.id.mission);
+        if (ivMission != null) {
+            ivMission.setOnClickListener(v -> {
+                // Hiển thị mission dialog với mission random
+                showRandomMissionDialog();
+            });
         }
     }
 
@@ -288,5 +336,120 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
         hScroll.scrollTo(xTarget, 0);
         vScroll.scrollTo(0, yTarget);
+    }
+
+    // Hiển thị dialog khi building bị khóa
+    private void showLockAreaDialog(Building building) {
+        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(building.getRequiredLessonName());
+        
+        dialog.setOnLearnNowClickListener(() -> {
+            // Chuyển sang màn hình học
+            navigateToLessonScreen(building.getRequiredLessonName());
+        });
+        
+        dialog.setOnCloseClickListener(() -> {
+            // Đóng dialog và reset selected building
+            viewModel.closeMenu();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "LockAreaDialog");
+    }
+
+    // Chuyển sang màn hình học
+    private void navigateToLessonScreen(String lessonName) {
+        Intent intent = new Intent(this, LessonActivity.class);
+        intent.putExtra("lessonName", lessonName);
+        startActivity(intent);
+    }
+
+    // Chuyển sang màn hình Vocabulary Quiz
+    private void navigateToVocabularyQuiz() {
+        Intent intent = new Intent(this, VocabularyQuizActivity.class);
+        startActivity(intent);
+    }
+
+    // Hiển thị mission dialog khi bấm nút mission
+    private void showMissionDialog(Building building) {
+        // Tạo mission text dựa trên building
+        String missionText = "Hoàn thành bài học về '" + building.getName() + "' để nhận được phần thưởng!";
+        String missionTitle = "Mission " + building.getName();
+        
+        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, missionText);
+        
+        dialog.setOnAcceptClickListener(() -> {
+            // Khi chấp nhận mission, chuyển sang màn hình quiz từ vựng
+            navigateToVocabularyQuiz();
+        });
+        
+        dialog.setOnDenyClickListener(() -> {
+            Toast.makeText(this, "Đã từ chối mission!", Toast.LENGTH_SHORT).show();
+            // Đóng building menu
+            viewModel.closeMenu();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "MissionDialog");
+    }
+
+    // Hiển thị UnlockFragment khi click vào building đã unlock
+    private void showUnlockFragment(Building building) {
+        View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.VISIBLE);
+            
+            UnlockFragment unlockFragment = UnlockFragment.newInstance(building);
+            
+            // Set callbacks
+            unlockFragment.setOnHarvestClickListener(b -> {
+                // Khi click Thu Hoạch, mở quiz từ vựng để thu hoạch
+                navigateToVocabularyQuiz();
+                // Đóng fragment sau khi mở quiz
+                hideUnlockFragment();
+            });
+            
+            unlockFragment.setOnUpgradeClickListener(b -> {
+                // Xử lý nâng cấp
+                Toast.makeText(this, "Nâng cấp: " + b.getName(), Toast.LENGTH_SHORT).show();
+                // TODO: Thêm logic nâng cấp
+            });
+            
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_unlock_container, unlockFragment)
+                    .commit();
+        }
+    }
+    
+    // Ẩn UnlockFragment
+    private void hideUnlockFragment() {
+        View fragmentContainer = findViewById(R.id.fragment_unlock_container);
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.GONE);
+        }
+    }
+
+    // Hiển thị mission dialog random khi click vào icon mission (clipboard)
+    private void showRandomMissionDialog() {
+        // Tạo mission text ngẫu nhiên
+        String[] missions = {
+            "Hoàn thành 10 câu hỏi về thì hiện tại đơn để nhận được 100 coin và 50 XP!",
+            "Trả lời đúng 5 câu liên tiếp về từ vựng để nhận được 80 coin!",
+            "Hoàn thành bài tập ngữ pháp để nhận được 120 coin và 75 XP!",
+            "Thực hành phát âm 15 từ để nhận được 90 coin và 60 XP!"
+        };
+        
+        String randomMissionText = missions[(int) (Math.random() * missions.length)];
+        String missionTitle = "Mission random";
+        
+        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, randomMissionText);
+        
+        dialog.setOnAcceptClickListener(() -> {
+            // Khi chấp nhận mission random, chuyển sang màn hình quiz từ vựng
+            navigateToVocabularyQuiz();
+        });
+        
+        dialog.setOnDenyClickListener(() -> {
+            Toast.makeText(this, "Đã từ chối mission!", Toast.LENGTH_SHORT).show();
+        });
+        
+        dialog.show(getSupportFragmentManager(), "RandomMissionDialog");
     }
 }

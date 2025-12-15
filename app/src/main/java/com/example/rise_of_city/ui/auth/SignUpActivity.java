@@ -11,6 +11,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
@@ -214,6 +215,8 @@ public class SignUpActivity extends AppCompatActivity {
         userData.put("courses", new HashMap<String, Object>()); // Khởi tạo empty courses
         userData.put("phone", "");
         userData.put("address", "");
+        userData.put("surveyCompleted", false); // Đánh dấu chưa hoàn thành khảo sát
+        userData.put("surveyLevel", ""); // Trình độ sẽ được cập nhật sau khi hoàn thành khảo sát
 
         // Lưu vào Firestore với UID làm Document ID
         db.collection("user_profiles")
@@ -229,8 +232,10 @@ public class SignUpActivity extends AppCompatActivity {
                         // Gửi email xác thực
                         sendEmailVerification();
 
-                        // Chuyển đến màn hình đăng nhập
-                        startActivity(new Intent(SignUpActivity.this, LoginActivity.class));
+                        // Chuyển đến màn hình khảo sát kiến thức
+                        Intent intent = new Intent(SignUpActivity.this, KnowledgeSurveyActivity.class);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
                         finish();
                     } else {
                         Log.e(TAG, "Failed to save user profile: ", task.getException());

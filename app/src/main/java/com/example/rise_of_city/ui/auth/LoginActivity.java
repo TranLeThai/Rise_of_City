@@ -19,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rise_of_city.ui.main.MainActivity;
+import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
 import com.example.rise_of_city.R;
 //import com.example.rise_of_city.activities.customer.MainActivity;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
@@ -127,8 +128,8 @@ public class LoginActivity extends AppCompatActivity {
         if (currentUser != null) {
             if (currentUser.isEmailVerified()) {
                 updateLastLogin(currentUser.getUid());
-                startActivity(new Intent(LoginActivity.this, MainActivity.class));
-                finish();
+                // Kiểm tra khảo sát thay vì chuyển thẳng đến MainActivity
+                checkSurveyCompletion(currentUser.getUid());
             } else {
                 Toast.makeText(this, "Vui lòng xác thực email trước khi đăng nhập", Toast.LENGTH_LONG).show();
                 mAuth.signOut();
@@ -169,7 +170,8 @@ public class LoginActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
-                            handleSuccessfulLogin(user);
+                            // Kiểm tra xem user đã tồn tại trong Firestore chưa
+                            checkUserExistsAndHandleLogin(user);
                         }
                     } else {
                         String errorMsg = task.getException() != null ? task.getException().getMessage() : "Lỗi không xác định";
@@ -280,6 +282,7 @@ public class LoginActivity extends AppCompatActivity {
         Log.d(TAG, "Special login for: " + email);
         Toast.makeText(this, "Chủ nhân đăng nhập", Toast.LENGTH_SHORT).show();
 
+        // Bỏ qua khảo sát cho special login
         startActivity(new Intent(LoginActivity.this, MainActivity.class));
         finish();
     }
@@ -297,8 +300,99 @@ public class LoginActivity extends AppCompatActivity {
         Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
         Log.d(TAG, "User logged in: " + user.getEmail());
 
-        startActivity(new Intent(LoginActivity.this, MainActivity.class));
-        finish();
+        // Kiểm tra xem người dùng đã hoàn thành khảo sát chưa
+        checkSurveyCompletion(user.getUid());
+    }
+    
+    private void checkUserExistsAndHandleLogin(FirebaseUser user) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("user_profiles")
+                .document(user.getUid())
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        com.google.firebase.firestore.DocumentSnapshot document = task.getResult();
+                        if (!document.exists()) {
+                            // User mới, tạo profile
+                            createUserProfileForGoogle(user);
+                        } else {
+                            // User đã tồn tại, xử lý đăng nhập bình thường
+                            handleSuccessfulLogin(user);
+                        }
+                    } else {
+                        // Lỗi, vẫn xử lý đăng nhập
+                        handleSuccessfulLogin(user);
+                    }
+                });
+    }
+    
+    private void createUserProfileForGoogle(FirebaseUser user) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> userData = new HashMap<>();
+        userData.put("uid", user.getUid());
+        userData.put("name", user.getDisplayName() != null ? user.getDisplayName() : "");
+        userData.put("email", user.getEmail() != null ? user.getEmail() : "");
+        userData.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        userData.put("updatedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        userData.put("lastLogin", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        userData.put("role", "customer");
+        userData.put("isActive", true);
+        userData.put("emailVerified", user.isEmailVerified());
+        userData.put("courses", new HashMap<String, Object>());
+        userData.put("phone", "");
+        userData.put("address", "");
+        userData.put("surveyCompleted", false);
+        userData.put("surveyLevel", "");
+        
+        db.collection("user_profiles")
+                .document(user.getUid())
+                .set(userData)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d(TAG, "Google user profile created");
+                    handleSuccessfulLogin(user);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error creating Google user profile: ", e);
+                    handleSuccessfulLogin(user);
+                });
+    }
+    
+    private void checkSurveyCompletion(String userId) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("user_profiles")
+                .document(userId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        com.google.firebase.firestore.DocumentSnapshot document = task.getResult();
+                        if (document.exists()) {
+                            Boolean surveyCompleted = document.getBoolean("surveyCompleted");
+                            
+                            // Nếu chưa hoàn thành khảo sát, chuyển đến màn hình khảo sát
+                            if (surveyCompleted == null || !surveyCompleted) {
+                                Intent intent = new Intent(LoginActivity.this, KnowledgeSurveyActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                // Đã hoàn thành khảo sát, chuyển đến MainActivity
+                                startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                                finish();
+                            }
+                        } else {
+                            // Document không tồn tại, chuyển đến khảo sát
+                            Intent intent = new Intent(LoginActivity.this, KnowledgeSurveyActivity.class);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        }
+                    } else {
+                        // Lỗi khi đọc Firestore, vẫn chuyển đến MainActivity
+                        Log.e(TAG, "Error checking survey completion: ", task.getException());
+                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        finish();
+                    }
+                });
     }
 
     private void updateLastLogin(String userId) {

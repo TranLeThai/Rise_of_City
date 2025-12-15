@@ -8,6 +8,21 @@
     android:background="#3FD0F1"
     android:padding="24dp">
 
+    <!-- Nút Back - nhỏ, bên trái title -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_revert"
+        android:contentDescription="Back"
+        app:tint="#000000"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="@id/tvMainTitle" />
+
     <TextView
         android:id="@+id/tvMainTitle"
         android:layout_width="wrap_content"
@@ -15,8 +30,10 @@
         android:text="Mức độ hoàn thành"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline5"
         android:textStyle="bold"
-        android:textSize="40sp"
-        app:layout_constraintStart_toStartOf="parent"
+        android:textSize="32sp"
+        android:textColor="#000000"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
         app:layout_constraintTop_toTopOf="parent" />
 
     <TextView
@@ -25,9 +42,9 @@
         android:layout_height="wrap_content"
         android:text="Beginer"
         android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-        android:textColor="@color/material_on_surface_emphasis_medium"
-        android:layout_marginTop="4dp"
-        android:textSize="20sp"
+        android:textColor="#757575"
+        android:layout_marginTop="6dp"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvMainTitle" />
 
@@ -51,6 +68,7 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/guidelineHorizontal"
@@ -64,29 +82,28 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="School"
-                android:textSize="20sp"
-
+                android:textSize="16sp"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#000000" />
 
             <ProgressBar
                 android:id="@+id/progressLevel1"
                 style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="25"
-                android:progressDrawable="@drawable/modern_circular_progress"
-                android:progressTint="#E53935" />
+                android:progressDrawable="@drawable/circular_progress_red" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -94,6 +111,7 @@
                 android:text="25%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#E53935"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -104,6 +122,7 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF"
         android:layout_marginStart="8dp"
         android:layout_marginBottom="8dp"
         app:layout_constraintBottom_toTopOf="@+id/guidelineHorizontal"
@@ -116,29 +135,28 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Coffee shop"
-                android:textSize="20sp"
-
+                android:textSize="16sp"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#000000" />
 
             <ProgressBar
                 android:id="@+id/progressLevel2"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="40"
-                android:progressDrawable="@drawable/modern_circular_progress"
-                android:progressTint="#FB8C00" />
+                android:progressDrawable="@drawable/circular_progress_orange" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -146,6 +164,7 @@
                 android:text="40%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#FB8C00"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -156,6 +175,7 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         app:layout_constraintEnd_toStartOf="@+id/guidelineVertical"
@@ -167,28 +187,28 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Park"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#000000" />
 
             <ProgressBar
                 android:id="@+id/progressLevel3"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="65"
-                android:progressDrawable="@drawable/modern_circular_progress"
-                android:progressTint="#43A047" />
+                android:progressDrawable="@drawable/circular_progress_green" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -196,6 +216,7 @@
                 android:text="65%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#43A047"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -206,6 +227,7 @@
         android:layout_height="wrap_content"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
+        app:cardBackgroundColor="#FFFFFF"
         android:layout_marginTop="8dp"
         android:layout_marginStart="8dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -216,30 +238,29 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textSize="20sp"
-
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="12dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="House"
+                android:textSize="16sp"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                android:textColor="#000000" />
 
             <ProgressBar
                 android:id="@+id/progressLevel4"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"
+                style="@android:style/Widget.ProgressBar.Horizontal"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
                 android:progress="85"
-                android:progressDrawable="@drawable/modern_circular_progress"
-                android:progressTint="#1E88E5" />
+                android:progressDrawable="@drawable/circular_progress_blue" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -247,6 +268,7 @@
                 android:text="85%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#1E88E5"
+                android:textSize="14sp"
                 android:textStyle="bold"/>
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>

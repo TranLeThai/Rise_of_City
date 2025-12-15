@@ -67,6 +67,18 @@ public class ProfileFragment extends Fragment {
             Toast.makeText(getContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show();
         });
 
+        // Menu: Mức độ hoàn thành
+        view.findViewById(R.id.cardLevelStatus).setOnClickListener(v -> {
+            if (getActivity() instanceof MainActivity) {
+                MainActivity mainActivity = (MainActivity) getActivity();
+                // Navigate đến LevelStatusFragment
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new LevelStatusFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+
         // Nút đăng xuất
         tvLogout.setOnClickListener(v -> {
             logout();

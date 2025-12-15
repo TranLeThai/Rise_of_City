@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Building shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M45,80 L45,50 L50,50 L50,45 L55,45 L55,50 L65,50 L65,45 L70,45 L70,50 L75,50 L75,80 Z" />
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M50,70 L50,60 L55,60 L55,70 Z M65,70 L65,60 L70,60 L70,70 Z" />
+</vector>
+

@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Star shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,25 L65,45 L85,45 L70,58 L75,78 L60,65 L45,78 L50,58 L35,45 L55,45 Z" />
+</vector>
+

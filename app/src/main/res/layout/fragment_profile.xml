@@ -146,10 +146,11 @@
                             app:tint="#E53935" />
 
                         <TextView
+                            android:id="@+id/tvStreak"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="12 Ngày"
+                            android:text="0 Ngày"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="#202124" />
@@ -178,10 +179,11 @@
                             app:tint="#FFB300" />
 
                         <TextView
+                            android:id="@+id/tvTotalXP"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="4500"
+                            android:text="0"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="#202124" />
@@ -210,10 +212,11 @@
                             app:tint="#4CAF50" />
 
                         <TextView
+                            android:id="@+id/tvBuildings"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:text="15"
+                            android:text="0"
                             android:textSize="16sp"
                             android:textStyle="bold"
                             android:textColor="#202124" />

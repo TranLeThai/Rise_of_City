@@ -39,6 +39,18 @@
             android:screenOrientation="portrait"
             android:exported="false" />
         <activity
+            android:name=".ui.profile.UserProfileActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".ui.profile.EditProfileActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
+            android:name=".ui.topic.TopicDetailActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+        <activity
             android:name=".ui.ingame.InGameActivity"
             android:resizeableActivity="false"
             android:screenOrientation="landscape"
@@ -67,6 +79,11 @@
 
         <activity
             android:name=".ui.quiz.VocabularyQuizActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
+            android:name=".ui.settings.SettingsActivity"
             android:screenOrientation="portrait"
             android:exported="false" />
 

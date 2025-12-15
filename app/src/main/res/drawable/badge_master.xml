@@ -1,0 +1,28 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background with gradient effect -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Crown shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,50 L50,40 L60,50 L70,40 L80,50 L80,70 L40,70 Z" />
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M45,55 L50,50 L55,55 L60,50 L65,55 L70,50 L75,55 L75,65 L45,65 Z" />
+    <!-- Gems on crown -->
+    <path
+        android:fillColor="#FF6B6B"
+        android:pathData="M 47,50 A 3,3 0 1,1 53,50 A 3,3 0 1,1 47,50 Z" />
+    <path
+        android:fillColor="#4ECDC4"
+        android:pathData="M 56,45 A 4,4 0 1,1 64,45 A 4,4 0 1,1 56,45 Z" />
+    <path
+        android:fillColor="#FF6B6B"
+        android:pathData="M 67,50 A 3,3 0 1,1 73,50 A 3,3 0 1,1 67,50 Z" />
+</vector>
+

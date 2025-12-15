@@ -13,19 +13,28 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.Badge;
 import com.example.rise_of_city.ui.auth.LoginActivity;
+import com.example.rise_of_city.ui.dialog.BadgeUnlockDialogFragment;
 import com.example.rise_of_city.ui.main.MainActivity;
+import com.example.rise_of_city.utils.BadgeManager;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.List;
+import java.util.Map;
+
 public class ProfileFragment extends Fragment {
 
     private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
     private TextView tvUserName;
     private TextView tvLogout;
+    private TextView tvStreak, tvTotalXP, tvBuildings;
+    private View statsCard;
 
     @Nullable
     @Override
@@ -37,6 +46,12 @@ public class ProfileFragment extends Fragment {
         // Tìm các view
         tvUserName = view.findViewById(R.id.tvUserName);
         tvLogout = view.findViewById(R.id.tvLogout);
+        tvStreak = view.findViewById(R.id.tvStreak);
+        tvTotalXP = view.findViewById(R.id.tvTotalXP);
+        tvBuildings = view.findViewById(R.id.tvBuildings);
+        statsCard = view.findViewById(R.id.statsCard);
+        
+        db = FirebaseFirestore.getInstance();
 
         // Nút back - quay lại fragment trước đó
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
@@ -52,19 +67,26 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // Nút settings (có thể thêm logic sau)
+        // Nút settings
         view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), com.example.rise_of_city.ui.settings.SettingsActivity.class);
+            startActivity(intent);
         });
 
         // Menu: Chỉnh sửa hồ sơ
         view.findViewById(R.id.cardEditProfile).setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), com.example.rise_of_city.ui.profile.EditProfileActivity.class);
+            startActivity(intent);
         });
 
         // Menu: Bộ sưu tập Huy hiệu
         view.findViewById(R.id.cardBadges).setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Tính năng đang phát triển", Toast.LENGTH_SHORT).show();
+            if (getActivity() instanceof MainActivity) {
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, new BadgeCollectionFragment())
+                        .addToBackStack(null)
+                        .commit();
+            }
         });
 
         // Menu: Mức độ hoàn thành
@@ -86,8 +108,91 @@ public class ProfileFragment extends Fragment {
 
         // Load thông tin người dùng
         loadUserInfo();
+        loadUserStatistics();
+        checkForNewBadges();
 
         return view;
+    }
+    
+    private void checkForNewBadges() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        db.collection("user_profiles")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        BadgeManager.getInstance().checkAndUnlockBadges(
+                            getContext(),
+                            documentSnapshot,
+                            badges -> {
+                                // Show unlock dialog for each newly unlocked badge
+                                if (!badges.isEmpty() && getActivity() != null) {
+                                    for (Badge badge : badges) {
+                                        BadgeUnlockDialogFragment dialog = 
+                                            BadgeUnlockDialogFragment.newInstance(badge);
+                                        dialog.show(getParentFragmentManager(), "BadgeUnlockDialog");
+                                    }
+                                }
+                            }
+                        );
+                    }
+                });
+    }
+    
+    private void loadUserStatistics() {
+        FirebaseUser user = mAuth.getCurrentUser();
+        if (user == null) return;
+        
+        db.collection("user_profiles")
+                .document(user.getUid())
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Load streak
+                        Long streak = documentSnapshot.getLong("streak");
+                        if (streak != null) {
+                            tvStreak.setText(streak + " Ngày");
+                        } else {
+                            tvStreak.setText("0 Ngày");
+                        }
+                        
+                        // Load total XP
+                        Long totalXP = documentSnapshot.getLong("totalXP");
+                        if (totalXP != null) {
+                            tvTotalXP.setText(String.valueOf(totalXP));
+                        } else {
+                            tvTotalXP.setText("0");
+                        }
+                        
+                        // Load buildings count (completed buildings)
+                        Map<String, Object> buildings = (Map<String, Object>) documentSnapshot.get("buildings");
+                        int completedBuildings = 0;
+                        if (buildings != null) {
+                            for (Map.Entry<String, Object> entry : buildings.entrySet()) {
+                                Map<String, Object> buildingData = (Map<String, Object>) entry.getValue();
+                                Boolean isCompleted = (Boolean) buildingData.get("completed");
+                                if (isCompleted != null && isCompleted) {
+                                    completedBuildings++;
+                                }
+                            }
+                        }
+                        tvBuildings.setText(String.valueOf(completedBuildings));
+                    } else {
+                        // Set default values
+                        tvStreak.setText("0 Ngày");
+                        tvTotalXP.setText("0");
+                        tvBuildings.setText("0");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("ProfileFragment", "Error loading statistics: ", e);
+                    // Set default values on error
+                    tvStreak.setText("0 Ngày");
+                    tvTotalXP.setText("0");
+                    tvBuildings.setText("0");
+                });
     }
 
     private void loadUserInfo() {

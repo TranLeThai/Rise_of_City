@@ -1,0 +1,22 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background with gradient effect -->
+    <path
+        android:fillColor="#FF6B6B"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Star with multiple layers -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,15 L70,45 L100,45 L75,60 L85,90 L60,70 L35,90 L45,60 L20,45 L50,45 Z" />
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M60,25 L67,45 L87,45 L72,55 L79,75 L60,65 L41,75 L48,55 L33,45 L53,45 Z" />
+    <!-- Inner star -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,35 L64,48 L77,48 L68,54 L72,67 L60,60 L48,67 L52,54 L43,48 L56,48 Z" />
+</vector>
+

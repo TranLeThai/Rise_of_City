@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Book shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M40,30 L40,80 L80,80 L80,30 Z" />
+    <path
+        android:fillColor="#E3F2FD"
+        android:pathData="M45,35 L75,35 L75,75 L45,75 Z" />
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M50,40 L70,40 M50,50 L70,50 M50,60 L65,60" />
+</vector>
+

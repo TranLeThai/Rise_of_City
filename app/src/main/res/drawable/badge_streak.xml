@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Circle background -->
+    <path
+        android:fillColor="#FF5722"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Flame shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M60,20 C55,20 50,25 50,35 C50,40 52,45 55,50 C58,55 60,60 60,65 C60,60 62,55 65,50 C68,45 70,40 70,35 C70,25 65,20 60,20 Z M60,30 C63,30 65,32 65,35 C65,37 64,40 62,43 C60,46 60,48 60,50 C60,48 60,46 58,43 C56,40 55,37 55,35 C55,32 57,30 60,30 Z" />
+</vector>
+

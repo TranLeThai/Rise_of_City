@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="120"
+    android:viewportHeight="120">
+    <!-- Gray circle background -->
+    <path
+        android:fillColor="#CCCCCC"
+        android:pathData="M60,10 A50,50 0 1,1 60,110 A50,50 0 1,1 60,10 Z" />
+    <!-- Lock icon -->
+    <path
+        android:fillColor="#666666"
+        android:pathData="M50,50 L50,45 C50,40 54,36 60,36 C66,36 70,40 70,45 L70,50 L75,50 L75,70 L45,70 L45,50 Z" />
+    <path
+        android:fillColor="#CCCCCC"
+        android:pathData="M55,50 L55,45 C55,43 57,41 60,41 C63,41 65,43 65,45 L65,50 Z" />
+</vector>
+

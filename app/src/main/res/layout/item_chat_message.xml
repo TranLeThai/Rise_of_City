@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <!-- User message (right aligned) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardUserMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginEnd="0dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="1dp"
+        app:cardBackgroundColor="#3FD0F1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tvUserMessage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User message"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:maxWidth="280dp" />
+
+    </androidx.cardview.widget.CardView>
+
+    <!-- AI message (left aligned) -->
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardAiMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginEnd="48dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="1dp"
+        app:cardBackgroundColor="#F5F5F5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="12dp"
+            android:maxWidth="280dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="end"
+                android:layout_marginBottom="4dp">
+
+                <ImageButton
+                    android:id="@+id/btnCopy"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_share"
+                    android:contentDescription="Copy"
+                    android:padding="6dp"
+                    android:visibility="gone"
+                    app:tint="#757575" />
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvAiMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="AI message"
+                android:textColor="#202124"
+                android:textSize="14sp"
+                android:lineSpacingExtra="4dp" />
+
+            <ProgressBar
+                android:id="@+id/progressLoading"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginTop="8dp"
+                android:visibility="gone"
+                style="@android:style/Widget.ProgressBar.Small" />
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

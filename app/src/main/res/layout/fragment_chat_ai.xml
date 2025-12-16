@@ -87,11 +87,15 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_chevron_down"
-                    app:tint="#B0B0B0"/>
+                <ImageButton
+                    android:id="@+id/btnMenu"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:src="@android:drawable/ic_menu_more"
+                    android:contentDescription="Menu"
+                    app:tint="#757575"
+                    android:padding="8dp"/>
             </LinearLayout>
         </androidx.appcompat.widget.Toolbar>
 
@@ -135,6 +139,7 @@
             android:background="@drawable/bg_input_modern"
             android:hint="Nhập tin nhắn..."
             android:inputType="textCapSentences|textMultiLine"
+            android:imeOptions="actionSend"
             android:maxLines="4"
             android:paddingStart="20dp"
             android:paddingTop="12dp"
@@ -144,8 +149,23 @@
             android:textSize="14sp"
             android:minHeight="48dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toStartOf="@+id/btnMic"
+            app:layout_constraintEnd_toStartOf="@+id/btnSend"
             app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btnSend"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_mic_button"
+            android:src="@android:drawable/ic_menu_send"
+            android:scaleType="centerInside"
+            android:padding="12dp"
+            app:tint="@color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btnMic"
+            app:layout_constraintStart_toEndOf="@+id/etMessage"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
@@ -160,7 +180,7 @@
             app:tint="@color/white"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toEndOf="@+id/etMessage"
+            app:layout_constraintStart_toEndOf="@+id/btnSend"
             app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>

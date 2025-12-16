@@ -116,13 +116,17 @@ public class UnlockFragment extends Fragment {
         startCooldownUpdater();
 
         // Button listeners
-        btnHarvest.setOnClickListener(v -> {
-            handleHarvest();
-        });
+        if (btnHarvest != null) {
+            btnHarvest.setOnClickListener(v -> {
+                handleHarvest();
+            });
+        }
 
-        btnUpgrade.setOnClickListener(v -> {
-            handleUpgrade();
-        });
+        if (btnUpgrade != null) {
+            btnUpgrade.setOnClickListener(v -> {
+                handleUpgrade();
+            });
+        }
 
         return view;
     }
@@ -148,27 +152,39 @@ public class UnlockFragment extends Fragment {
 
     private void updateBuildingInfo() {
         if (building != null) {
-            tvBuildingName.setText(building.getName());
-            tvLevel.setText("LV. " + building.getLevel());
+            if (tvBuildingName != null) {
+                tvBuildingName.setText(building.getName());
+            }
+            if (tvLevel != null) {
+                tvLevel.setText("LV. " + building.getLevel());
+            }
             
             // Tính toán production dựa trên level
             int expPerHour = 10 * building.getLevel();
             int goldPerHour = 5 * building.getLevel();
-            tvProduction.setText("Sản xuất: " + expPerHour + " EXP/giờ • " + goldPerHour + " Vàng/giờ");
+            if (tvProduction != null) {
+                tvProduction.setText("Sản xuất: " + expPerHour + " EXP/giờ • " + goldPerHour + " Vàng/giờ");
+            }
 
             // Tính phần thưởng thu hoạch
             BuildingHarvestRepository.HarvestReward reward = harvestRepo.calculateHarvestReward(building.getLevel());
-            tvHarvestReward.setText("Phần thưởng: +" + reward.expReward + " EXP • +" + reward.goldReward + " Vàng");
+            if (tvHarvestReward != null) {
+                tvHarvestReward.setText("Phần thưởng: +" + reward.expReward + " EXP • +" + reward.goldReward + " Vàng");
+            }
 
             // Tính chi phí và lợi ích nâng cấp
             int upgradeCost = upgradeRepo.calculateUpgradeCost(building.getLevel());
             BuildingUpgradeRepository.UpgradeBenefits benefits = upgradeRepo.calculateUpgradeBenefits(building.getLevel() + 1);
-            tvUpgradeCost.setText("Chi phí: " + upgradeCost + " Vàng");
-            tvUpgradeBenefits.setText("Sau nâng cấp: " + benefits.expPerHour + " EXP/giờ • " + benefits.goldPerHour + " Vàng/giờ");
+            if (tvUpgradeCost != null) {
+                tvUpgradeCost.setText("Chi phí: " + upgradeCost + " Vàng");
+            }
+            if (tvUpgradeBenefits != null) {
+                tvUpgradeBenefits.setText("Sau nâng cấp: " + benefits.expPerHour + " EXP/giờ • " + benefits.goldPerHour + " Vàng/giờ");
+            }
 
             // Set building image dựa trên building ID
             int imageResource = getBuildingImageResource(building.getId());
-            if (imageResource != 0) {
+            if (imageResource != 0 && ivBuilding != null) {
                 ivBuilding.setImageResource(imageResource);
             }
             
@@ -181,7 +197,7 @@ public class UnlockFragment extends Fragment {
      * Cập nhật trạng thái nút thu hoạch (enabled/disabled và text)
      */
     private void updateHarvestButton() {
-        if (building == null || harvestRepo == null) return;
+        if (building == null || harvestRepo == null || btnHarvest == null) return;
         
         // Nếu có cache lastHarvestTime, tính toán local để update nhanh hơn
         if (lastHarvestTime != null) {
@@ -217,6 +233,7 @@ public class UnlockFragment extends Fragment {
         
         // Nếu chưa có cache, load từ Firebase (chỉ lần đầu)
         harvestRepo.canHarvest(building.getId(), (canHarvest, remainingMinutes, message) -> {
+            if (btnHarvest == null) return;
             if (canHarvest) {
                 btnHarvest.setEnabled(true);
                 btnHarvest.setAlpha(1.0f);

@@ -238,7 +238,6 @@ public class UserProfileActivity extends AppCompatActivity {
                         badgesCard.setVisibility(badges.isEmpty() ? View.GONE : View.VISIBLE);
                     }
                     
-                    Log.d(TAG, "Loaded " + badges.size() + " badges for user " + targetUserId);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading badges: ", e);

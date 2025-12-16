@@ -207,12 +207,6 @@ public class BuildingRoadMapAdapter extends RecyclerView.Adapter<BuildingRoadMap
                         endYRelative = Math.max(1.0f, startYRelative + 0.1f);
                     }
                     
-                    // Debug log để kiểm tra (có thể xóa sau khi test xong)
-                    android.util.Log.d("ConnectorLine", String.format(
-                        "Position %d: start(%.3f, %.3f) -> end(%.3f, %.3f), itemHeight=%.1fpx, cardCenterY=%.1fpx",
-                        position, startXRelative, startYRelative, endXRelative, endYRelative, itemHeight, cardCenterYInPixels
-                    ));
-                    
                     // Set điểm bắt đầu và kết thúc cho connector line
                     viewConnector.setStartPoint(startXRelative, startYRelative);
                     viewConnector.setEndPoint(endXRelative, endYRelative);

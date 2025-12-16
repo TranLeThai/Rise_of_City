@@ -42,7 +42,6 @@ public class LessonRepository {
      * Lấy danh sách lessons đã được approve của một topic
      */
     public void getLessonsByTopic(String topicId, OnLessonsLoadedListener listener) {
-        Log.d(TAG, "Loading lessons for topic: " + topicId);
         
         // Thử query với orderBy trước (cần index)
         firestore.collection("topics")
@@ -112,7 +111,6 @@ public class LessonRepository {
                             parseException.printStackTrace();
                         }
                     }
-                    Log.d(TAG, "Loaded " + lessons.size() + " approved lessons for topic " + topicId);
                     if (listener != null) {
                         listener.onLessonsLoaded(lessons);
                     }
@@ -196,7 +194,6 @@ public class LessonRepository {
                                     return Long.compare(time2, time1); // Descending
                                 });
                                 
-                                Log.d(TAG, "Loaded " + lessons.size() + " approved lessons (fallback) for topic " + topicId);
                                 if (listener != null) {
                                     listener.onLessonsLoaded(lessons);
                                 }
@@ -264,7 +261,6 @@ public class LessonRepository {
                             .collection("lessons")
                             .add(lessonData)
                             .addOnSuccessListener(documentReference -> {
-                                Log.d(TAG, "Lesson created with ID: " + documentReference.getId());
                                 if (listener != null) {
                                     listener.onLessonCreated(documentReference.getId());
                                 }

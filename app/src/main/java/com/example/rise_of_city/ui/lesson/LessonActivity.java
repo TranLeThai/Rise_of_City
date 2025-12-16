@@ -45,7 +45,6 @@ public class LessonActivity extends AppCompatActivity {
         topicId = getIntent().getStringExtra("topicId");
         topicTitle = getIntent().getStringExtra("topicTitle");
         
-        Log.d(TAG, "LessonActivity started with topicId: " + topicId + ", topicTitle: " + topicTitle);
         
         if (topicId == null || topicId.isEmpty()) {
             Toast.makeText(this, "Không tìm thấy thông tin chủ đề", Toast.LENGTH_SHORT).show();

@@ -24,3 +24,7 @@ scripts/*adminsdk*.json
 !package.json
 !tsconfig.json
 !google-services.json
+
+# Documentation and scripts
+*.md
+*.py

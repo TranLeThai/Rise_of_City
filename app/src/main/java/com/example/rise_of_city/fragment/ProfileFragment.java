@@ -166,25 +166,26 @@ public class ProfileFragment extends Fragment {
             tvTotalXP.setText(String.valueOf(totalXP));
         });
         
-        // Load buildings count (completed buildings)
+        // Load buildings count (unlocked buildings - không locked)
         // Buildings được lưu ở subcollection: users/{userId}/buildings
+        // Đếm tất cả buildings đã unlock (có trong collection = đã unlock)
         db.collection("users")
                 .document(user.getUid())
                 .collection("buildings")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int completedBuildings = 0;
+                    int unlockedBuildings = 0;
                     if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
                         for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                            // Kiểm tra completed hoặc có completedAt
-                            Boolean isCompleted = doc.getBoolean("completed");
-                            Long completedAt = doc.getLong("completedAt");
-                            if ((isCompleted != null && isCompleted) || (completedAt != null && completedAt > 0)) {
-                                completedBuildings++;
+                            // Kiểm tra nếu building không bị locked
+                            // Nếu có trong collection và không có field "locked" hoặc locked = false thì tính là unlocked
+                            Boolean isLocked = doc.getBoolean("locked");
+                            if (isLocked == null || !isLocked) {
+                                unlockedBuildings++;
                             }
                         }
                     }
-                    tvBuildings.setText(String.valueOf(completedBuildings));
+                    tvBuildings.setText(String.valueOf(unlockedBuildings));
                 })
                 .addOnFailureListener(e -> {
                     Log.e("ProfileFragment", "Error loading buildings: ", e);

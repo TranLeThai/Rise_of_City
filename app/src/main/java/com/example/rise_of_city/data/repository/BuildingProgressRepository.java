@@ -99,7 +99,6 @@ public class BuildingProgressRepository {
                         
                         firestore.document(buildingPath).update(updates)
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Building progress updated: " + buildingId);
                                     // Cập nhật totalXP trong user_profiles sau khi EXP thay đổi
                                     updateTotalXPInUserProfile();
                                     if (listener != null) {
@@ -123,7 +122,6 @@ public class BuildingProgressRepository {
                         
                         firestore.document(buildingPath).set(buildingData)
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "New building created: " + buildingId);
                                     // Cập nhật totalXP trong user_profiles sau khi tạo building mới
                                     updateTotalXPInUserProfile();
                                     if (listener != null) {
@@ -165,7 +163,6 @@ public class BuildingProgressRepository {
         
         firestore.document(buildingPath).update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Building completed: " + buildingId);
                     if (listener != null) {
                         listener.onProgressUpdated(0, 0, 0);
                     }
@@ -203,6 +200,49 @@ public class BuildingProgressRepository {
                     
                     if (listener != null) {
                         listener.onBuildingsLoaded(buildingProgressMap);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading building progress: " + e.getMessage());
+                    if (listener != null) {
+                        listener.onError(e.getMessage());
+                    }
+                });
+    }
+    
+    /**
+     * Lấy progress của một building cụ thể
+     */
+    public void getBuildingProgress(String buildingId, OnProgressLoadedListener listener) {
+        if (auth.getCurrentUser() == null) {
+            if (listener != null) {
+                listener.onError("Người dùng chưa đăng nhập");
+            }
+            return;
+        }
+        
+        String userId = auth.getCurrentUser().getUid();
+        String buildingPath = "users/" + userId + "/buildings/" + buildingId;
+        
+        firestore.document(buildingPath).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long level = documentSnapshot.getLong("level");
+                        Long currentExp = documentSnapshot.getLong("currentExp");
+                        Long maxExp = documentSnapshot.getLong("maxExp");
+                        
+                        int levelInt = level != null ? level.intValue() : 1;
+                        int currentExpInt = currentExp != null ? currentExp.intValue() : 0;
+                        int maxExpInt = maxExp != null ? maxExp.intValue() : 100;
+                        
+                        if (listener != null) {
+                            listener.onProgressLoaded(levelInt, currentExpInt, maxExpInt);
+                        }
+                    } else {
+                        // Building chưa tồn tại, trả về giá trị mặc định
+                        if (listener != null) {
+                            listener.onProgressLoaded(1, 0, 100);
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
@@ -295,7 +335,6 @@ public class BuildingProgressRepository {
                                         // Cập nhật building
                                         firestore.document(buildingPath).update(updates)
                                                 .addOnSuccessListener(aVoid -> {
-                                                    Log.d(TAG, "Vocabulary learned updated for building: " + buildingId + " (" + vocabularyLearned + "/" + vocabularyCount + ")");
                                                 })
                                                 .addOnFailureListener(e -> {
                                                     Log.e(TAG, "Error updating vocabulary learned: " + e.getMessage());
@@ -308,7 +347,6 @@ public class BuildingProgressRepository {
                             // Không có vocabularyCount, chỉ update vocabularyLearned
                             firestore.document(buildingPath).update(updates)
                                     .addOnSuccessListener(aVoid -> {
-                                        Log.d(TAG, "Vocabulary learned updated for building: " + buildingId);
                                     })
                                     .addOnFailureListener(e -> {
                                         Log.e(TAG, "Error updating vocabulary learned: " + e.getMessage());
@@ -318,7 +356,6 @@ public class BuildingProgressRepository {
                         // Building info không tồn tại, chỉ update vocabularyLearned
                         firestore.document(buildingPath).update(updates)
                                 .addOnSuccessListener(aVoid -> {
-                                    Log.d(TAG, "Vocabulary learned updated for building: " + buildingId);
                                 })
                                 .addOnFailureListener(e -> {
                                     Log.e(TAG, "Error updating vocabulary learned: " + e.getMessage());
@@ -370,7 +407,6 @@ public class BuildingProgressRepository {
                             .document(userId)
                             .update(updates)
                             .addOnSuccessListener(aVoid -> {
-                                Log.d(TAG, "Total XP updated in user profile: " + finalTotalXP);
                             })
                             .addOnFailureListener(e -> {
                                 Log.e(TAG, "Error updating total XP in user profile: " + e.getMessage());
@@ -383,6 +419,11 @@ public class BuildingProgressRepository {
     
     public interface OnBuildingInfoLoadedListener {
         void onBuildingInfoLoaded(Map<String, Object> buildingInfo);
+        void onError(String error);
+    }
+    
+    public interface OnProgressLoadedListener {
+        void onProgressLoaded(int level, int currentExp, int maxExp);
         void onError(String error);
     }
 }

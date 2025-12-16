@@ -60,7 +60,6 @@ public class VocabularyRepository {
                     }
                 }
                 
-                Log.d(TAG, "Loaded " + vocabularies.size() + " vocabularies from Realtime Database");
                 listener.onVocabulariesLoaded(vocabularies);
             }
             
@@ -88,7 +87,6 @@ public class VocabularyRepository {
                         }
                     }
                     
-                    Log.d(TAG, "Loaded " + vocabularies.size() + " vocabularies from Firestore");
                     listener.onVocabulariesLoaded(vocabularies);
                 })
                 .addOnFailureListener(e -> {
@@ -215,7 +213,6 @@ public class VocabularyRepository {
                         }
                     }
                     
-                    Log.d(TAG, "Loaded " + vocabularies.size() + " vocabularies for building: " + buildingId);
                     listener.onVocabulariesLoaded(vocabularies);
                 })
                 .addOnFailureListener(e -> {

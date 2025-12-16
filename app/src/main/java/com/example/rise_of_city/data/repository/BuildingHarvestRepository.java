@@ -126,7 +126,6 @@ public class BuildingHarvestRepository {
         firestore.document(buildingPath)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Harvest time marked for building: " + buildingId);
                     if (listener != null) {
                         listener.onHarvestMarked();
                     }

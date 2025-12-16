@@ -302,7 +302,6 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                         harvestRepo.markAsHarvested(buildingId, new BuildingHarvestRepository.OnHarvestMarkedListener() {
                             @Override
                             public void onHarvestMarked() {
-                                Log.d("VocabularyQuiz", "Harvest marked for building: " + buildingId);
                             }
                             
                             @Override
@@ -344,7 +343,6 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                 @Override
                 public void onGoldUpdated(int newGold) {
                     // Vàng đã được cập nhật
-                    Log.d("VocabularyQuiz", "Gold rewarded: +" + goldAmount + " (Total: " + newGold + ")");
                 }
                 
                 @Override

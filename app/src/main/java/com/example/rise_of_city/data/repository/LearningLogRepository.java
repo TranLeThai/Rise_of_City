@@ -54,7 +54,6 @@ public class LearningLogRepository {
         firestore.collection(learningLogsPath)
                 .add(logData)
                 .addOnSuccessListener(documentReference -> {
-                    Log.d(TAG, "Learning log created: " + documentReference.getId());
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error creating learning log: " + e.getMessage());

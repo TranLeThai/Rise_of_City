@@ -77,7 +77,6 @@ public class GoldRepository {
                 .document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Gold initialized: 100");
                     if (listener != null) {
                         listener.onGoldLoaded(100);
                     }
@@ -121,7 +120,6 @@ public class GoldRepository {
                     .document(userId)
                     .update(updates)
                     .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Gold added: +" + amount + " (Total: " + newGold + ")");
                         if (listener != null) {
                             listener.onGoldUpdated(newGold);
                         }
@@ -173,7 +171,6 @@ public class GoldRepository {
                     .document(userId)
                     .update(updates)
                     .addOnSuccessListener(aVoid -> {
-                        Log.d(TAG, "Gold spent: -" + amount + " (Remaining: " + newGold + ")");
                         if (listener != null) {
                             listener.onGoldUpdated(newGold);
                         }

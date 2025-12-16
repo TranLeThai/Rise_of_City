@@ -116,7 +116,6 @@ public class BuildingUpgradeRepository {
         firestore.document(buildingPath)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Building upgraded: " + buildingId + " to level " + newLevel);
                     UpgradeBenefits benefits = calculateUpgradeBenefits(newLevel);
                     if (listener != null) {
                         listener.onUpgradeSuccess(newLevel, benefits);

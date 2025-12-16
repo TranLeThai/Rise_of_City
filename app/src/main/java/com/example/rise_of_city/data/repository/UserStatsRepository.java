@@ -152,7 +152,6 @@ public class UserStatsRepository {
                 .document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Streak updated: " + streak);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating streak: " + e.getMessage());
@@ -245,7 +244,6 @@ public class UserStatsRepository {
                 .document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Total XP updated: " + totalXP);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating total XP: " + e.getMessage());
@@ -397,7 +395,6 @@ public class UserStatsRepository {
                 .document(userId)
                 .update(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Total vocabulary learned updated: " + totalVocabularyLearned);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error updating total vocabulary learned: " + e.getMessage());

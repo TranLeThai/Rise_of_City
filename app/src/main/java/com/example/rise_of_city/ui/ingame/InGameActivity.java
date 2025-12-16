@@ -1,5 +1,7 @@
 package com.example.rise_of_city.ui.ingame; // Đổi package nếu cần
 
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -108,6 +110,16 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
                 hideUnlockFragment();
             }
         });
+        
+        // Lắng nghe thay đổi lock status của buildings để update visual state
+        viewModel.getBuildingsLockStatus().observe(this, lockStatusMap -> {
+            if (lockStatusMap != null) {
+                updateBuildingImages(lockStatusMap);
+            }
+        });
+        
+        // Load lock status của tất cả buildings từ Firebase
+        viewModel.loadAllBuildingsLockStatus();
 
         // Bấm ra nền map thì đóng menu
         findViewById(R.id.img_map_background).setOnClickListener(v -> viewModel.closeMenu());
@@ -133,6 +145,8 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         super.onResume();
         // Refresh vàng khi quay lại
         loadGold();
+        // Refresh building lock status khi quay lại (có thể đã unlock buildings mới)
+        viewModel.loadAllBuildingsLockStatus();
     }
     
     private void loadGold() {
@@ -153,26 +167,21 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
             String buildingId = intent.getStringExtra("buildingId");
             if (buildingId != null && !buildingId.isEmpty()) {
                 // Đợi một chút để đảm bảo viewModel đã init xong và buildings đã load
-                // Tự động select building sau khi layout xong
+                // Load building từ Firebase để có data chính xác
                 getWindow().getDecorView().post(() -> {
-                    // Tìm view building tương ứng và click vào nó
+                    // Load building từ Firebase (có level, exp, locked status chính xác)
+                    viewModel.loadBuildingFromFirebase(buildingId);
+                    
+                    // Scroll đến building view nếu có
                     int viewId = getBuildingViewId(buildingId);
                     if (viewId != 0) {
                         View buildingView = findViewById(viewId);
                         if (buildingView != null) {
-                            // Scroll đến building trước
-                            scrollToBuilding(buildingView);
-                            // Sau đó click vào building
+                            // Scroll đến building sau một chút delay để đảm bảo layout đã xong
                             buildingView.postDelayed(() -> {
-                                viewModel.onBuildingClicked(buildingId);
-                            }, 300); // Delay 300ms để scroll xong
-                        } else {
-                            // Nếu không tìm thấy view, thử select trực tiếp
-                            viewModel.onBuildingClicked(buildingId);
+                                scrollToBuilding(buildingView);
+                            }, 200);
                         }
-                    } else {
-                        // Nếu không tìm thấy viewId, thử select trực tiếp
-                        viewModel.onBuildingClicked(buildingId);
                     }
                 });
             }
@@ -479,8 +488,8 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         // Ví dụ: viewModel.unlockBuilding(building.getId());
         android.widget.Toast.makeText(this, "Đã mở khóa " + building.getName() + " bằng vàng!", 
             android.widget.Toast.LENGTH_SHORT).show();
-        // Refresh building list
-        viewModel.init(this);
+        // Refresh building lock status để update visual state
+        viewModel.loadAllBuildingsLockStatus();
     }
 
     // Chuyển sang màn hình học
@@ -585,5 +594,59 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         });
         
         dialog.show(getSupportFragmentManager(), "RandomMissionDialog");
+    }
+    
+    /**
+     * Update building ImageView resources dựa trên lock status
+     * Unlocked: hiển thị màu bình thường
+     * Locked: hiển thị màu đen (grayscale)
+     * @param lockStatusMap Map với key là buildingId, value là true nếu locked, false nếu unlocked
+     */
+    private void updateBuildingImages(java.util.Map<String, Boolean> lockStatusMap) {
+        for (java.util.Map.Entry<String, Boolean> entry : lockStatusMap.entrySet()) {
+            String buildingId = entry.getKey();
+            boolean isLocked = entry.getValue();
+            
+            int viewId = getBuildingViewId(buildingId);
+            if (viewId == 0) {
+                continue; // Skip nếu không tìm thấy view
+            }
+            
+            ImageView buildingView = findViewById(viewId);
+            if (buildingView == null) {
+                continue;
+            }
+            
+            // Luôn dùng hình ảnh bình thường (không dùng _lock version)
+            int drawableResId = getBuildingDrawableResource(buildingId, false);
+            if (drawableResId != 0) {
+                buildingView.setImageResource(drawableResId);
+            }
+            
+            // Áp dụng color filter: locked = màu đen (grayscale), unlocked = màu bình thường
+            if (isLocked) {
+                // Áp dụng grayscale filter (màu đen)
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.setSaturation(0); // 0 = grayscale (màu đen)
+                ColorMatrixColorFilter filter = new ColorMatrixColorFilter(colorMatrix);
+                buildingView.setColorFilter(filter);
+            } else {
+                // Xóa filter để hiển thị màu bình thường
+                buildingView.clearColorFilter();
+            }
+        }
+    }
+    
+    /**
+     * Lấy drawable resource ID cho building
+     * @param buildingId ID của building
+     * @param useLockVersion không dùng nữa, luôn dùng version bình thường
+     * @return Resource ID của drawable, hoặc 0 nếu không tìm thấy
+     */
+    private int getBuildingDrawableResource(String buildingId, boolean useLockVersion) {
+        // Luôn dùng hình ảnh bình thường, color filter sẽ xử lý việc làm đen
+        String resourceName = "vector_" + buildingId;
+        
+        return getResources().getIdentifier(resourceName, "drawable", getPackageName());
     }
 }

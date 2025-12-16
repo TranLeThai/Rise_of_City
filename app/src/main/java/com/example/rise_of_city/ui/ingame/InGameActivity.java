@@ -29,11 +29,14 @@ import com.example.rise_of_city.ui.dialog.MissionDialogFragment;
 import com.example.rise_of_city.ui.lesson.LessonActivity;
 import com.example.rise_of_city.ui.quiz.VocabularyQuizActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
+import com.example.rise_of_city.data.repository.GoldRepository;
 
 public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
 
     // 1. Khai báo ViewModel
     private GameViewModel viewModel;
+    private GoldRepository goldRepo;
+    private TextView tvCoinCount;
 
     // 2. Các biến View cơ bản
     private ScrollView vScroll;
@@ -68,10 +71,20 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         viewModel = new ViewModelProvider(this).get(GameViewModel.class);
 
         viewModel.init(this);
+        
+        // --- KHỞI TẠO GOLD REPOSITORY ---
+        goldRepo = GoldRepository.getInstance();
+        tvCoinCount = findViewById(R.id.count_coin);
 
         // --- ÁNH XẠ VIEW & SETUP ---
         initViews();
         setupBuildingEvents();
+        
+        // Load vàng
+        loadGold();
+        
+        // --- XỬ LÝ BUILDING ID TỪ INTENT (Khi navigate từ Roadmap) ---
+        handleIntentBuildingId();
 
         // --- LẮNG NGHE DỮ LIỆU (OBSERVE) ---
         // Đây là trái tim của MVVM: Khi dữ liệu thay đổi, hàm này tự chạy
@@ -113,6 +126,104 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         if (hasFocus) {
             hideSystemUI();
         }
+    }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh vàng khi quay lại
+        loadGold();
+    }
+    
+    private void loadGold() {
+        if (goldRepo != null && tvCoinCount != null) {
+            goldRepo.getCurrentGold(gold -> {
+                tvCoinCount.setText(String.valueOf(gold));
+            });
+        }
+    }
+    
+    /**
+     * Xử lý buildingId từ intent khi navigate từ Roadmap
+     * Tự động select building và hiển thị detail
+     */
+    private void handleIntentBuildingId() {
+        Intent intent = getIntent();
+        if (intent != null && intent.hasExtra("buildingId")) {
+            String buildingId = intent.getStringExtra("buildingId");
+            if (buildingId != null && !buildingId.isEmpty()) {
+                // Đợi một chút để đảm bảo viewModel đã init xong và buildings đã load
+                // Tự động select building sau khi layout xong
+                getWindow().getDecorView().post(() -> {
+                    // Tìm view building tương ứng và click vào nó
+                    int viewId = getBuildingViewId(buildingId);
+                    if (viewId != 0) {
+                        View buildingView = findViewById(viewId);
+                        if (buildingView != null) {
+                            // Scroll đến building trước
+                            scrollToBuilding(buildingView);
+                            // Sau đó click vào building
+                            buildingView.postDelayed(() -> {
+                                viewModel.onBuildingClicked(buildingId);
+                            }, 300); // Delay 300ms để scroll xong
+                        } else {
+                            // Nếu không tìm thấy view, thử select trực tiếp
+                            viewModel.onBuildingClicked(buildingId);
+                        }
+                    } else {
+                        // Nếu không tìm thấy viewId, thử select trực tiếp
+                        viewModel.onBuildingClicked(buildingId);
+                    }
+                });
+            }
+        }
+    }
+    
+    /**
+     * Lấy view ID của building dựa trên buildingId
+     */
+    private int getBuildingViewId(String buildingId) {
+        switch (buildingId) {
+            case "house":
+                return R.id.house;
+            case "school":
+                return R.id.school;
+            case "library":
+                return R.id.library;
+            case "coffee":
+                return R.id.coffee;
+            case "bakery":
+                return R.id.bakery;
+            case "farmer":
+                return R.id.farmer;
+            case "park":
+                return R.id.park;
+            case "clothers":
+                return R.id.clothers;
+            default:
+                return 0;
+        }
+    }
+    
+    /**
+     * Scroll đến building view
+     */
+    private void scrollToBuilding(View buildingView) {
+        if (buildingView == null || hScroll == null || vScroll == null) {
+            return;
+        }
+        
+        // Tính toán vị trí của building trong scroll view
+        int[] location = new int[2];
+        buildingView.getLocationOnScreen(location);
+        
+        // Scroll horizontal đến building
+        int scrollX = location[0] - (hScroll.getWidth() / 2) + (buildingView.getWidth() / 2);
+        hScroll.smoothScrollTo(Math.max(0, scrollX), 0);
+        
+        // Scroll vertical đến building
+        int scrollY = location[1] - (vScroll.getHeight() / 2) + (buildingView.getHeight() / 2);
+        vScroll.smoothScrollTo(0, Math.max(0, scrollY));
     }
 
     private void hideSystemUI() {
@@ -340,11 +451,16 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     // Hiển thị dialog khi building bị khóa
     private void showLockAreaDialog(Building building) {
-        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(building.getRequiredLessonName());
+        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(building.getRequiredLessonName(), building);
         
         dialog.setOnLearnNowClickListener(() -> {
             // Chuyển sang màn hình học
             navigateToLessonScreen(building.getRequiredLessonName());
+        });
+        
+        dialog.setOnUnlockWithGoldClickListener(unlockedBuilding -> {
+            // Mở khóa building bằng vàng
+            unlockBuildingWithGold(unlockedBuilding);
         });
         
         dialog.setOnCloseClickListener(() -> {
@@ -353,6 +469,18 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         });
         
         dialog.show(getSupportFragmentManager(), "LockAreaDialog");
+    }
+    
+    /**
+     * Mở khóa building bằng vàng
+     */
+    private void unlockBuildingWithGold(Building building) {
+        // TODO: Implement logic unlock building trong ViewModel/Repository
+        // Ví dụ: viewModel.unlockBuilding(building.getId());
+        android.widget.Toast.makeText(this, "Đã mở khóa " + building.getName() + " bằng vàng!", 
+            android.widget.Toast.LENGTH_SHORT).show();
+        // Refresh building list
+        viewModel.init(this);
     }
 
     // Chuyển sang màn hình học
@@ -365,6 +493,11 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
     // Chuyển sang màn hình Vocabulary Quiz
     private void navigateToVocabularyQuiz() {
         Intent intent = new Intent(this, VocabularyQuizActivity.class);
+        // Truyền buildingId để update progress đúng building
+        Building currentBuilding = viewModel.getSelectedBuilding().getValue();
+        if (currentBuilding != null) {
+            intent.putExtra("buildingId", currentBuilding.getId());
+        }
         startActivity(intent);
     }
 
@@ -401,15 +534,16 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
             // Set callbacks
             unlockFragment.setOnHarvestClickListener(b -> {
                 // Khi click Thu Hoạch, mở quiz từ vựng để thu hoạch
+                // Sau khi quiz đúng, phần thưởng sẽ được thưởng trong VocabularyQuizActivity
                 navigateToVocabularyQuiz();
                 // Đóng fragment sau khi mở quiz
                 hideUnlockFragment();
             });
             
             unlockFragment.setOnUpgradeClickListener(b -> {
-                // Xử lý nâng cấp
-                Toast.makeText(this, "Nâng cấp: " + b.getName(), Toast.LENGTH_SHORT).show();
-                // TODO: Thêm logic nâng cấp
+                // Nâng cấp đã được xử lý trong UnlockFragment
+                // Refresh building data sau khi nâng cấp
+                viewModel.init(this);
             });
             
             getSupportFragmentManager().beginTransaction()

@@ -18,6 +18,7 @@ import com.example.rise_of_city.R;
 public class AnswerCorrectDialogFragment extends DialogFragment {
 
     private int experienceReward;
+    private int goldReward;
 
     public interface OnContinueClickListener {
         void onContinueClick();
@@ -26,9 +27,14 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
     private OnContinueClickListener onContinueClickListener;
 
     public static AnswerCorrectDialogFragment newInstance(int experienceReward) {
+        return newInstance(experienceReward, 0);
+    }
+    
+    public static AnswerCorrectDialogFragment newInstance(int experienceReward, int goldReward) {
         AnswerCorrectDialogFragment fragment = new AnswerCorrectDialogFragment();
         Bundle args = new Bundle();
         args.putInt("experienceReward", experienceReward);
+        args.putInt("goldReward", goldReward);
         fragment.setArguments(args);
         return fragment;
     }
@@ -38,6 +44,7 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             experienceReward = getArguments().getInt("experienceReward", 20);
+            goldReward = getArguments().getInt("goldReward", 0);
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
@@ -66,8 +73,13 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
         TextView tvReward = view.findViewById(R.id.tv_reward);
         Button btnContinue = view.findViewById(R.id.btn_continue);
 
-        // Set reward text
-        tvReward.setText("+" + experienceReward + " Kinh nghiệm");
+        // Set reward text - hiển thị cả EXP và vàng
+        StringBuilder rewardText = new StringBuilder();
+        rewardText.append("+" + experienceReward + " EXP");
+        if (goldReward > 0) {
+            rewardText.append(" • +" + goldReward + " Vàng");
+        }
+        tvReward.setText(rewardText.toString());
 
         btnContinue.setOnClickListener(v -> {
             if (onContinueClickListener != null) {

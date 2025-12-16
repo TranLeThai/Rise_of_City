@@ -44,6 +44,7 @@
             app:layout_constraintTop_toBottomOf="@id/tvLevelName"/>
 
         <TextView
+            android:id="@+id/tv_progress_text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="3/9 Thử thách hoàn thành"
@@ -55,9 +56,51 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
+    <!-- Loading indicator -->
+    <ProgressBar
+        android:id="@+id/pb_loading"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- RecyclerView for buildings -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_buildings"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="true"
+        android:clipChildren="false"
+        android:paddingTop="0dp"
+        android:paddingBottom="0dp"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Empty state -->
+    <TextView
+        android:id="@+id/tv_empty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Chưa có dữ liệu"
+        android:textSize="16sp"
+        android:textColor="#9E9E9E"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Old ScrollView - Keep for reference but hidden -->
     <ScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:visibility="gone"
         android:fillViewport="true"
         android:clipToPadding="true"
         android:paddingBottom="16dp"

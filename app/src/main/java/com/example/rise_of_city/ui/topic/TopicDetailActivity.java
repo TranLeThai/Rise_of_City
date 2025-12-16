@@ -85,7 +85,18 @@ public class TopicDetailActivity extends AppCompatActivity {
             
             // Navigate based on category/building
             String category = topic.getCategory();
-            if (category != null) {
+            String topicId = topic.getId();
+            
+            // Nếu topic là Building → điều hướng đến InGameActivity
+            // Nếu topic là Lesson → điều hướng đến LessonActivity
+            if ("Lesson".equals(category)) {
+                // Topics từ topics collection → điều hướng đến LessonActivity
+                navigateToLessons();
+            } else if ("Building".equals(category) || "Vocabulary".equals(category)) {
+                // Topics từ buildings → điều hướng đến InGameActivity để học từ vựng qua quiz
+                navigateToBuildingById(topicId);
+            } else if (category != null) {
+                // Old category names (for backward compatibility)
                 switch (category) {
                     case "School":
                     case "Coffee Shop":
@@ -97,13 +108,21 @@ public class TopicDetailActivity extends AppCompatActivity {
                         break;
                     case "General":
                     default:
-                        // Navigate to lesson list
+                        // Navigate to lesson list (chủ đề học tập riêng)
                         navigateToLessons();
                         break;
                 }
             } else {
-                // Default: navigate to lessons
-                navigateToLessons();
+                // Default: check if it's a building or a lesson topic
+                if (topicId != null && (topicId.equals("house") || topicId.equals("school") || 
+                    topicId.equals("library") || topicId.equals("park") || topicId.equals("coffee") ||
+                    topicId.equals("bakery") || topicId.equals("farmer") || topicId.equals("clothers"))) {
+                    // Building ID → InGameActivity
+                    navigateToBuildingById(topicId);
+                } else {
+                    // Lesson topic → LessonActivity
+                    navigateToLessons();
+                }
             }
         });
     }
@@ -116,37 +135,94 @@ public class TopicDetailActivity extends AppCompatActivity {
         finish();
     }
     
+    private void navigateToBuildingById(String buildingId) {
+        // Navigate to InGameActivity with buildingId
+        // This will allow InGameActivity to highlight/focus on the specific building
+        Intent intent = new Intent(this, InGameActivity.class);
+        intent.putExtra("buildingId", buildingId);
+        intent.putExtra("topicId", buildingId);
+        startActivity(intent);
+        finish();
+    }
+    
     private void navigateToLessons() {
         // Navigate to lesson activity with topic filter
         Intent intent = new Intent(this, LessonActivity.class);
         intent.putExtra("topicId", topicId != null ? topicId : topic.getId());
         intent.putExtra("topicTitle", topic.getTitle());
         startActivity(intent);
+        finish(); // Close TopicDetailActivity
     }
     
     private void loadTopicDetail() {
         showLoading(true);
         hideEmptyState();
         
-        db.collection("topics")
+        // First try to load from buildings collection (since topics are now buildings)
+        db.collection("buildings")
                 .document(topicId)
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    showLoading(false);
-                    
-                    if (documentSnapshot.exists()) {
-                        topic = documentFromSnapshot(documentSnapshot);
+                .addOnSuccessListener(buildingDoc -> {
+                    if (buildingDoc.exists()) {
+                        // Load from buildings collection
+                        topic = documentFromBuildingSnapshot(buildingDoc);
                         displayTopicInfo(topic);
+                        showLoading(false);
                     } else {
-                        showEmptyState("Không tìm thấy thông tin chủ đề");
+                        // Fallback: try topics collection (for backward compatibility)
+                        db.collection("topics")
+                                .document(topicId)
+                                .get()
+                                .addOnSuccessListener(documentSnapshot -> {
+                                    showLoading(false);
+                                    
+                                    if (documentSnapshot.exists()) {
+                                        topic = documentFromSnapshot(documentSnapshot);
+                                        displayTopicInfo(topic);
+                                    } else {
+                                        showEmptyState("Không tìm thấy thông tin chủ đề");
+                                    }
+                                })
+                                .addOnFailureListener(e -> {
+                                    showLoading(false);
+                                    Log.e(TAG, "Error loading topic detail: ", e);
+                                    showEmptyState("Lỗi khi tải thông tin chủ đề");
+                                    Toast.makeText(this, "Lỗi khi tải thông tin", Toast.LENGTH_SHORT).show();
+                                });
                     }
                 })
                 .addOnFailureListener(e -> {
                     showLoading(false);
-                    Log.e(TAG, "Error loading topic detail: ", e);
+                    Log.e(TAG, "Error loading building detail: ", e);
                     showEmptyState("Lỗi khi tải thông tin chủ đề");
                     Toast.makeText(this, "Lỗi khi tải thông tin", Toast.LENGTH_SHORT).show();
                 });
+    }
+    
+    private SearchTopic documentFromBuildingSnapshot(DocumentSnapshot document) {
+        SearchTopic topic = new SearchTopic();
+        topic.setId(document.getId());
+        topic.setTitle(document.getString("name"));
+        topic.setDescription(document.getString("description"));
+        topic.setCategory("Building");
+        
+        // Set level based on vocabulary count
+        Long vocabCount = document.getLong("vocabularyCount");
+        if (vocabCount != null) {
+            topic.setLessonCount(vocabCount.intValue());
+            if (vocabCount < 20) {
+                topic.setLevel("Beginner");
+            } else if (vocabCount < 50) {
+                topic.setLevel("Intermediate");
+            } else {
+                topic.setLevel("Advanced");
+            }
+        } else {
+            topic.setLessonCount(0);
+            topic.setLevel("Beginner");
+        }
+        
+        return topic;
     }
     
     private SearchTopic documentFromSnapshot(DocumentSnapshot document) {
@@ -216,7 +292,13 @@ public class TopicDetailActivity extends AppCompatActivity {
     }
     
     private String getCategoryDisplayName(String category) {
+        if (category == null) return "Chung";
+        
         switch (category) {
+            case "Building":
+            case "Vocabulary":
+                // For building topics, show building name from topic title
+                return topic != null && topic.getTitle() != null ? topic.getTitle() : "Building";
             case "School": return "Trường học";
             case "Coffee Shop": return "Quán cà phê";
             case "Park": return "Công viên";

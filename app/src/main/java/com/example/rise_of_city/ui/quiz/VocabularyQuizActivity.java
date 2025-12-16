@@ -1,6 +1,7 @@
 package com.example.rise_of_city.ui.quiz;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -10,7 +11,16 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.Vocabulary;
+import com.example.rise_of_city.data.repository.BuildingProgressRepository;
+import com.example.rise_of_city.data.repository.BuildingHarvestRepository;
+import com.example.rise_of_city.data.repository.GoldRepository;
+import com.example.rise_of_city.data.repository.LearningLogRepository;
+import com.example.rise_of_city.data.repository.UserStatsRepository;
+import com.example.rise_of_city.data.repository.VocabularyRepository;
 import com.example.rise_of_city.ui.dialog.AnswerCorrectDialogFragment;
 import com.example.rise_of_city.ui.dialog.AnswerWrongDialogFragment;
 
@@ -25,17 +35,44 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private Button btnAnswer1, btnAnswer2, btnAnswer3, btnAnswer4;
     private Button btnCheck;
     
-    private String correctAnswer;
+    private Vocabulary correctVocabulary;
+    private List<Vocabulary> wrongOptions;
     private String selectedAnswer;
     private boolean answerSelected = false;
+    
+    private VocabularyRepository vocabRepository;
+    private BuildingProgressRepository buildingProgressRepo;
+    private LearningLogRepository learningLogRepo;
+    private GoldRepository goldRepo;
+    private BuildingHarvestRepository harvestRepo;
+    private String buildingId; // ID của building đang quiz (từ intent)
+    
+    // Phần thưởng sẽ được tính dựa trên level building (trong updateBuildingProgress)
+    private int buildingLevel = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_vocabulary_quiz);
 
+        // Lấy buildingId từ intent (nếu có)
+        buildingId = getIntent().getStringExtra("buildingId");
+        if (buildingId == null) {
+            buildingId = "house"; // Default
+        }
+
+        // Khởi tạo repositories
+        vocabRepository = VocabularyRepository.getInstance();
+        buildingProgressRepo = BuildingProgressRepository.getInstance();
+        learningLogRepo = LearningLogRepository.getInstance();
+        goldRepo = GoldRepository.getInstance();
+        harvestRepo = BuildingHarvestRepository.getInstance();
+        
+        // Load building level để tính phần thưởng
+        loadBuildingLevel();
+
         initViews();
-        setupQuestion();
+        loadQuizFromFirebase();
         setupAnswerButtons();
         setupCheckButton();
     }
@@ -53,23 +90,64 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         btnClose.setOnClickListener(v -> finish());
     }
 
+    /**
+     * Load quiz từ Firebase
+     */
+    private void loadQuizFromFirebase() {
+        // Hiển thị loading
+        tvQuestion.setText("Đang tải câu hỏi...");
+        btnCheck.setEnabled(false);
+        
+        // Lấy từ vựng theo buildingId (nếu có)
+        vocabRepository.getQuizOptions(buildingId, new VocabularyRepository.OnQuizOptionsLoadedListener() {
+            @Override
+            public void onQuizOptionsLoaded(Vocabulary correctVocab, List<Vocabulary> wrongOpts) {
+                correctVocabulary = correctVocab;
+                wrongOptions = wrongOpts;
+                
+                // Setup câu hỏi
+                setupQuestion();
+            }
+            
+            @Override
+            public void onError(String error) {
+                Toast.makeText(VocabularyQuizActivity.this, 
+                    "Lỗi: " + error, Toast.LENGTH_LONG).show();
+                // Fallback: dùng dữ liệu mẫu
+                setupFallbackQuestion();
+            }
+        });
+    }
+
     private void setupQuestion() {
-        // Ví dụ: Câu hỏi về từ "House"
-        String question = "Từ nào có nghĩa là 'Ngôi Nhà'?";
+        if (correctVocabulary == null || wrongOptions == null || wrongOptions.size() < 3) {
+            setupFallbackQuestion();
+            return;
+        }
+        
+        // Tạo câu hỏi
+        String question = "Từ nào có nghĩa là '" + correctVocabulary.getVietnamese() + "'?";
         tvQuestion.setText(question);
         
-        // Set hình ảnh minh họa (có thể lấy từ intent hoặc database)
-        ivIllustration.setImageResource(R.drawable.vector_house);
+        // Load ảnh từ URL bằng Glide
+        if (correctVocabulary.getImageUrl() != null && !correctVocabulary.getImageUrl().isEmpty()) {
+            Glide.with(this)
+                    .load(correctVocabulary.getImageUrl())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .placeholder(R.drawable.vector_house) // Ảnh placeholder khi đang load
+                    .error(R.drawable.vector_house) // Ảnh hiển thị khi lỗi
+                    .into(ivIllustration);
+        } else {
+            // Nếu không có URL, dùng ảnh mặc định
+            ivIllustration.setImageResource(R.drawable.vector_house);
+        }
         
-        // Đáp án đúng
-        correctAnswer = "HOUSE";
-        
-        // Tạo danh sách đáp án và xáo trộn
+        // Tạo danh sách đáp án (1 đúng + 3 sai)
         List<String> answers = new ArrayList<>();
-        answers.add("HOUSE");
-        answers.add("MOUSE");
-        answers.add("HORSE");
-        answers.add("HOSE");
+        answers.add(correctVocabulary.getEnglish().toUpperCase());
+        answers.add(wrongOptions.get(0).getEnglish().toUpperCase());
+        answers.add(wrongOptions.get(1).getEnglish().toUpperCase());
+        answers.add(wrongOptions.get(2).getEnglish().toUpperCase());
         Collections.shuffle(answers);
         
         // Gán đáp án vào các buttons
@@ -77,6 +155,35 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         btnAnswer2.setText(answers.get(1));
         btnAnswer3.setText(answers.get(2));
         btnAnswer4.setText(answers.get(3));
+        
+        // Enable nút check
+        btnCheck.setEnabled(true);
+    }
+
+    /**
+     * Fallback: Dùng dữ liệu mẫu nếu không load được từ Firebase
+     */
+    private void setupFallbackQuestion() {
+        String question = "Từ nào có nghĩa là 'Ngôi Nhà'?";
+        tvQuestion.setText(question);
+        ivIllustration.setImageResource(R.drawable.vector_house);
+        
+        List<String> answers = new ArrayList<>();
+        answers.add("HOUSE");
+        answers.add("MOUSE");
+        answers.add("HORSE");
+        answers.add("HOSE");
+        Collections.shuffle(answers);
+        
+        btnAnswer1.setText(answers.get(0));
+        btnAnswer2.setText(answers.get(1));
+        btnAnswer3.setText(answers.get(2));
+        btnAnswer4.setText(answers.get(3));
+        
+        // Tạo vocabulary mẫu
+        correctVocabulary = new Vocabulary("HOUSE", "Ngôi nhà", null);
+        
+        btnCheck.setEnabled(true);
     }
 
     private void setupAnswerButtons() {
@@ -119,11 +226,23 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             }
 
             // Kiểm tra đáp án
-            if (selectedAnswer.equals(correctAnswer)) {
+            String correctAnswerText = correctVocabulary != null ? 
+                correctVocabulary.getEnglish().toUpperCase() : "HOUSE";
+            
+            boolean isCorrect = selectedAnswer.equals(correctAnswerText);
+            
+            // Ghi log học tập
+            String vocabularyEnglish = correctVocabulary != null ? 
+                correctVocabulary.getEnglish() : "HOUSE";
+            learningLogRepo.logQuizAttempt(buildingId, isCorrect, vocabularyEnglish);
+            
+            if (isCorrect) {
                 // Highlight đáp án đúng
                 highlightCorrectAnswer();
                 // Disable buttons
                 disableAllButtons();
+                // Cập nhật building progress (EXP để nâng cấp) và thưởng vàng
+                updateBuildingProgress();
                 // Hiển thị dialog đáp án đúng
                 showCorrectAnswerDialog();
             } else {
@@ -137,25 +256,127 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Load building level từ Firebase
+     */
+    private void loadBuildingLevel() {
+        if (buildingId == null) return;
+        
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        if (auth.getCurrentUser() == null) return;
+        
+        String userId = auth.getCurrentUser().getUid();
+        String buildingPath = "users/" + userId + "/buildings/" + buildingId;
+        
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .document(buildingPath)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Long level = documentSnapshot.getLong("level");
+                        if (level != null) {
+                            buildingLevel = level.intValue();
+                        }
+                    }
+                });
+    }
+    
+    /**
+     * Cập nhật building progress khi quiz đúng
+     */
+    private void updateBuildingProgress() {
+        if (buildingProgressRepo != null && buildingId != null && harvestRepo != null) {
+            // Tính phần thưởng dựa trên level building
+            BuildingHarvestRepository.HarvestReward reward = harvestRepo.calculateHarvestReward(buildingLevel);
+            
+            // Thưởng EXP
+            buildingProgressRepo.addExpToBuilding(buildingId, reward.expReward, 
+                new BuildingProgressRepository.OnProgressUpdatedListener() {
+                    @Override
+                    public void onProgressUpdated(long level, int currentExp, int maxExp) {
+                        // Progress đã được cập nhật trong Firebase
+                        // Cập nhật số từ vựng đã học cho building này
+                        updateVocabularyLearnedForBuilding();
+                        
+                        // Đánh dấu đã thu hoạch
+                        harvestRepo.markAsHarvested(buildingId, new BuildingHarvestRepository.OnHarvestMarkedListener() {
+                            @Override
+                            public void onHarvestMarked() {
+                                Log.d("VocabularyQuiz", "Harvest marked for building: " + buildingId);
+                            }
+                            
+                            @Override
+                            public void onError(String error) {
+                                Log.e("VocabularyQuiz", "Error marking harvest: " + error);
+                            }
+                        });
+                    }
+                    
+                    @Override
+                    public void onError(String error) {
+                        Log.e("VocabularyQuiz", "Error updating building progress: " + error);
+                    }
+                });
+            
+            // Thưởng vàng
+            rewardGold(reward.goldReward);
+        }
+    }
+    
+    /**
+     * Cập nhật số từ vựng đã học cho building
+     */
+    private void updateVocabularyLearnedForBuilding() {
+        if (buildingId != null && correctVocabulary != null) {
+            UserStatsRepository statsRepo = UserStatsRepository.getInstance();
+            statsRepo.calculateVocabularyLearnedByBuilding(buildingId, vocabularyLearned -> {
+                // Vocabulary learned đã được cập nhật trong BuildingProgressRepository
+            });
+        }
+    }
+    
+    /**
+     * Thưởng vàng khi quiz đúng (vàng dùng để mở khóa building)
+     */
+    private void rewardGold(int goldAmount) {
+        if (goldRepo != null) {
+            goldRepo.addGold(goldAmount, new GoldRepository.OnGoldUpdatedListener() {
+                @Override
+                public void onGoldUpdated(int newGold) {
+                    // Vàng đã được cập nhật
+                    Log.d("VocabularyQuiz", "Gold rewarded: +" + goldAmount + " (Total: " + newGold + ")");
+                }
+                
+                @Override
+                public void onError(String error) {
+                    Log.e("VocabularyQuiz", "Error rewarding gold: " + error);
+                }
+            });
+        }
+    }
+
     private void highlightCorrectAnswer() {
+        String correctAnswerText = correctVocabulary != null ? 
+            correctVocabulary.getEnglish().toUpperCase() : "HOUSE";
+        
         // Highlight đáp án đúng với màu xanh và chữ xanh đậm
         int greenColor = 0xFF2E7D32; // Màu xanh đậm
-        if (btnAnswer1.getText().toString().equals(correctAnswer)) {
+        if (btnAnswer1.getText().toString().equals(correctAnswerText)) {
             btnAnswer1.setBackgroundResource(R.drawable.bg_answer_button_correct);
             btnAnswer1.setTextColor(greenColor);
-        } else if (btnAnswer2.getText().toString().equals(correctAnswer)) {
+        } else if (btnAnswer2.getText().toString().equals(correctAnswerText)) {
             btnAnswer2.setBackgroundResource(R.drawable.bg_answer_button_correct);
             btnAnswer2.setTextColor(greenColor);
-        } else if (btnAnswer3.getText().toString().equals(correctAnswer)) {
+        } else if (btnAnswer3.getText().toString().equals(correctAnswerText)) {
             btnAnswer3.setBackgroundResource(R.drawable.bg_answer_button_correct);
             btnAnswer3.setTextColor(greenColor);
-        } else if (btnAnswer4.getText().toString().equals(correctAnswer)) {
+        } else if (btnAnswer4.getText().toString().equals(correctAnswerText)) {
             btnAnswer4.setBackgroundResource(R.drawable.bg_answer_button_correct);
             btnAnswer4.setTextColor(greenColor);
         }
 
         // Highlight đáp án sai với màu đỏ và chữ đỏ đậm
-        if (!selectedAnswer.equals(correctAnswer)) {
+        if (!selectedAnswer.equals(correctAnswerText)) {
             int redColor = 0xFFC62828; // Màu đỏ đậm
             if (btnAnswer1.getText().toString().equals(selectedAnswer)) {
                 btnAnswer1.setBackgroundResource(R.drawable.bg_answer_button_wrong);
@@ -185,18 +406,30 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     }
 
     private void showCorrectAnswerDialog() {
-        AnswerCorrectDialogFragment dialog = AnswerCorrectDialogFragment.newInstance(20);
+        // Tính phần thưởng dựa trên level building
+        BuildingHarvestRepository.HarvestReward reward = harvestRepo != null ? 
+            harvestRepo.calculateHarvestReward(buildingLevel) : 
+            new BuildingHarvestRepository.HarvestReward(20, 10);
+        
+        AnswerCorrectDialogFragment dialog = AnswerCorrectDialogFragment.newInstance(reward.expReward, reward.goldReward);
         dialog.setOnContinueClickListener(() -> {
             // Đóng activity và quay lại màn hình trước
+            // Building progress đã được cập nhật trong updateBuildingProgress()
+            // Vàng đã được thưởng trong rewardGold()
             finish();
         });
         dialog.show(getSupportFragmentManager(), "AnswerCorrectDialog");
     }
 
     private void showWrongAnswerDialog() {
-        // Map English answer to Vietnamese
-        String vietnameseAnswer = getVietnameseTranslation(correctAnswer);
-        AnswerWrongDialogFragment dialog = AnswerWrongDialogFragment.newInstance(correctAnswer, vietnameseAnswer);
+        // Lấy nghĩa tiếng Việt từ vocabulary
+        String englishWord = correctVocabulary != null ? 
+            correctVocabulary.getEnglish() : "HOUSE";
+        String vietnameseAnswer = correctVocabulary != null ? 
+            correctVocabulary.getVietnamese() : getVietnameseTranslation(englishWord);
+        
+        AnswerWrongDialogFragment dialog = AnswerWrongDialogFragment.newInstance(
+            englishWord, vietnameseAnswer);
         dialog.setOnUnderstoodClickListener(() -> {
             // Đóng activity và quay lại màn hình trước
             finish();
@@ -205,7 +438,11 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     }
 
     private String getVietnameseTranslation(String englishWord) {
-        // Map English words to Vietnamese translations
+        // Fallback: Map English words to Vietnamese translations
+        if (correctVocabulary != null) {
+            return correctVocabulary.getVietnamese();
+        }
+        
         switch (englishWord.toUpperCase()) {
             case "HOUSE":
                 return "Ngôi nhà";

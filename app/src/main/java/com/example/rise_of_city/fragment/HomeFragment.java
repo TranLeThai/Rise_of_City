@@ -14,8 +14,13 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.repository.GoldRepository;
+import android.widget.TextView;
 
 public class HomeFragment extends Fragment {
+
+    private TextView tvCoinValue;
+    private GoldRepository goldRepo;
 
     @Nullable
     @Override
@@ -26,6 +31,11 @@ public class HomeFragment extends Fragment {
         Button btnPlay = view.findViewById(R.id.btn_play);
         Button btnStartGame = view.findViewById(R.id.btn_start_game);
         ImageView missionIcon = view.findViewById(R.id.mission);
+        tvCoinValue = view.findViewById(R.id.tv_coin_value);
+        
+        // Khởi tạo GoldRepository và load vàng
+        goldRepo = GoldRepository.getInstance();
+        loadGold();
 
         // Sự kiện bấm nút Play (overlay trên đảo) -> Chuyển sang InGameActivity
         btnPlay.setOnClickListener(v -> {
@@ -46,5 +56,20 @@ public class HomeFragment extends Fragment {
         });
 
         return view;
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh vàng khi quay lại
+        loadGold();
+    }
+    
+    private void loadGold() {
+        if (goldRepo != null && tvCoinValue != null) {
+            goldRepo.getCurrentGold(gold -> {
+                tvCoinValue.setText(String.valueOf(gold));
+            });
+        }
     }
 }

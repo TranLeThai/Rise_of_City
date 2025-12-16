@@ -14,6 +14,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Badge;
+import com.example.rise_of_city.data.repository.UserStatsRepository;
 import com.example.rise_of_city.ui.auth.LoginActivity;
 import com.example.rise_of_city.ui.dialog.BadgeUnlockDialogFragment;
 import com.example.rise_of_city.ui.main.MainActivity;
@@ -23,6 +24,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ public class ProfileFragment extends Fragment {
 
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
+    private UserStatsRepository statsRepository;
     private TextView tvUserName;
     private TextView tvLogout;
     private TextView tvStreak, tvTotalXP, tvBuildings;
@@ -42,6 +45,7 @@ public class ProfileFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
         mAuth = FirebaseAuth.getInstance();
+        statsRepository = UserStatsRepository.getInstance();
 
         // Tìm các view
         tvUserName = view.findViewById(R.id.tvUserName);
@@ -114,6 +118,13 @@ public class ProfileFragment extends Fragment {
         return view;
     }
     
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh statistics khi quay lại từ màn hình khác (ví dụ: sau khi thu hoạch/nâng cấp)
+        loadUserStatistics();
+    }
+    
     private void checkForNewBadges() {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
@@ -145,52 +156,38 @@ public class ProfileFragment extends Fragment {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
         
-        db.collection("user_profiles")
+        // Tính streak từ learning_logs
+        statsRepository.calculateStreak(streak -> {
+            tvStreak.setText(streak + " Ngày");
+        });
+        
+        // Tính total XP từ buildings
+        statsRepository.calculateTotalXP(totalXP -> {
+            tvTotalXP.setText(String.valueOf(totalXP));
+        });
+        
+        // Load buildings count (completed buildings)
+        // Buildings được lưu ở subcollection: users/{userId}/buildings
+        db.collection("users")
                 .document(user.getUid())
+                .collection("buildings")
                 .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        // Load streak
-                        Long streak = documentSnapshot.getLong("streak");
-                        if (streak != null) {
-                            tvStreak.setText(streak + " Ngày");
-                        } else {
-                            tvStreak.setText("0 Ngày");
-                        }
-                        
-                        // Load total XP
-                        Long totalXP = documentSnapshot.getLong("totalXP");
-                        if (totalXP != null) {
-                            tvTotalXP.setText(String.valueOf(totalXP));
-                        } else {
-                            tvTotalXP.setText("0");
-                        }
-                        
-                        // Load buildings count (completed buildings)
-                        Map<String, Object> buildings = (Map<String, Object>) documentSnapshot.get("buildings");
-                        int completedBuildings = 0;
-                        if (buildings != null) {
-                            for (Map.Entry<String, Object> entry : buildings.entrySet()) {
-                                Map<String, Object> buildingData = (Map<String, Object>) entry.getValue();
-                                Boolean isCompleted = (Boolean) buildingData.get("completed");
-                                if (isCompleted != null && isCompleted) {
-                                    completedBuildings++;
-                                }
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int completedBuildings = 0;
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            // Kiểm tra completed hoặc có completedAt
+                            Boolean isCompleted = doc.getBoolean("completed");
+                            Long completedAt = doc.getLong("completedAt");
+                            if ((isCompleted != null && isCompleted) || (completedAt != null && completedAt > 0)) {
+                                completedBuildings++;
                             }
                         }
-                        tvBuildings.setText(String.valueOf(completedBuildings));
-                    } else {
-                        // Set default values
-                        tvStreak.setText("0 Ngày");
-                        tvTotalXP.setText("0");
-                        tvBuildings.setText("0");
                     }
+                    tvBuildings.setText(String.valueOf(completedBuildings));
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("ProfileFragment", "Error loading statistics: ", e);
-                    // Set default values on error
-                    tvStreak.setText("0 Ngày");
-                    tvTotalXP.setText("0");
+                    Log.e("ProfileFragment", "Error loading buildings: ", e);
                     tvBuildings.setText("0");
                 });
     }

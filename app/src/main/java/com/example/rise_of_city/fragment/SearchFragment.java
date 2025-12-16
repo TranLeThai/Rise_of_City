@@ -273,173 +273,206 @@ public class SearchFragment extends Fragment {
     }
 
     private void searchTopics(String query) {
-        // Search in topics collection (you may need to create this collection)
-        // For now, we'll search in a hypothetical "topics" collection
+        // Search topics có 2 loại:
+        // 1. Buildings (chủ đề học từ vựng qua quiz) - tìm trong buildings collection
+        // 2. Lesson Topics (chủ đề học bài học do người dùng chia sẻ) - tìm trong topics collection
+        List<SearchTopic> topics = new ArrayList<>();
+        String lowerQuery = query.toLowerCase();
+        
+        // 1. Search in topics collection (chủ đề học tập do người dùng chia sẻ)
         db.collection("topics")
-                .whereGreaterThanOrEqualTo("title", query)
-                .whereLessThanOrEqualTo("title", query + "\uf8ff")
-                .limit(20)
+                .whereEqualTo("status", "approved") // Chỉ lấy topics đã được approve
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<SearchTopic> topics = new ArrayList<>();
-                    
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        SearchTopic topic = new SearchTopic();
-                        topic.setId(document.getId());
-                        topic.setTitle(document.getString("title"));
-                        topic.setDescription(document.getString("description"));
-                        topic.setLevel(document.getString("level"));
-                        topic.setCategory(document.getString("category"));
+                .addOnSuccessListener(topicsSnapshot -> {
+                    for (QueryDocumentSnapshot topicDoc : topicsSnapshot) {
+                        String topicTitle = topicDoc.getString("title");
+                        String topicDesc = topicDoc.getString("description");
+                        String topicId = topicDoc.getId();
                         
-                        Object lessonCountObj = document.get("lessonCount");
-                        if (lessonCountObj != null) {
-                            topic.setLessonCount(((Long) lessonCountObj).intValue());
+                        // Get lesson count - CHỈ HIỂN THỊ TOPICS CÓ LESSONS
+                        Long lessonCount = topicDoc.getLong("lessonCount");
+                        int lessonCountInt = lessonCount != null ? lessonCount.intValue() : 0;
+                        
+                        // Bỏ qua topics không có lessons
+                        if (lessonCountInt == 0) {
+                            continue;
                         }
                         
-                        topic.setImageUrl(document.getString("imageUrl"));
-                        topics.add(topic);
+                        // Check if matches query
+                        if (query.isEmpty() || 
+                            (topicTitle != null && topicTitle.toLowerCase().contains(lowerQuery)) ||
+                            (topicDesc != null && topicDesc.toLowerCase().contains(lowerQuery))) {
+                            
+                            SearchTopic topic = new SearchTopic();
+                            topic.setId(topicId);
+                            topic.setTitle(topicTitle != null ? topicTitle : topicId);
+                            topic.setDescription(topicDesc != null ? topicDesc : "");
+                            topic.setCategory("Lesson"); // Đánh dấu là lesson topic
+                            
+                            topic.setLessonCount(lessonCountInt);
+                            
+                            // Get level
+                            String level = topicDoc.getString("level");
+                            topic.setLevel(level != null ? level : "Beginner");
+                            
+                            topics.add(topic);
+                        }
                     }
-
-                    // Also search by description if needed
+                    
+                    // 2. Also search in buildings collection (nếu cần)
                     if (topics.size() < 20) {
-                        searchTopicsByDescription(query, topics);
+                        searchBuildingsAsTopics(query, topics);
                     } else {
                         updateTopicResults(topics);
                     }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error searching topics: ", e);
-                    // If topics collection doesn't exist, create sample topics
-                    createSampleTopics(query);
+                    // Fallback: search buildings only
+                    searchBuildingsAsTopics(query, new ArrayList<>());
                 });
     }
-
-    private void searchTopicsByDescription(String query, List<SearchTopic> existingTopics) {
-        db.collection("topics")
-                .whereGreaterThanOrEqualTo("description", query)
-                .whereLessThanOrEqualTo("description", query + "\uf8ff")
-                .limit(20)
+    
+    private void searchBuildingsAsTopics(String query, List<SearchTopic> existingTopics) {
+        String lowerQuery = query.toLowerCase();
+        
+        // Search in buildings collection
+        db.collection("buildings")
                 .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        boolean isDuplicate = false;
+                .addOnSuccessListener(buildingsSnapshot -> {
+                    List<SearchTopic> topics = new ArrayList<>(existingTopics);
+                    
+                    for (QueryDocumentSnapshot buildingDoc : buildingsSnapshot) {
+                        String buildingName = buildingDoc.getString("name");
+                        String buildingDesc = buildingDoc.getString("description");
+                        String buildingId = buildingDoc.getId();
+                        
+                        // Check if matches query
+                        if (query.isEmpty() || 
+                            (buildingName != null && buildingName.toLowerCase().contains(lowerQuery)) ||
+                            (buildingDesc != null && buildingDesc.toLowerCase().contains(lowerQuery))) {
+                            
+                            SearchTopic topic = new SearchTopic();
+                            topic.setId(buildingId);
+                            topic.setTitle(buildingName != null ? buildingName : buildingId);
+                            topic.setDescription(buildingDesc != null ? buildingDesc : "");
+                            topic.setCategory("Building");
+                            
+                            // Get vocabulary count
+                            Long vocabCount = buildingDoc.getLong("vocabularyCount");
+                            topic.setLessonCount(vocabCount != null ? vocabCount.intValue() : 0);
+                            
+                            // Set level based on vocabulary count
+                            if (vocabCount != null) {
+                                if (vocabCount < 20) {
+                                    topic.setLevel("Beginner");
+                                } else if (vocabCount < 50) {
+                                    topic.setLevel("Intermediate");
+                                } else {
+                                    topic.setLevel("Advanced");
+                                }
+                            } else {
+                                topic.setLevel("Beginner");
+                            }
+                            
+                            topics.add(topic);
+                        }
+                    }
+                    
+                    // 2. Also search in vocabularies for more specific results
+                    if (topics.size() < 20) {
+                        searchVocabulariesAsTopics(query, topics);
+                    } else {
+                        updateTopicResults(topics);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error searching buildings: ", e);
+                    // Fallback: search vocabularies directly
+                    searchVocabulariesAsTopics(query, new ArrayList<>());
+                });
+    }
+    
+    private void searchVocabulariesAsTopics(String query, List<SearchTopic> existingTopics) {
+        String lowerQuery = query.toLowerCase();
+        
+        // Search vocabularies and group by buildingId
+        db.collection("vocabularies")
+                .limit(100) // Limit to avoid too many reads
+                .get()
+                .addOnSuccessListener(vocabSnapshot -> {
+                    // Group vocabularies by buildingId
+                    java.util.Map<String, List<String>> buildingVocabs = new java.util.HashMap<>();
+                    
+                    for (QueryDocumentSnapshot vocabDoc : vocabSnapshot) {
+                        String buildingId = vocabDoc.getString("buildingId");
+                        String english = vocabDoc.getString("english");
+                        String vietnamese = vocabDoc.getString("vietnamese");
+                        
+                        if (buildingId == null) buildingId = "house";
+                        
+                        // Check if matches query
+                        if (query.isEmpty() || 
+                            (english != null && english.toLowerCase().contains(lowerQuery)) ||
+                            (vietnamese != null && vietnamese.toLowerCase().contains(lowerQuery))) {
+                            
+                            if (!buildingVocabs.containsKey(buildingId)) {
+                                buildingVocabs.put(buildingId, new ArrayList<>());
+                            }
+                            buildingVocabs.get(buildingId).add(english != null ? english : "");
+                        }
+                    }
+                    
+                    // Create topics from vocabulary groups
+                    for (java.util.Map.Entry<String, List<String>> entry : buildingVocabs.entrySet()) {
+                        String buildingId = entry.getKey();
+                        List<String> vocabs = entry.getValue();
+                        
+                        // Check if already exists
+                        boolean exists = false;
                         for (SearchTopic existing : existingTopics) {
-                            if (existing.getId().equals(document.getId())) {
-                                isDuplicate = true;
+                            if (existing.getId().equals(buildingId)) {
+                                exists = true;
                                 break;
                             }
                         }
-
-                        if (!isDuplicate) {
-                            SearchTopic topic = new SearchTopic();
-                            topic.setId(document.getId());
-                            topic.setTitle(document.getString("title"));
-                            topic.setDescription(document.getString("description"));
-                            topic.setLevel(document.getString("level"));
-                            topic.setCategory(document.getString("category"));
-                            
-                            Object lessonCountObj = document.get("lessonCount");
-                            if (lessonCountObj != null) {
-                                topic.setLessonCount(((Long) lessonCountObj).intValue());
-                            }
-                            
-                            topic.setImageUrl(document.getString("imageUrl"));
-                            existingTopics.add(topic);
+                        
+                        if (!exists && !vocabs.isEmpty()) {
+                            // Get building info
+                            db.collection("buildings").document(buildingId).get()
+                                    .addOnSuccessListener(buildingDoc -> {
+                                        SearchTopic topic = new SearchTopic();
+                                        topic.setId(buildingId);
+                                        
+                                        if (buildingDoc.exists()) {
+                                            topic.setTitle(buildingDoc.getString("name"));
+                                            topic.setDescription(buildingDoc.getString("description"));
+                                        } else {
+                                            topic.setTitle("Từ vựng " + buildingId);
+                                            topic.setDescription("Từ vựng về " + buildingId);
+                                        }
+                                        
+                                        topic.setCategory("Vocabulary");
+                                        topic.setLessonCount(vocabs.size());
+                                        topic.setLevel(vocabs.size() < 20 ? "Beginner" : "Intermediate");
+                                        
+                                        existingTopics.add(topic);
+                                        
+                                        if (existingTopics.size() >= 20) {
+                                            updateTopicResults(existingTopics);
+                                        }
+                                    });
                         }
                     }
+                    
                     updateTopicResults(existingTopics);
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error searching topics by description: ", e);
+                    Log.e(TAG, "Error searching vocabularies: ", e);
                     updateTopicResults(existingTopics);
                 });
     }
 
-    private void createSampleTopics(String query) {
-        // Create sample topics based on game buildings and learning skills
-        List<SearchTopic> sampleTopics = new ArrayList<>();
-        
-        // Topics gắn với các Building trong game
-        // School building topics
-        SearchTopic[] gameTopics = {
-            // School Building - Grammar & Basics
-            new SearchTopic("school_grammar_basics", "Ngữ pháp cơ bản", 
-                "Học các quy tắc ngữ pháp cơ bản tại School", "Beginner", "School"),
-            new SearchTopic("school_present_tense", "Thì hiện tại đơn", 
-                "Học cách sử dụng thì hiện tại đơn", "Beginner", "School"),
-            new SearchTopic("school_past_tense", "Thì quá khứ đơn", 
-                "Học cách sử dụng thì quá khứ đơn", "Beginner", "School"),
-            new SearchTopic("school_future_tense", "Thì tương lai", 
-                "Học cách diễn đạt tương lai", "Intermediate", "School"),
-            new SearchTopic("school_conditionals", "Câu điều kiện", 
-                "Học các loại câu điều kiện", "Intermediate", "School"),
-            
-            // Coffee Shop Building - Conversation & Speaking
-            new SearchTopic("coffee_daily_conversation", "Hội thoại hàng ngày", 
-                "Luyện nói các tình huống giao tiếp hàng ngày", "Beginner", "Coffee Shop"),
-            new SearchTopic("coffee_ordering", "Đặt hàng và mua sắm", 
-                "Học cách đặt hàng tại quán cà phê, nhà hàng", "Beginner", "Coffee Shop"),
-            new SearchTopic("coffee_small_talk", "Trò chuyện xã giao", 
-                "Luyện kỹ năng small talk trong môi trường công sở", "Intermediate", "Coffee Shop"),
-            new SearchTopic("coffee_business_meeting", "Họp và thuyết trình", 
-                "Kỹ năng giao tiếp trong môi trường kinh doanh", "Advanced", "Coffee Shop"),
-            
-            // Park Building - Vocabulary & Nature
-            new SearchTopic("park_nature_vocab", "Từ vựng về thiên nhiên", 
-                "Học từ vựng về cây cối, động vật, môi trường", "Beginner", "Park"),
-            new SearchTopic("park_activities", "Hoạt động ngoài trời", 
-                "Từ vựng và câu về các hoạt động thể thao, giải trí", "Intermediate", "Park"),
-            new SearchTopic("park_environment", "Môi trường và bảo vệ", 
-                "Học về môi trường và cách bảo vệ thiên nhiên", "Advanced", "Park"),
-            
-            // House Building - Daily Life & Home
-            new SearchTopic("house_family", "Gia đình và mối quan hệ", 
-                "Từ vựng về gia đình, bạn bè, các mối quan hệ", "Beginner", "House"),
-            new SearchTopic("house_daily_routine", "Thói quen hàng ngày", 
-                "Học cách mô tả các hoạt động hàng ngày", "Beginner", "House"),
-            new SearchTopic("house_home_maintenance", "Bảo trì nhà cửa", 
-                "Từ vựng về sửa chữa, trang trí nhà cửa", "Intermediate", "House"),
-            
-            // Library Building - Reading & Writing
-            new SearchTopic("library_reading_basics", "Đọc hiểu cơ bản", 
-                "Luyện kỹ năng đọc hiểu văn bản đơn giản", "Beginner", "Library"),
-            new SearchTopic("library_writing_emails", "Viết email", 
-                "Học cách viết email chuyên nghiệp", "Intermediate", "Library"),
-            new SearchTopic("library_essay_writing", "Viết luận", 
-                "Kỹ năng viết bài luận học thuật", "Advanced", "Library"),
-            
-            // General Skills
-            new SearchTopic("general_pronunciation", "Phát âm", 
-                "Luyện phát âm chuẩn và ngữ điệu", "Beginner", "General"),
-            new SearchTopic("general_listening", "Luyện nghe", 
-                "Cải thiện kỹ năng nghe hiểu", "Intermediate", "General"),
-            new SearchTopic("general_idioms", "Thành ngữ và cụm từ", 
-                "Học các thành ngữ, cụm từ thông dụng", "Advanced", "General")
-        };
-
-        String lowerQuery = query.toLowerCase();
-        for (SearchTopic topic : gameTopics) {
-            // Set lesson count based on level
-            if (topic.getLevel().equals("Beginner")) {
-                topic.setLessonCount(5);
-            } else if (topic.getLevel().equals("Intermediate")) {
-                topic.setLessonCount(8);
-            } else {
-                topic.setLessonCount(12);
-            }
-            
-            // Filter by query
-            if (query.isEmpty() || 
-                topic.getTitle().toLowerCase().contains(lowerQuery) ||
-                topic.getDescription().toLowerCase().contains(lowerQuery) ||
-                topic.getCategory().toLowerCase().contains(lowerQuery) ||
-                topic.getLevel().toLowerCase().contains(lowerQuery)) {
-                sampleTopics.add(topic);
-            }
-        }
-
-        updateTopicResults(sampleTopics);
-    }
 
     private void updateTopicResults(List<SearchTopic> topics) {
         showLoading(false);
@@ -486,41 +519,8 @@ public class SearchFragment extends Fragment {
 
     private void loadAllTopics() {
         showLoading(true);
-        db.collection("topics")
-                .limit(20)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    List<SearchTopic> topics = new ArrayList<>();
-                    
-                    for (QueryDocumentSnapshot document : queryDocumentSnapshots) {
-                        SearchTopic topic = new SearchTopic();
-                        topic.setId(document.getId());
-                        topic.setTitle(document.getString("title"));
-                        topic.setDescription(document.getString("description"));
-                        topic.setLevel(document.getString("level"));
-                        topic.setCategory(document.getString("category"));
-                        
-                        Object lessonCountObj = document.get("lessonCount");
-                        if (lessonCountObj != null) {
-                            topic.setLessonCount(((Long) lessonCountObj).intValue());
-                        }
-                        
-                        topic.setImageUrl(document.getString("imageUrl"));
-                        topics.add(topic);
-                    }
-
-                    if (topics.isEmpty()) {
-                        // Create sample topics
-                        createSampleTopics("");
-                    } else {
-                        updateTopicResults(topics);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading topics: ", e);
-                    // Create sample topics if collection doesn't exist
-                    createSampleTopics("");
-                });
+        // Load all buildings as topics
+        searchTopics("");
     }
 
     private void showLoading(boolean show) {

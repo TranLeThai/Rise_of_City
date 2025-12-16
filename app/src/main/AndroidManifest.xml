@@ -78,6 +78,11 @@
             android:exported="false" />
 
         <activity
+            android:name=".ui.lesson.LessonDetailActivity"
+            android:screenOrientation="portrait"
+            android:exported="false" />
+
+        <activity
             android:name=".ui.quiz.VocabularyQuizActivity"
             android:screenOrientation="portrait"
             android:exported="false" />

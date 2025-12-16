@@ -13,3 +13,14 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Firebase service account key (chứa thông tin nhạy cảm)
+serviceAccountKey.json
+**/serviceAccountKey.json
+scripts/*.json
+scripts/*firebase*.json
+scripts/*adminsdk*.json
+*.json
+!package.json
+!tsconfig.json
+!google-services.json

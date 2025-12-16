@@ -14,12 +14,16 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.data.repository.GoldRepository;
 
 public class LockAreaDialogFragment extends DialogFragment {
 
     private String lessonName = "Thì hiện tại đơn";
+    private Building building; // Building cần unlock
     private OnLearnNowClickListener onLearnNowClickListener;
     private OnCloseClickListener onCloseClickListener;
+    private OnUnlockWithGoldClickListener onUnlockWithGoldClickListener;
 
     public interface OnLearnNowClickListener {
         void onLearnNowClick();
@@ -28,11 +32,20 @@ public class LockAreaDialogFragment extends DialogFragment {
     public interface OnCloseClickListener {
         void onCloseClick();
     }
+    
+    public interface OnUnlockWithGoldClickListener {
+        void onUnlockWithGoldClick(Building building);
+    }
 
     public static LockAreaDialogFragment newInstance(String lessonName) {
+        return newInstance(lessonName, null);
+    }
+    
+    public static LockAreaDialogFragment newInstance(String lessonName, Building building) {
         LockAreaDialogFragment fragment = new LockAreaDialogFragment();
         Bundle args = new Bundle();
         args.putString("lessonName", lessonName);
+        args.putSerializable("building", building);
         fragment.setArguments(args);
         return fragment;
     }
@@ -42,6 +55,7 @@ public class LockAreaDialogFragment extends DialogFragment {
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
             lessonName = getArguments().getString("lessonName", "Thì hiện tại đơn");
+            building = (Building) getArguments().getSerializable("building");
         }
     }
 
@@ -67,12 +81,51 @@ public class LockAreaDialogFragment extends DialogFragment {
         super.onViewCreated(view, savedInstanceState);
 
         TextView tvDescription = view.findViewById(R.id.tv_description);
+        Button btnUnlockWithGold = view.findViewById(R.id.btn_unlock_with_gold);
         Button btnLearnNow = view.findViewById(R.id.btn_learn_now);
         TextView tvClose = view.findViewById(R.id.tv_close);
 
         // Set description với lesson name
-        String description = "Hoàn thành bài học '" + lessonName + "' để mở khóa cửa hàng này.";
+        String description = "Hoàn thành bài học '" + lessonName + "' để mở khóa cửa hàng này.\n\nHoặc mở khóa ngay bằng vàng!";
         tvDescription.setText(description);
+
+        // Kiểm tra vàng hiện tại và cập nhật button
+        final int UNLOCK_COST = 50; // Chi phí mở khóa
+        GoldRepository goldRepo = GoldRepository.getInstance();
+        goldRepo.getCurrentGold(currentGold -> {
+            if (currentGold >= UNLOCK_COST) {
+                btnUnlockWithGold.setText("Mở Khóa (" + UNLOCK_COST + " Vàng)");
+                btnUnlockWithGold.setEnabled(true);
+            } else {
+                btnUnlockWithGold.setText("Không đủ vàng! (Cần " + UNLOCK_COST + " Vàng)");
+                btnUnlockWithGold.setEnabled(false);
+                btnUnlockWithGold.setAlpha(0.6f);
+            }
+        });
+
+        // Button Mở Khóa Bằng Vàng
+        btnUnlockWithGold.setOnClickListener(v -> {
+            if (building != null && onUnlockWithGoldClickListener != null) {
+                goldRepo.checkCanUnlockBuilding(UNLOCK_COST, (canUnlock, currentGold, message) -> {
+                    if (canUnlock) {
+                        goldRepo.spendGold(UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
+                            @Override
+                            public void onGoldUpdated(int newGold) {
+                                onUnlockWithGoldClickListener.onUnlockWithGoldClick(building);
+                                dismiss();
+                            }
+                            
+                            @Override
+                            public void onError(String error) {
+                                android.widget.Toast.makeText(getContext(), error, android.widget.Toast.LENGTH_SHORT).show();
+                            }
+                        });
+                    } else {
+                        android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
 
         // Button Học Ngay
         btnLearnNow.setOnClickListener(v -> {
@@ -109,6 +162,10 @@ public class LockAreaDialogFragment extends DialogFragment {
 
     public void setOnCloseClickListener(OnCloseClickListener listener) {
         this.onCloseClickListener = listener;
+    }
+    
+    public void setOnUnlockWithGoldClickListener(OnUnlockWithGoldClickListener listener) {
+        this.onUnlockWithGoldClickListener = listener;
     }
 }
 

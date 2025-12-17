@@ -145,6 +145,71 @@ public class BuildingProgressRepository {
     }
     
     /**
+     * Unlock building (tạo building progress mới với giá trị mặc định)
+     */
+    public void unlockBuilding(String buildingId, OnProgressUpdatedListener listener) {
+        if (auth.getCurrentUser() == null) {
+            if (listener != null) {
+                listener.onError("Người dùng chưa đăng nhập");
+            }
+            return;
+        }
+        
+        String userId = auth.getCurrentUser().getUid();
+        String buildingPath = "users/" + userId + "/buildings/" + buildingId;
+        
+        // Kiểm tra xem building đã tồn tại chưa
+        firestore.document(buildingPath).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        // Building đã tồn tại (đã unlock rồi)
+                        Long level = documentSnapshot.getLong("level");
+                        Long currentExp = documentSnapshot.getLong("currentExp");
+                        Long maxExp = documentSnapshot.getLong("maxExp");
+                        
+                        int levelInt = level != null ? level.intValue() : 1;
+                        int currentExpInt = currentExp != null ? currentExp.intValue() : 0;
+                        int maxExpInt = maxExp != null ? maxExp.intValue() : 100;
+                        
+                        if (listener != null) {
+                            listener.onProgressUpdated(levelInt, currentExpInt, maxExpInt);
+                        }
+                        return;
+                    }
+                    
+                    // Building chưa tồn tại, tạo mới với giá trị mặc định
+                    Map<String, Object> buildingData = new HashMap<>();
+                    buildingData.put("id", buildingId);
+                    buildingData.put("level", 1);
+                    buildingData.put("currentExp", 0);
+                    buildingData.put("maxExp", 100);
+                    buildingData.put("completed", false);
+                    buildingData.put("unlockedAt", System.currentTimeMillis());
+                    
+                    firestore.document(buildingPath).set(buildingData)
+                            .addOnSuccessListener(aVoid -> {
+                                // Cập nhật totalXP trong user_profiles sau khi unlock building mới
+                                updateTotalXPInUserProfile();
+                                if (listener != null) {
+                                    listener.onProgressUpdated(1, 0, 100);
+                                }
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error unlocking building: " + e.getMessage());
+                                if (listener != null) {
+                                    listener.onError(e.getMessage());
+                                }
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error checking building existence: " + e.getMessage());
+                    if (listener != null) {
+                        listener.onError(e.getMessage());
+                    }
+                });
+    }
+    
+    /**
      * Đánh dấu building đã hoàn thành
      */
     public void completeBuilding(String buildingId, OnProgressUpdatedListener listener) {

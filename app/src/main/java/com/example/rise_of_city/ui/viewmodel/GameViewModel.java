@@ -213,4 +213,28 @@ public class GameViewModel extends ViewModel {
             }
         });
     }
+    
+    /**
+     * Unlock building với vàng
+     */
+    public void unlockBuilding(String buildingId) {
+        if (progressRepository == null) {
+            return;
+        }
+        
+        progressRepository.unlockBuilding(buildingId, new BuildingProgressRepository.OnProgressUpdatedListener() {
+            @Override
+            public void onProgressUpdated(long level, int currentExp, int maxExp) {
+                // Building đã được unlock, reload lock status để update UI
+                loadAllBuildingsLockStatus();
+                // Reload building để update selected building state
+                loadBuildingFromFirebase(buildingId);
+            }
+            
+            @Override
+            public void onError(String error) {
+                // Error handling
+            }
+        });
+    }
 }

@@ -19,6 +19,7 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
 
     private int experienceReward;
     private int goldReward;
+    private String buttonText; // Custom button text
 
     public interface OnContinueClickListener {
         void onContinueClick();
@@ -31,10 +32,17 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
     }
     
     public static AnswerCorrectDialogFragment newInstance(int experienceReward, int goldReward) {
+        return newInstance(experienceReward, goldReward, null);
+    }
+    
+    public static AnswerCorrectDialogFragment newInstance(int experienceReward, int goldReward, String buttonText) {
         AnswerCorrectDialogFragment fragment = new AnswerCorrectDialogFragment();
         Bundle args = new Bundle();
         args.putInt("experienceReward", experienceReward);
         args.putInt("goldReward", goldReward);
+        if (buttonText != null) {
+            args.putString("buttonText", buttonText);
+        }
         fragment.setArguments(args);
         return fragment;
     }
@@ -45,6 +53,9 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
         if (getArguments() != null) {
             experienceReward = getArguments().getInt("experienceReward", 20);
             goldReward = getArguments().getInt("goldReward", 0);
+            buttonText = getArguments().getString("buttonText", "TIẾP TỤC");
+        } else {
+            buttonText = "TIẾP TỤC";
         }
         setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
@@ -80,6 +91,9 @@ public class AnswerCorrectDialogFragment extends DialogFragment {
             rewardText.append(" • +" + goldReward + " Vàng");
         }
         tvReward.setText(rewardText.toString());
+        
+        // Set button text (mặc định là "TIẾP TỤC", có thể đổi thành "NEXT" cho quest)
+        btnContinue.setText(buttonText);
 
         btnContinue.setOnClickListener(v -> {
             if (onContinueClickListener != null) {

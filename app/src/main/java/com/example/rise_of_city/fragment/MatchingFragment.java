@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,12 +31,15 @@ public class MatchingFragment extends Fragment {
     private RecyclerView rvLeftWords, rvRightWords;
     private MatchingLineView matchingLineView;
     private WordAdapter leftAdapter, rightAdapter;
+    private Button btnNext;
     
     private List<WordItem> leftWords;
     private List<WordItem> rightWords;
     
     private WordItem selectedLeftWord = null;
     private WordItem selectedRightWord = null;
+    
+    private int matchedCount = 0;
     
     // Matching pairs: English -> Vietnamese
     private String[][] correctPairs = {
@@ -53,9 +57,24 @@ public class MatchingFragment extends Fragment {
         rvLeftWords = view.findViewById(R.id.rv_left_words);
         rvRightWords = view.findViewById(R.id.rv_right_words);
         matchingLineView = view.findViewById(R.id.matching_line_view);
+        btnNext = view.findViewById(R.id.btn_next);
 
         setupWords();
         setupRecyclerViews();
+        
+        btnNext.setOnClickListener(v -> {
+            if (getActivity() instanceof com.example.rise_of_city.ui.main.MainActivity) {
+                // Navigate to Quiz Selection screen first
+                QuizSelectionFragment quizFragment = new QuizSelectionFragment();
+                Bundle args = new Bundle();
+                args.putString("quiz_type", "both");
+                quizFragment.setArguments(args);
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, quizFragment)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
 
         return view;
     }
@@ -149,6 +168,10 @@ public class MatchingFragment extends Fragment {
             // Mark as matched
             leftWord.matched = true;
             rightWord.matched = true;
+            matchedCount++;
+            
+            // Check if all matches are complete
+            checkCompletion();
             
             // Clear selection
             selectedLeftWord = null;
@@ -161,6 +184,14 @@ public class MatchingFragment extends Fragment {
             selectedRightWord = null;
             leftAdapter.notifyDataSetChanged();
             rightAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private void checkCompletion() {
+        // Check if all correct pairs are matched
+        if (matchedCount >= correctPairs.length) {
+            btnNext.setVisibility(View.VISIBLE);
+            Toast.makeText(getContext(), "All matches completed!", Toast.LENGTH_SHORT).show();
         }
     }
 

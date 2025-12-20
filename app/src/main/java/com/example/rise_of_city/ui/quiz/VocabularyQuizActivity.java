@@ -1,11 +1,14 @@
 package com.example.rise_of_city.ui.quiz;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -42,14 +45,24 @@ import java.util.List;
 public class VocabularyQuizActivity extends AppCompatActivity {
 
     private TextView tvQuestion;
-    private ImageView ivIllustration;
+    // ivIllustration removed - not used in new layout design
     private Button btnAnswer1, btnAnswer2, btnAnswer3, btnAnswer4;
     private Button btnCheck;
+    private Button btnNext;
+    private TextView tvTimer;
+    private ProgressBar progressTimer;
+    private ImageView ivFeedback1, ivFeedback2, ivFeedback3, ivFeedback4;
     
     private Vocabulary correctVocabulary;
     private List<Vocabulary> wrongOptions;
     private String selectedAnswer;
     private boolean answerSelected = false;
+    
+    // Timer
+    private Handler timerHandler;
+    private Runnable timerRunnable;
+    private int timeRemaining = 15; // 15 seconds
+    private boolean timerRunning = false;
     
     private VocabularyRepository vocabRepository;
     private BuildingProgressRepository buildingProgressRepo;
@@ -144,14 +157,85 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private void initViews() {
         ImageButton btnClose = findViewById(R.id.btn_close);
         tvQuestion = findViewById(R.id.tv_question);
-        ivIllustration = findViewById(R.id.iv_illustration);
+        // ivIllustration removed from new layout design
         btnAnswer1 = findViewById(R.id.btn_answer1);
         btnAnswer2 = findViewById(R.id.btn_answer2);
         btnAnswer3 = findViewById(R.id.btn_answer3);
         btnAnswer4 = findViewById(R.id.btn_answer4);
         btnCheck = findViewById(R.id.btn_check);
+        btnNext = findViewById(R.id.btn_next);
+        tvTimer = findViewById(R.id.tv_timer);
+        progressTimer = findViewById(R.id.progress_timer);
+        ivFeedback1 = findViewById(R.id.iv_feedback1);
+        ivFeedback2 = findViewById(R.id.iv_feedback2);
+        ivFeedback3 = findViewById(R.id.iv_feedback3);
+        ivFeedback4 = findViewById(R.id.iv_feedback4);
 
         btnClose.setOnClickListener(v -> finish());
+        
+        // Setup Next button
+        btnNext.setOnClickListener(v -> {
+            // Navigate to next question or finish
+            finish();
+        });
+        
+        // Initialize timer
+        timerHandler = new Handler(Looper.getMainLooper());
+        initTimer();
+    }
+    
+    private void initTimer() {
+        timeRemaining = 15;
+        progressTimer.setMax(15);
+        progressTimer.setProgress(15);
+        updateTimerDisplay();
+        
+        timerRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (timeRemaining > 0 && timerRunning) {
+                    timeRemaining--;
+                    updateTimerDisplay();
+                    timerHandler.postDelayed(this, 1000);
+                } else if (timeRemaining == 0 && timerRunning) {
+                    // Time's up - auto check answer if selected
+                    if (answerSelected) {
+                        btnCheck.performClick();
+                    } else {
+                        Toast.makeText(VocabularyQuizActivity.this, "Hết thời gian!", Toast.LENGTH_SHORT).show();
+                        stopTimer();
+                    }
+                }
+            }
+        };
+    }
+    
+    private void updateTimerDisplay() {
+        int minutes = timeRemaining / 60;
+        int seconds = timeRemaining % 60;
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        tvTimer.setText(timeString);
+        progressTimer.setProgress(timeRemaining);
+    }
+    
+    private void startTimer() {
+        if (!timerRunning) {
+            timerRunning = true;
+            timerHandler.post(timerRunnable);
+        }
+    }
+    
+    private void stopTimer() {
+        timerRunning = false;
+        if (timerRunnable != null) {
+            timerHandler.removeCallbacks(timerRunnable);
+        }
+    }
+    
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopTimer();
     }
 
     /**
@@ -171,6 +255,8 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                 
                 // Setup câu hỏi
                 setupQuestion();
+                // Start timer after question is loaded
+                startTimer();
             }
             
             @Override
@@ -190,7 +276,7 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         // Hiển thị loading
         tvQuestion.setText("Đang tải câu hỏi ngữ pháp...");
         btnCheck.setEnabled(false);
-        ivIllustration.setVisibility(View.GONE); // Grammar quiz không cần hình ảnh
+        // Illustration removed from new layout design
         
         // Load grammar quiz theo topicId
         grammarQuizRepo.getRandomQuizByTopic(topicId, new GrammarQuizRepository.OnGrammarQuizLoadedListener() {
@@ -198,6 +284,7 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             public void onQuizLoaded(GrammarQuiz quiz) {
                 currentGrammarQuiz = quiz;
                 setupGrammarQuestion();
+                startTimer();
             }
             
             @Override
@@ -218,6 +305,12 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             finish();
             return;
         }
+        
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
         
         // Set câu hỏi
         tvQuestion.setText(currentGrammarQuiz.getQuestion());
@@ -241,13 +334,14 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private void loadWritingQuizFromFirebase() {
         tvQuestion.setText("Đang tải câu hỏi điền từ...");
         btnCheck.setEnabled(false);
-        ivIllustration.setVisibility(View.GONE);
+        // Illustration removed from new layout design
         
         writingQuizRepo.getRandomQuiz(new WritingQuizRepository.OnWritingQuizLoadedListener() {
             @Override
             public void onQuizLoaded(WritingQuiz quiz) {
                 currentWritingQuiz = quiz;
                 setupWritingQuestion();
+                startTimer();
             }
             
             @Override
@@ -267,6 +361,12 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             finish();
             return;
         }
+        
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
         
         // Set câu hỏi
         tvQuestion.setText(currentWritingQuiz.getSentence());
@@ -370,13 +470,14 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private void loadSentenceCompletionQuizFromFirebase() {
         tvQuestion.setText("Đang tải câu hỏi hoàn thành câu...");
         btnCheck.setEnabled(false);
-        ivIllustration.setVisibility(View.GONE);
+        // Illustration removed from new layout design
         
         sentenceCompletionQuizRepo.getRandomQuiz(new SentenceCompletionQuizRepository.OnSentenceCompletionQuizLoadedListener() {
             @Override
             public void onQuizLoaded(SentenceCompletionQuiz quiz) {
                 currentSentenceCompletionQuiz = quiz;
                 setupSentenceCompletionQuestion();
+                startTimer();
             }
             
             @Override
@@ -397,6 +498,12 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             return;
         }
         
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
+        
         tvQuestion.setText(currentSentenceCompletionQuiz.getSentence());
         
         List<String> options = currentSentenceCompletionQuiz.getOptions();
@@ -416,13 +523,14 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private void loadWordOrderQuizFromFirebase() {
         tvQuestion.setText("Đang tải câu hỏi sắp xếp từ...");
         btnCheck.setEnabled(false);
-        ivIllustration.setVisibility(View.GONE);
+        // Illustration removed from new layout design
         
         wordOrderQuizRepo.getRandomQuiz(new WordOrderQuizRepository.OnWordOrderQuizLoadedListener() {
             @Override
             public void onQuizLoaded(WordOrderQuiz quiz) {
                 currentWordOrderQuiz = quiz;
                 setupWordOrderQuestion();
+                startTimer();
             }
             
             @Override
@@ -442,6 +550,12 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             finish();
             return;
         }
+        
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
         
         // Hiển thị các từ cần sắp xếp
         List<String> words = currentWordOrderQuiz.getWords();
@@ -533,13 +647,14 @@ public class VocabularyQuizActivity extends AppCompatActivity {
     private void loadSynonymAntonymQuizFromFirebase() {
         tvQuestion.setText("Đang tải câu hỏi từ đồng nghĩa/trái nghĩa...");
         btnCheck.setEnabled(false);
-        ivIllustration.setVisibility(View.GONE);
+        // Illustration removed from new layout design
         
         synonymAntonymQuizRepo.getRandomQuiz(new SynonymAntonymQuizRepository.OnSynonymAntonymQuizLoadedListener() {
             @Override
             public void onQuizLoaded(SynonymAntonymQuiz quiz) {
                 currentSynonymAntonymQuiz = quiz;
                 setupSynonymAntonymQuestion();
+                startTimer();
             }
             
             @Override
@@ -560,6 +675,12 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             return;
         }
         
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
+        
         tvQuestion.setText(currentSynonymAntonymQuiz.getQuestion());
         
         List<String> options = currentSynonymAntonymQuiz.getOptions();
@@ -579,22 +700,18 @@ public class VocabularyQuizActivity extends AppCompatActivity {
             return;
         }
         
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
+        
         // Tạo câu hỏi
         String question = "Từ nào có nghĩa là '" + correctVocabulary.getVietnamese() + "'?";
         tvQuestion.setText(question);
         
-        // Load ảnh từ URL bằng Glide
-        if (correctVocabulary.getImageUrl() != null && !correctVocabulary.getImageUrl().isEmpty()) {
-            Glide.with(this)
-                    .load(correctVocabulary.getImageUrl())
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.vector_house) // Ảnh placeholder khi đang load
-                    .error(R.drawable.vector_house) // Ảnh hiển thị khi lỗi
-                    .into(ivIllustration);
-        } else {
-            // Nếu không có URL, dùng ảnh mặc định
-            ivIllustration.setImageResource(R.drawable.vector_house);
-        }
+        // Illustration removed from new layout design - no longer needed
+        // Image loading code removed as illustration is not part of new design
         
         // Tạo danh sách đáp án (1 đúng + 3 sai)
         List<String> answers = new ArrayList<>();
@@ -618,9 +735,15 @@ public class VocabularyQuizActivity extends AppCompatActivity {
      * Fallback: Dùng dữ liệu mẫu nếu không load được từ Firebase
      */
     private void setupFallbackQuestion() {
+        // Reset UI state
+        hideNextButton();
+        resetAnswerButtons();
+        enableAllButtons();
+        answerSelected = false;
+        
         String question = "Từ nào có nghĩa là 'Ngôi Nhà'?";
         tvQuestion.setText(question);
-        ivIllustration.setImageResource(R.drawable.vector_house);
+        // Illustration removed from new layout design
         
         List<String> answers = new ArrayList<>();
         answers.add("HOUSE");
@@ -642,15 +765,17 @@ public class VocabularyQuizActivity extends AppCompatActivity {
 
     private void setupAnswerButtons() {
         View.OnClickListener answerClickListener = v -> {
-            // Luôn cho phép người dùng thay đổi đáp án cho đến khi bấm KIỂM TRA
             // Reset tất cả buttons về trạng thái mặc định
             resetAnswerButtons();
             
             // Highlight button được chọn
             Button selectedBtn = (Button) v;
-            selectedBtn.setBackgroundResource(R.drawable.bg_answer_button_selected);
+            selectedBtn.setBackgroundResource(R.drawable.bg_answer_green_selected);
             selectedAnswer = selectedBtn.getText().toString();
             answerSelected = true;
+            
+            // Show feedback immediately when answer is selected
+            showAnswerFeedback(selectedBtn);
         };
 
         btnAnswer1.setOnClickListener(answerClickListener);
@@ -658,18 +783,97 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         btnAnswer3.setOnClickListener(answerClickListener);
         btnAnswer4.setOnClickListener(answerClickListener);
     }
+    
+    private void showAnswerFeedback(Button selectedBtn) {
+        // Hide all feedback icons first
+        hideAllFeedbackIcons();
+        
+        // Determine if answer is correct
+        boolean isCorrect = false;
+        String correctAnswerText = "";
+        
+        if ("grammar".equals(quizType) && currentGrammarQuiz != null) {
+            List<String> options = currentGrammarQuiz.getOptions();
+            if (options != null && currentGrammarQuiz.getCorrectAnswer() < options.size()) {
+                correctAnswerText = options.get(currentGrammarQuiz.getCorrectAnswer());
+                isCorrect = selectedAnswer.equals(correctAnswerText);
+            }
+        } else if ("writing".equals(quizType) && currentWritingQuiz != null) {
+            correctAnswerText = currentWritingQuiz.getAnswer().toLowerCase();
+            isCorrect = selectedAnswer.toLowerCase().equals(correctAnswerText);
+        } else if ("sentence_completion".equals(quizType) && currentSentenceCompletionQuiz != null) {
+            List<String> options = currentSentenceCompletionQuiz.getOptions();
+            if (options != null && currentSentenceCompletionQuiz.getCorrectAnswer() < options.size()) {
+                correctAnswerText = options.get(currentSentenceCompletionQuiz.getCorrectAnswer());
+                isCorrect = selectedAnswer.equals(correctAnswerText);
+            }
+        } else if ("word_order".equals(quizType) && currentWordOrderQuiz != null) {
+            List<String> words = currentWordOrderQuiz.getWords();
+            List<Integer> correctOrder = currentWordOrderQuiz.getCorrectOrder();
+            StringBuilder correctSentence = new StringBuilder();
+            for (int i = 0; i < correctOrder.size(); i++) {
+                if (i > 0) correctSentence.append(" ");
+                correctSentence.append(words.get(correctOrder.get(i)));
+            }
+            correctAnswerText = correctSentence.toString();
+            isCorrect = selectedAnswer.equals(correctAnswerText);
+        } else if ("synonym_antonym".equals(quizType) && currentSynonymAntonymQuiz != null) {
+            List<String> options = currentSynonymAntonymQuiz.getOptions();
+            if (options != null && currentSynonymAntonymQuiz.getCorrectAnswer() < options.size()) {
+                correctAnswerText = options.get(currentSynonymAntonymQuiz.getCorrectAnswer());
+                isCorrect = selectedAnswer.equals(correctAnswerText);
+            }
+        } else {
+            // Vocabulary quiz
+            if (correctVocabulary != null) {
+                correctAnswerText = correctVocabulary.getEnglish().toUpperCase();
+                isCorrect = selectedAnswer.equals(correctAnswerText);
+            }
+        }
+        
+        // Show feedback icon for selected button
+        ImageView feedbackIcon = null;
+        if (selectedBtn == btnAnswer1) {
+            feedbackIcon = ivFeedback1;
+        } else if (selectedBtn == btnAnswer2) {
+            feedbackIcon = ivFeedback2;
+        } else if (selectedBtn == btnAnswer3) {
+            feedbackIcon = ivFeedback3;
+        } else if (selectedBtn == btnAnswer4) {
+            feedbackIcon = ivFeedback4;
+        }
+        
+        if (feedbackIcon != null) {
+            feedbackIcon.setVisibility(View.VISIBLE);
+            if (isCorrect) {
+                feedbackIcon.setImageResource(R.drawable.ic_check_large);
+            } else {
+                feedbackIcon.setImageResource(R.drawable.ic_close_large);
+            }
+        }
+    }
+    
+    private void hideAllFeedbackIcons() {
+        ivFeedback1.setVisibility(View.GONE);
+        ivFeedback2.setVisibility(View.GONE);
+        ivFeedback3.setVisibility(View.GONE);
+        ivFeedback4.setVisibility(View.GONE);
+    }
 
     private void resetAnswerButtons() {
         // Reset background và màu chữ
-        int defaultTextColor = 0xFF424242; // Màu xám đậm mặc định
-        btnAnswer1.setBackgroundResource(R.drawable.bg_answer_button);
+        int defaultTextColor = 0xFF424242; // Màu đen cho chữ trên nền xanh lá nhạt
+        btnAnswer1.setBackgroundResource(R.drawable.bg_answer_green);
         btnAnswer1.setTextColor(defaultTextColor);
-        btnAnswer2.setBackgroundResource(R.drawable.bg_answer_button);
+        btnAnswer2.setBackgroundResource(R.drawable.bg_answer_green);
         btnAnswer2.setTextColor(defaultTextColor);
-        btnAnswer3.setBackgroundResource(R.drawable.bg_answer_button);
+        btnAnswer3.setBackgroundResource(R.drawable.bg_answer_green);
         btnAnswer3.setTextColor(defaultTextColor);
-        btnAnswer4.setBackgroundResource(R.drawable.bg_answer_button);
+        btnAnswer4.setBackgroundResource(R.drawable.bg_answer_green);
         btnAnswer4.setTextColor(defaultTextColor);
+        
+        // Hide all feedback icons
+        hideAllFeedbackIcons();
     }
 
     private void setupCheckButton() {
@@ -678,6 +882,9 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                 Toast.makeText(this, "Vui lòng chọn một đáp án!", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+            // Stop timer when checking answer
+            stopTimer();
 
             // Kiểm tra đáp án - xử lý cả vocabulary và grammar quiz
             boolean isCorrect;
@@ -750,6 +957,8 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                 highlightCorrectAnswer();
                 // Disable buttons
                 disableAllButtons();
+                // Show Next button
+                showNextButton();
                 // Cập nhật building progress CHỈ cho vocabulary quiz (có buildingId)
                 // Grammar quiz từ quest không cập nhật building progress
                 if (!"grammar".equals(quizType) && buildingId != null) {
@@ -790,6 +999,8 @@ public class VocabularyQuizActivity extends AppCompatActivity {
                 highlightCorrectAnswer();
                 // Disable buttons
                 disableAllButtons();
+                // Show Next button
+                showNextButton();
                 // Hiển thị dialog đáp án sai
                 showWrongAnswerDialog();
             }
@@ -1337,6 +1548,18 @@ public class VocabularyQuizActivity extends AppCompatActivity {
         btnAnswer3.setEnabled(true);
         btnAnswer4.setEnabled(true);
         btnCheck.setEnabled(true);
+    }
+    
+    private void showNextButton() {
+        // Hide check button and show next button
+        btnCheck.setVisibility(View.GONE);
+        btnNext.setVisibility(View.VISIBLE);
+    }
+    
+    private void hideNextButton() {
+        // Show check button and hide next button
+        btnCheck.setVisibility(View.VISIBLE);
+        btnNext.setVisibility(View.GONE);
     }
 
     private void showCorrectAnswerDialog() {

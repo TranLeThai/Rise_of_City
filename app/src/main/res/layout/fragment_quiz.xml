@@ -277,7 +277,7 @@
 
     </androidx.gridlayout.widget.GridLayout>
 
-    <!-- Nút KIỂM TRA màu xanh lá -->
+    <!-- Nút KIỂM TRA màu tím đậm -->
     <Button
         android:id="@+id/btn_check"
         android:layout_width="0dp"
@@ -313,3 +313,4 @@
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

@@ -18,6 +18,7 @@ import com.example.rise_of_city.fragment.RoadMapFragment;
 import com.example.rise_of_city.fragment.SearchFragment;
 import com.example.rise_of_city.fragment.ProfileFragment;
 import com.example.rise_of_city.fragment.NewScreenFragment;
+import com.example.rise_of_city.fragment.VocabMatchFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,6 +71,10 @@ public class MainActivity extends AppCompatActivity {
         // New Screen
         LinearLayout navNewScreen = findViewById(R.id.nav_item_new_screen);
         navNewScreen.setOnClickListener(v -> navigateToFragment(R.id.nav_item_new_screen, new NewScreenFragment()));
+
+        // Vocab Match
+        LinearLayout navVocabMatch = findViewById(R.id.nav_item_vocab_match);
+        navVocabMatch.setOnClickListener(v -> navigateToFragment(R.id.nav_item_vocab_match, new VocabMatchFragment()));
     }
 
     private void navigateToFragment(int itemId, Fragment fragment) {
@@ -118,6 +123,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_item_new_screen) {
                 icon = findViewById(R.id.nav_icon_new_screen);
                 text = findViewById(R.id.nav_text_new_screen);
+            } else if (itemId == R.id.nav_item_vocab_match) {
+                icon = findViewById(R.id.nav_icon_vocab_match);
+                text = findViewById(R.id.nav_text_vocab_match);
             }
 
             if (icon != null) {
@@ -165,6 +173,12 @@ public class MainActivity extends AppCompatActivity {
         TextView textNewScreen = findViewById(R.id.nav_text_new_screen);
         if (iconNewScreen != null) iconNewScreen.setColorFilter(Color.WHITE);
         if (textNewScreen != null) textNewScreen.setTextColor(Color.WHITE);
+
+        // Reset Vocab Match
+        ImageView iconVocabMatch = findViewById(R.id.nav_icon_vocab_match);
+        TextView textVocabMatch = findViewById(R.id.nav_text_vocab_match);
+        if (iconVocabMatch != null) iconVocabMatch.setColorFilter(Color.WHITE);
+        if (textVocabMatch != null) textVocabMatch.setTextColor(Color.WHITE);
     }
 
     // Method để quay lại fragment trước đó
@@ -183,6 +197,8 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ProfileFragment();
             } else if (previousSelectedItemId == R.id.nav_item_new_screen) {
                 fragment = new NewScreenFragment();
+            } else if (previousSelectedItemId == R.id.nav_item_vocab_match) {
+                fragment = new VocabMatchFragment();
             }
             
             if (fragment != null) {
@@ -218,6 +234,9 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.nav_item_new_screen || itemId == R.id.nav_new_screen) {
             fragment = new NewScreenFragment();
             itemId = R.id.nav_item_new_screen;
+        } else if (itemId == R.id.nav_item_vocab_match) {
+            fragment = new VocabMatchFragment();
+            itemId = R.id.nav_item_vocab_match;
         }
         
         if (fragment != null) {

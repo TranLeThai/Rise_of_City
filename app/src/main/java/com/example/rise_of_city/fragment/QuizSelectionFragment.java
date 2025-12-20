@@ -285,15 +285,22 @@ public class QuizSelectionFragment extends Fragment {
 
     private void navigateToNextScreen() {
         // Navigate to Furniture Drag screen (final screen)
+        // Check if we're in MainActivity and the container exists
         if (getActivity() instanceof com.example.rise_of_city.ui.main.MainActivity) {
-            FurnitureDragFragment furnitureFragment = new FurnitureDragFragment();
-            Bundle args = new Bundle();
-            args.putString("room_type", "bedroom");
-            furnitureFragment.setArguments(args);
-            getParentFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, furnitureFragment)
-                    .addToBackStack(null)
-                    .commit();
+            View container = getActivity().findViewById(R.id.fragment_container);
+            if (container != null) {
+                FurnitureDragFragment furnitureFragment = new FurnitureDragFragment();
+                Bundle args = new Bundle();
+                args.putString("room_type", "bedroom");
+                furnitureFragment.setArguments(args);
+                getParentFragmentManager().beginTransaction()
+                        .replace(R.id.fragment_container, furnitureFragment)
+                        .addToBackStack(null)
+                        .commit();
+            } else {
+                // If container doesn't exist (e.g., nested fragment), just show a message
+                Toast.makeText(getContext(), "Exercise completed!", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

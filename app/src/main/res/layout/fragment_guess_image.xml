@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#C8E6C9"
+    android:padding="16dp">
+
+    <!-- Title: Guess-Image -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Guess-Image"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#2196F3"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Settings Icon -->
+    <ImageButton
+        android:id="@+id/btn_settings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_settings"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Settings"
+        android:tint="#2E7D32"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Left Section: Image Placeholder -->
+    <FrameLayout
+        android:id="@+id/image_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="16dp"
+        android:background="#FFFFFF"
+        android:padding="8dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/control_panel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.55">
+
+        <ImageView
+            android:id="@+id/iv_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="#F5F5F5"
+            android:contentDescription="Image to guess" />
+
+        <!-- Placeholder text at bottom -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="shutterstock.com - 1037719192"
+            android:textSize="10sp"
+            android:textColor="#757575"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="8dp" />
+    </FrameLayout>
+
+    <!-- Right Section: Control Panel (Dark Green) -->
+    <LinearLayout
+        android:id="@+id/control_panel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="#2E7D32"
+        android:padding="16dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="16dp"
+        app:layout_constraintTop_toBottomOf="@id/tv_title"
+        app:layout_constraintStart_toEndOf="@id/image_container"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.4">
+
+        <!-- Timer -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_stopwatch"
+                android:tint="#FFFFFF"
+                android:contentDescription="Timer" />
+
+            <TextView
+                android:id="@+id/tv_timer"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="00:15"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:layout_marginStart="8dp" />
+        </LinearLayout>
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progress_timer"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:layout_marginBottom="24dp"
+            android:max="15"
+            android:progress="15"
+            android:progressTint="#E0E0E0"
+            android:progressBackgroundTint="#E0E0E0" />
+
+        <!-- Answer Input 1 -->
+        <EditText
+            android:id="@+id/et_answer1"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:hint="Answer 1"
+            android:textSize="16sp"
+            android:textColor="#424242"
+            android:textColorHint="#757575"
+            android:background="@drawable/bg_answer_green"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp"
+            android:inputType="text"
+            android:gravity="center_vertical" />
+
+        <!-- Answer Input 2 -->
+        <EditText
+            android:id="@+id/et_answer2"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:hint="Answer 2"
+            android:textSize="16sp"
+            android:textColor="#424242"
+            android:textColorHint="#757575"
+            android:background="@drawable/bg_answer_green"
+            android:padding="16dp"
+            android:layout_marginBottom="12dp"
+            android:inputType="text"
+            android:gravity="center_vertical" />
+
+        <!-- Answer Input 3 -->
+        <EditText
+            android:id="@+id/et_answer3"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:hint="Answer 3"
+            android:textSize="16sp"
+            android:textColor="#424242"
+            android:textColorHint="#757575"
+            android:background="@drawable/bg_answer_green"
+            android:padding="16dp"
+            android:inputType="text"
+            android:gravity="center_vertical" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

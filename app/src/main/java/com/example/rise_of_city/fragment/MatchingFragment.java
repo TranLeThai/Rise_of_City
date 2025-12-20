@@ -63,17 +63,10 @@ public class MatchingFragment extends Fragment {
         setupRecyclerViews();
         
         btnNext.setOnClickListener(v -> {
-            if (getActivity() instanceof com.example.rise_of_city.ui.main.MainActivity) {
-                // Navigate to Quiz Selection screen first
-                QuizSelectionFragment quizFragment = new QuizSelectionFragment();
-                Bundle args = new Bundle();
-                args.putString("quiz_type", "both");
-                quizFragment.setArguments(args);
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, quizFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
+            // Show completion message instead of navigating
+            // Since MatchingFragment is nested in NewScreenFragment,
+            // navigation to other screens should be handled by the parent
+            Toast.makeText(getContext(), "Exercise completed!", Toast.LENGTH_SHORT).show();
         });
 
         return view;
@@ -83,23 +76,27 @@ public class MatchingFragment extends Fragment {
         leftWords = new ArrayList<>();
         rightWords = new ArrayList<>();
         
-        // Create English words (left column) - 24 items
+        // Create English words (left column) - chỉ 4 từ
         String[] englishWords = {"Classroom", "Library", "Chalk", "Schoolbag"};
-        for (int i = 0; i < 24; i++) {
-            String word = englishWords[i % 4];
-            // Red dots: positions 0,1,2,3,4,9,14,19,20
-            boolean isRed = (i <= 4) || (i == 9) || (i == 14) || (i == 19) || (i == 20);
+        for (int i = 0; i < 4; i++) {
+            String word = englishWords[i];
+            // Tất cả đều có red dot
+            boolean isRed = true;
             leftWords.add(new WordItem(word, isRed, i));
         }
         
-        // Create Vietnamese words (right column) - 24 items
+        // Create Vietnamese words (right column) - chỉ 4 từ, shuffle để người dùng phải match
         String[] vietnameseWords = {"Thư viện", "Phấn", "Lớp học", "Cặp sách"};
-        for (int i = 0; i < 24; i++) {
-            String word = vietnameseWords[i % 4];
+        List<String> shuffledVietnamese = new ArrayList<>();
+        for (String word : vietnameseWords) {
+            shuffledVietnamese.add(word);
+        }
+        Collections.shuffle(shuffledVietnamese);
+        
+        for (int i = 0; i < 4; i++) {
+            String word = shuffledVietnamese.get(i);
             rightWords.add(new WordItem(word, true, i)); // All red dots
         }
-        
-        // Don't shuffle - keep order as in image
     }
 
     private void setupRecyclerViews() {

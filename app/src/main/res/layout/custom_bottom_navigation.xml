@@ -190,4 +190,34 @@
             android:layout_marginTop="4dp" />
     </LinearLayout>
 
+    <!-- Vocab Match -->
+    <LinearLayout
+        android:id="@+id/nav_item_vocab_match"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="8dp"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/nav_icon_vocab_match"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_book"
+            android:tint="#FFFFFF" />
+
+        <TextView
+            android:id="@+id/nav_text_vocab_match"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vocab"
+            android:textSize="12sp"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
 </LinearLayout>

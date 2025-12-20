@@ -17,14 +17,11 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
+    <include
         android:id="@+id/bottom_navigation"
+        layout="@layout/custom_bottom_navigation"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:background="#000000"
-        app:itemIconTint="@drawable/bottom_nav_item_selector"
-        app:itemTextColor="@drawable/bottom_nav_item_selector"
-        app:menu="@menu/bottom_nav_menu"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

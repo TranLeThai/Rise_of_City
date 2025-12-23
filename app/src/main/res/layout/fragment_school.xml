@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#C8E6C9"
+    android:padding="16dp">
+
+    <!-- Title: School -->
+    <TextView
+        android:id="@+id/tv_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="School"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Timer Container - ở top right -->
+    <LinearLayout
+        android:id="@+id/timer_container"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn_settings">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_stopwatch"
+            android:tint="#000000"
+            android:contentDescription="Timer" />
+
+        <TextView
+            android:id="@+id/tv_timer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:15"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:layout_marginStart="4dp" />
+    </LinearLayout>
+
+    <!-- Progress Bar - ở top right, sau timer -->
+    <ProgressBar
+        android:id="@+id/progress_timer"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="80dp"
+        android:layout_height="4dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="8dp"
+        android:max="15"
+        android:progress="15"
+        android:progressTint="#757575"
+        android:progressBackgroundTint="#E0E0E0"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/timer_container"
+        app:layout_constraintEnd_toStartOf="@id/btn_settings" />
+
+    <!-- Settings Icon -->
+    <ImageButton
+        android:id="@+id/btn_settings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_settings"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Settings"
+        android:tint="#000000"
+        android:layout_marginTop="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Question Box (Dark Green) -->
+    <FrameLayout
+        android:id="@+id/question_box"
+        android:layout_width="0dp"
+        android:layout_height="120dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="#558B2F"
+        android:padding="16dp"
+        app:layout_constraintTop_toBottomOf="@id/progress_timer"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tv_question"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Which subject do you study numbers in?"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center" />
+    </FrameLayout>
+
+    <!-- Answer Options Grid 2x2 -->
+    <androidx.gridlayout.widget.GridLayout
+        android:id="@+id/answers_grid"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:columnCount="2"
+        android:rowCount="2"
+        android:alignmentMode="alignMargins"
+        android:useDefaultMargins="false"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        app:layout_constraintTop_toBottomOf="@id/question_box"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <!-- Answer 1: A. Math -->
+        <Button
+            android:id="@+id/btn_answer1"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:text="A. Math"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:background="@drawable/bg_answer_green"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:layout_column="0"
+            app:layout_row="0" />
+
+        <!-- Answer 2: B. History -->
+        <Button
+            android:id="@+id/btn_answer2"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:text="B. History"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:background="@drawable/bg_answer_green"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:layout_column="1"
+            app:layout_row="0" />
+
+        <!-- Answer 3: C. English -->
+        <Button
+            android:id="@+id/btn_answer3"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:text="C. English"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:background="@drawable/bg_answer_green"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:layout_column="0"
+            app:layout_row="1" />
+
+        <!-- Answer 4: D. Music -->
+        <Button
+            android:id="@+id/btn_answer4"
+            android:layout_width="0dp"
+            android:layout_height="70dp"
+            android:text="D. Music"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:background="@drawable/bg_answer_green"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            app:layout_columnWeight="1"
+            app:layout_rowWeight="1"
+            app:layout_column="1"
+            app:layout_row="1" />
+
+    </androidx.gridlayout.widget.GridLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
+

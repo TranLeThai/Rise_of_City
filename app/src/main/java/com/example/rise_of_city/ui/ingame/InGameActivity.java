@@ -484,12 +484,18 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
      * Mở khóa building bằng vàng
      */
     private void unlockBuildingWithGold(Building building) {
-        // TODO: Implement logic unlock building trong ViewModel/Repository
-        // Ví dụ: viewModel.unlockBuilding(building.getId());
-        android.widget.Toast.makeText(this, "Đã mở khóa " + building.getName() + " bằng vàng!", 
-            android.widget.Toast.LENGTH_SHORT).show();
-        // Refresh building lock status để update visual state
-        viewModel.loadAllBuildingsLockStatus();
+        if (building == null) {
+            return;
+        }
+        
+        // Unlock building trong Firebase (vàng đã được trừ trong LockAreaDialogFragment)
+        viewModel.unlockBuilding(building.getId());
+        
+        // Refresh vàng sau khi unlock
+        loadGold();
+        
+        Toast.makeText(this, "Đã mở khóa " + building.getName() + " bằng vàng!", 
+            Toast.LENGTH_SHORT).show();
     }
 
     // Chuyển sang màn hình học
@@ -507,20 +513,73 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         if (currentBuilding != null) {
             intent.putExtra("buildingId", currentBuilding.getId());
         }
+        intent.putExtra("isMission", false); // Quiz thông thường
+        startActivity(intent);
+    }
+    
+    // Chuyển sang màn hình Vocabulary Quiz với Mission (có bonus reward)
+    private void navigateToVocabularyQuizWithMission() {
+        Intent intent = new Intent(this, VocabularyQuizActivity.class);
+        // Truyền buildingId để update progress đúng building
+        Building currentBuilding = viewModel.getSelectedBuilding().getValue();
+        if (currentBuilding != null) {
+            intent.putExtra("buildingId", currentBuilding.getId());
+        }
+        intent.putExtra("isMission", true); // Quiz từ Mission - có bonus reward
         startActivity(intent);
     }
 
     // Hiển thị mission dialog khi bấm nút mission
     private void showMissionDialog(Building building) {
-        // Tạo mission text dựa trên building
-        String missionText = "Hoàn thành bài học về '" + building.getName() + "' để nhận được phần thưởng!";
+        // Tạo mission với quiz type ngẫu nhiên để đa dạng hóa
+        String[] quizTypes = {"vocabulary", "grammar"};
+        String randomQuizType = quizTypes[(int) (Math.random() * quizTypes.length)];
+        
+        String missionText;
+        String lessonName = null;
+        
+        switch (randomQuizType) {
+            case "vocabulary":
+                missionText = "Hoàn thành quiz từ vựng về '" + building.getName() + "' để nhận được phần thưởng bonus!";
+                break;
+            case "grammar":
+                // Random grammar topic để tạo sự đa dạng và thú vị
+                String[] grammarTopics = {
+                    "Thì hiện tại đơn",
+                    "Thì quá khứ đơn",
+                    "Thì hiện tại tiếp diễn"
+                };
+                lessonName = grammarTopics[(int) (Math.random() * grammarTopics.length)];
+                missionText = "Hoàn thành bài quiz ngữ pháp '" + lessonName + "' để nhận được phần thưởng bonus!";
+                break;
+            case "writing":
+                missionText = "Điền từ vào chỗ trống để nhận được phần thưởng bonus!";
+                break;
+            case "sentence_completion":
+                missionText = "Hoàn thành câu để nhận được phần thưởng bonus!";
+                break;
+            case "word_order":
+                missionText = "Sắp xếp từ thành câu đúng để nhận được phần thưởng bonus!";
+                break;
+            case "synonym_antonym":
+                missionText = "Tìm từ đồng nghĩa/trái nghĩa để nhận được phần thưởng bonus!";
+                break;
+            default:
+                missionText = "Hoàn thành bài học về '" + building.getName() + "' để nhận được phần thưởng bonus!";
+                break;
+        }
+        
         String missionTitle = "Mission " + building.getName();
         
         MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, missionText);
         
+        // Lưu quiz type và lesson name vào một biến final để dùng trong lambda
+        final String finalQuizType = randomQuizType;
+        final String finalLessonName = lessonName;
+        
         dialog.setOnAcceptClickListener(() -> {
-            // Khi chấp nhận mission, chuyển sang màn hình quiz từ vựng
-            navigateToVocabularyQuiz();
+            // Navigate đến quiz type phù hợp với bonus reward
+            navigateToQuizByType(finalQuizType, finalLessonName, building.getId());
         });
         
         dialog.setOnDenyClickListener(() -> {
@@ -571,22 +630,27 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     // Hiển thị mission dialog random khi click vào icon mission (clipboard)
     private void showRandomMissionDialog() {
-        // Tạo mission text ngẫu nhiên
-        String[] missions = {
-            "Hoàn thành 10 câu hỏi về thì hiện tại đơn để nhận được 100 coin và 50 XP!",
-            "Trả lời đúng 5 câu liên tiếp về từ vựng để nhận được 80 coin!",
-            "Hoàn thành bài tập ngữ pháp để nhận được 120 coin và 75 XP!",
-            "Thực hành phát âm 15 từ để nhận được 90 coin và 60 XP!"
+        // Tạo mission với các loại quiz khác nhau
+        MissionInfo[] missions = {
+            new MissionInfo("Hoàn thành bài quiz Thì hiện tại đơn", "grammar", "Thì hiện tại đơn", 100, 50),
+            new MissionInfo("Trả lời đúng 5 câu về từ vựng", "vocabulary", null, 80, 40),
+            new MissionInfo("Hoàn thành bài tập ngữ pháp", "grammar", "Thì quá khứ đơn", 120, 75),
+            new MissionInfo("Làm bài đọc hiểu", "reading", null, 150, 100),
+            new MissionInfo("Điền từ vào chỗ trống", "writing", null, 90, 60),
+            new MissionInfo("Hoàn thành câu", "sentence_completion", null, 100, 70),
+            new MissionInfo("Sắp xếp từ thành câu", "word_order", null, 110, 80),
+            new MissionInfo("Từ đồng nghĩa/trái nghĩa", "synonym_antonym", null, 95, 65)
         };
         
-        String randomMissionText = missions[(int) (Math.random() * missions.length)];
+        MissionInfo randomMission = missions[(int) (Math.random() * missions.length)];
+        String missionText = randomMission.description + " để nhận được " + randomMission.gold + " coin và " + randomMission.xp + " XP!";
         String missionTitle = "Mission random";
         
-        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, randomMissionText);
+        MissionDialogFragment dialog = MissionDialogFragment.newInstance(missionTitle, missionText);
         
         dialog.setOnAcceptClickListener(() -> {
-            // Khi chấp nhận mission random, chuyển sang màn hình quiz từ vựng
-            navigateToVocabularyQuiz();
+            // Navigate đến quiz type phù hợp
+            navigateToQuizByType(randomMission.quizType, randomMission.lessonName, null);
         });
         
         dialog.setOnDenyClickListener(() -> {
@@ -594,6 +658,150 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         });
         
         dialog.show(getSupportFragmentManager(), "RandomMissionDialog");
+    }
+    
+    /**
+     * Helper class để lưu thông tin mission
+     */
+    private static class MissionInfo {
+        String description;
+        String quizType;
+        String lessonName;
+        int gold;
+        int xp;
+        
+        MissionInfo(String description, String quizType, String lessonName, int gold, int xp) {
+            this.description = description;
+            this.quizType = quizType;
+            this.lessonName = lessonName;
+            this.gold = gold;
+            this.xp = xp;
+        }
+    }
+    
+    /**
+     * Navigate to quiz dựa trên quiz type
+     */
+    private void navigateToQuizByType(String quizType, String lessonName, String buildingId) {
+        Intent intent;
+        
+        if (quizType == null || quizType.isEmpty()) {
+            quizType = "vocabulary"; // Default
+        }
+        
+        switch (quizType) {
+            case "vocabulary":
+                // Quiz từ vựng
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                if (buildingId != null && !buildingId.isEmpty()) {
+                    intent.putExtra("buildingId", buildingId);
+                }
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            case "grammar":
+                // Quiz ngữ pháp - navigate đến VocabularyQuizActivity với quizType và topicId
+                if (lessonName != null && !lessonName.isEmpty()) {
+                    // Convert lessonName to topicId: "Thì hiện tại đơn" -> "thi_hien_tai_don"
+                    String topicId = convertLessonNameToTopicId(lessonName);
+                    
+                    intent = new Intent(this, VocabularyQuizActivity.class);
+                    intent.putExtra("quizType", "grammar");
+                    intent.putExtra("topicId", topicId);
+                    intent.putExtra("isMission", true);
+                    startActivity(intent);
+                } else {
+                    Toast.makeText(this, "Không tìm thấy bài học ngữ pháp", Toast.LENGTH_SHORT).show();
+                }
+                break;
+                
+            case "reading":
+                // Quiz đọc hiểu
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                intent.putExtra("quizType", "reading");
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            case "writing":
+                // Quiz điền từ (Writing quiz)
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                intent.putExtra("quizType", "writing");
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            case "sentence_completion":
+                // Quiz hoàn thành câu
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                intent.putExtra("quizType", "sentence_completion");
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            case "word_order":
+                // Quiz sắp xếp từ
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                intent.putExtra("quizType", "word_order");
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            case "synonym_antonym":
+                // Quiz từ đồng nghĩa/trái nghĩa
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                intent.putExtra("quizType", "synonym_antonym");
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+                
+            default:
+                // Default: vocabulary quiz
+                intent = new Intent(this, VocabularyQuizActivity.class);
+                if (buildingId != null && !buildingId.isEmpty()) {
+                    intent.putExtra("buildingId", buildingId);
+                }
+                intent.putExtra("isMission", true);
+                startActivity(intent);
+                break;
+        }
+    }
+    
+    /**
+     * Convert lessonName to topicId (remove Vietnamese accents)
+     * Ví dụ: "Thì hiện tại đơn" -> "thi_hien_tai_don"
+     */
+    private String convertLessonNameToTopicId(String lessonName) {
+        if (lessonName == null || lessonName.isEmpty()) {
+            return "";
+        }
+        
+        return lessonName.toLowerCase()
+            .replace(" ", "_")
+            .replace("ì", "i").replace("à", "a").replace("á", "a")
+            .replace("ả", "a").replace("ã", "a").replace("ạ", "a")
+            .replace("đ", "d").replace("ê", "e").replace("ế", "e")
+            .replace("ề", "e").replace("ể", "e").replace("ễ", "e").replace("ệ", "e")
+            .replace("ô", "o").replace("ố", "o").replace("ồ", "o")
+            .replace("ổ", "o").replace("ỗ", "o").replace("ộ", "o")
+            .replace("ơ", "o").replace("ớ", "o").replace("ờ", "o")
+            .replace("ở", "o").replace("ỡ", "o").replace("ợ", "o")
+            .replace("ư", "u").replace("ứ", "u").replace("ừ", "u")
+            .replace("ử", "u").replace("ữ", "u").replace("ự", "u")
+            .replace("ă", "a").replace("ắ", "a").replace("ằ", "a")
+            .replace("ẳ", "a").replace("ẵ", "a").replace("ặ", "a")
+            .replace("â", "a").replace("ấ", "a").replace("ầ", "a")
+            .replace("ẩ", "a").replace("ẫ", "a").replace("ậ", "a")
+            .replace("é", "e").replace("è", "e").replace("ẻ", "e")
+            .replace("ẽ", "e").replace("ẹ", "e")
+            .replace("í", "i").replace("ỉ", "i").replace("ĩ", "i").replace("ị", "i")
+            .replace("ó", "o").replace("ò", "o").replace("ỏ", "o")
+            .replace("õ", "o").replace("ọ", "o")
+            .replace("ú", "u").replace("ù", "u").replace("ủ", "u")
+            .replace("ũ", "u").replace("ụ", "u")
+            .replace("ý", "y").replace("ỳ", "y").replace("ỷ", "y")
+            .replace("ỹ", "y").replace("ỵ", "y");
     }
     
     /**

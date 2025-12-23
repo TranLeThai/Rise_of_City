@@ -83,10 +83,11 @@
                 tools:text="+580" />
 
             <ImageView
-                android:layout_width="18dp"
-                android:layout_height="18dp"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
                 android:layout_marginStart="4dp"
-                android:src="@drawable/gold_icon" />
+                android:src="@drawable/ic_coin_gold"
+                android:contentDescription="Gold coin" />
         </LinearLayout>
 
         <LinearLayout

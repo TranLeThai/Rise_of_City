@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.rise_of_city.data.model.BuildingProgress;
 import com.example.rise_of_city.data.repository.BuildingProgressRepository;
+import com.example.rise_of_city.data.repository.LearningLogRepository;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,6 +22,7 @@ public class RoadMapViewModel extends ViewModel {
     private static final String TAG = "RoadMapViewModel";
     
     private BuildingProgressRepository repository;
+    private LearningLogRepository learningLogRepository;
     private MutableLiveData<List<BuildingProgress>> buildingsLiveData;
     private MutableLiveData<Integer> totalCompletedBuildings;
     private MutableLiveData<String> errorMessage;
@@ -44,6 +46,7 @@ public class RoadMapViewModel extends ViewModel {
     
     public RoadMapViewModel() {
         repository = BuildingProgressRepository.getInstance();
+        learningLogRepository = LearningLogRepository.getInstance();
         buildingsLiveData = new MutableLiveData<>();
         totalCompletedBuildings = new MutableLiveData<>(0);
         errorMessage = new MutableLiveData<>();
@@ -82,10 +85,16 @@ public class RoadMapViewModel extends ViewModel {
         });
     }
     
+    // Cache building progress map để check previous building
+    private Map<String, Map<String, Object>> cachedBuildingProgressMap;
+    
     /**
      * Load thông tin building và kết hợp với progress
      */
     private void loadBuildingInfo(Map<String, Map<String, Object>> buildingProgressMap) {
+        // Cache building progress map để dùng cho previous building check
+        this.cachedBuildingProgressMap = buildingProgressMap;
+        
         List<BuildingProgress> buildings = new ArrayList<>();
         // Sử dụng array để có thể thay đổi giá trị trong inner class
         final int[] completedCount = {0};
@@ -103,21 +112,9 @@ public class RoadMapViewModel extends ViewModel {
                         buildingId, buildingInfo, progress
                     );
                     
-                    buildings.add(buildingProgress);
-                    
-                    if (buildingProgress.isCompleted()) {
-                        completedCount[0]++;
-                    }
-                    
-                    loadedCount[0]++;
-                    
-                    // Khi load xong tất cả, sort và update LiveData
-                    if (loadedCount[0] == totalBuildings) {
-                        // Sort buildings: progress first, then by difficulty
-                        sortBuildings(buildings);
-                        buildingsLiveData.setValue(buildings);
-                        totalCompletedBuildings.setValue(completedCount[0]);
-                    }
+                    // Load vocabulary learned count
+                    loadVocabularyLearnedCount(buildingId, buildingProgress, buildings, 
+                                              completedCount, loadedCount, totalBuildings);
                 }
                 
                 @Override
@@ -125,15 +122,10 @@ public class RoadMapViewModel extends ViewModel {
                     Log.w(TAG, "Error loading building info for " + buildingId + ": " + error);
                     // Tạo building mặc định
                     BuildingProgress defaultBuilding = createDefaultBuilding(buildingId);
-                    buildings.add(defaultBuilding);
                     
-                    loadedCount[0]++;
-                    if (loadedCount[0] == totalBuildings) {
-                        // Sort buildings: progress first, then by difficulty
-                        sortBuildings(buildings);
-                        buildingsLiveData.setValue(buildings);
-                        totalCompletedBuildings.setValue(completedCount[0]);
-                    }
+                    // Load vocabulary learned count cho default building
+                    loadVocabularyLearnedCount(buildingId, defaultBuilding, buildings, 
+                                              completedCount, loadedCount, totalBuildings);
                 }
             });
         }
@@ -213,10 +205,30 @@ public class RoadMapViewModel extends ViewModel {
             
             if (currentIndex > 0) {
                 String previousBuildingId = BUILDING_ORDER[currentIndex - 1];
-                // TODO: Kiểm tra previous building completed (có thể cache trong ViewModel)
-                // Tạm thời: building thứ 2 trở đi bị locked nếu chưa có progress
+                // Kiểm tra previous building completed
+                // Nếu không có userProgress cho building hiện tại, check previous building
                 if (userProgress == null) {
-                    locked = true;
+                    // Kiểm tra previous building đã completed chưa
+                    Map<String, Object> previousProgress = cachedBuildingProgressMap != null ? 
+                        cachedBuildingProgressMap.get(previousBuildingId) : null;
+                    
+                    if (previousProgress != null) {
+                        Boolean previousCompleted = (Boolean) previousProgress.get("completed");
+                        if (previousCompleted != null && previousCompleted) {
+                            // Previous building đã completed, building hiện tại không bị locked
+                            // (user có thể unlock bằng vàng hoặc học lesson)
+                            locked = false;
+                        } else {
+                            // Previous building chưa completed, building hiện tại bị locked
+                            locked = true;
+                        }
+                    } else {
+                        // Previous building chưa có progress, building hiện tại bị locked
+                        locked = true;
+                    }
+                } else {
+                    // Building hiện tại đã có progress, không bị locked
+                    locked = false;
                 }
             }
         }
@@ -225,7 +237,7 @@ public class RoadMapViewModel extends ViewModel {
             buildingId, buildingName, level, currentExp, maxExp, completed, locked
         );
         buildingProgress.setVocabularyCount(vocabularyCount);
-        // TODO: Tính vocabularyLearned từ quiz history
+        // vocabularyLearned sẽ được load riêng từ learning logs
         
         return buildingProgress;
     }
@@ -292,6 +304,60 @@ public class RoadMapViewModel extends ViewModel {
             }
             return Integer.compare(index1, index2);
         });
+    }
+    
+    /**
+     * Load số từ vựng đã học cho một building
+     */
+    private void loadVocabularyLearnedCount(String buildingId, BuildingProgress buildingProgress,
+                                           List<BuildingProgress> buildings,
+                                           int[] completedCount, int[] loadedCount, int totalBuildings) {
+        learningLogRepository.getVocabularyLearnedCount(buildingId, 
+            new LearningLogRepository.OnVocabularyLearnedCountListener() {
+                @Override
+                public void onCountLoaded(int count) {
+                    buildingProgress.setVocabularyLearned(count);
+                    
+                    buildings.add(buildingProgress);
+                    
+                    if (buildingProgress.isCompleted()) {
+                        completedCount[0]++;
+                    }
+                    
+                    loadedCount[0]++;
+                    
+                    // Khi load xong tất cả, sort và update LiveData
+                    if (loadedCount[0] == totalBuildings) {
+                        // Sort buildings: progress first, then by difficulty
+                        sortBuildings(buildings);
+                        buildingsLiveData.setValue(buildings);
+                        totalCompletedBuildings.setValue(completedCount[0]);
+                    }
+                }
+                
+                @Override
+                public void onError(String error) {
+                    Log.w(TAG, "Error loading vocabulary learned count for " + buildingId + ": " + error);
+                    // Nếu không load được, set vocabularyLearned = 0
+                    buildingProgress.setVocabularyLearned(0);
+                    
+                    buildings.add(buildingProgress);
+                    
+                    if (buildingProgress.isCompleted()) {
+                        completedCount[0]++;
+                    }
+                    
+                    loadedCount[0]++;
+                    
+                    // Khi load xong tất cả, sort và update LiveData
+                    if (loadedCount[0] == totalBuildings) {
+                        // Sort buildings: progress first, then by difficulty
+                        sortBuildings(buildings);
+                        buildingsLiveData.setValue(buildings);
+                        totalCompletedBuildings.setValue(completedCount[0]);
+                    }
+                }
+            });
     }
 }
 

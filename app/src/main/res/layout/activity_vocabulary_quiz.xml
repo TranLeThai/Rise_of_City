@@ -4,10 +4,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-        android:background="#E0F7FA"
+    android:background="#FFFFFF"
     android:padding="16dp">
 
-    <!-- Nút X - Góc trên bên trái -->
+    <!-- Nút X - Góc trên bên phải -->
     <ImageButton
         android:id="@+id/btn_close"
         android:layout_width="48dp"
@@ -15,77 +15,118 @@
         android:src="@drawable/ic_close"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Close button"
-        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
         android:layout_marginTop="8dp"
         android:tint="#9E9E9E"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- White Card chứa câu hỏi -->
-    <androidx.cardview.widget.CardView
-        android:id="@+id/card_question"
+    <!-- Header: Component 1 với icon kim cương -->
+    <LinearLayout
+        android:id="@+id/header_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <ImageView
+            android:id="@+id/iv_diamond"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_diamond_green"
+            android:contentDescription="Diamond icon" />
+
+        <TextView
+            android:id="@+id/tv_component_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Component 1"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#424242"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- Câu hỏi trong box màu xanh đậm -->
+    <LinearLayout
+        android:id="@+id/question_container"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#FFFFFF"
+        android:orientation="horizontal"
+        android:background="@drawable/bg_question_dark_green"
+        android:padding="16dp"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="16dp"
-        app:layout_constraintTop_toBottomOf="@id/btn_close"
+        app:layout_constraintTop_toBottomOf="@id/header_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/tv_question"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:padding="24dp">
+            android:layout_weight="1"
+            android:text="Which subject do you study numbers in?"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:gravity="center_vertical" />
 
-            <!-- Text "Thử thách từ vựng" -->
-            <TextView
-                android:id="@+id/tv_challenge_label"
+        <!-- Timer và Progress Bar Container -->
+        <LinearLayout
+            android:id="@+id/timer_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:layout_marginStart="16dp">
+
+            <!-- Timer Icon và Text -->
+            <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Thử thách từ vựng"
-                android:textSize="12sp"
-                android:textColor="#9E9E9E"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
-            <!-- Câu hỏi -->
-            <TextView
-                android:id="@+id/tv_question"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:text="Từ nào có nghĩa là 'Ngôi Nhà'?"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#424242"
-                android:layout_marginTop="12dp"
-                app:layout_constraintTop_toBottomOf="@id/tv_challenge_label"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                <ImageView
+                    android:id="@+id/iv_timer_icon"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/ic_stopwatch"
+                    android:tint="#FFFFFF"
+                    android:contentDescription="Timer" />
 
-            <!-- Hình ảnh minh họa - Thu nhỏ lại để hiển thị đầy đủ đáp án -->
-            <ImageView
-                android:id="@+id/iv_illustration"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:src="@drawable/vector_house"
-                android:scaleType="fitCenter"
-                android:layout_marginTop="12dp"
-                android:layout_marginBottom="8dp"
-                android:contentDescription="Illustration"
-                app:layout_constraintTop_toBottomOf="@id/tv_question"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                <TextView
+                    android:id="@+id/tv_timer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:15"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#424242"
+                    android:layout_marginStart="4dp" />
+            </LinearLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            <!-- Progress Bar -->
+            <ProgressBar
+                android:id="@+id/progress_timer"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="80dp"
+                android:layout_height="4dp"
+                android:layout_marginTop="4dp"
+                android:max="15"
+                android:progress="15"
+                android:progressTint="#F44336"
+                android:progressBackgroundTint="#E0E0E0" />
+        </LinearLayout>
+    </LinearLayout>
 
-    </androidx.cardview.widget.CardView>
-
-    <!-- Grid 2x2 cho các đáp án - Bố cục đều nhau -->
+    <!-- Grid 2x2 cho các đáp án với feedback icons -->
     <androidx.gridlayout.widget.GridLayout
         android:id="@+id/grid_answers"
         android:layout_width="0dp"
@@ -96,22 +137,16 @@
         android:useDefaultMargins="false"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/card_question"
+        app:layout_constraintTop_toBottomOf="@id/question_container"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Answer Button 1: HOUSE -->
-        <Button
-            android:id="@+id/btn_answer1"
+        <!-- Answer Button 1: A. Math -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:text="HOUSE"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:background="@drawable/bg_answer_button"
+            android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:layout_marginTop="8dp"
@@ -119,18 +154,32 @@
             app:layout_columnWeight="1"
             app:layout_rowWeight="1"
             app:layout_column="0"
-            app:layout_row="0" />
+            app:layout_row="0">
 
-        <!-- Answer Button 2: MOUSE -->
-        <Button
-            android:id="@+id/btn_answer2"
+            <Button
+                android:id="@+id/btn_answer1"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:text="A. Math"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#424242"
+                android:background="@drawable/bg_answer_green" />
+
+            <ImageView
+                android:id="@+id/iv_feedback1"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:contentDescription="Feedback icon" />
+        </FrameLayout>
+
+        <!-- Answer Button 2: B. History -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:text="MOUSE"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:background="@drawable/bg_answer_button"
+            android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:layout_marginTop="8dp"
@@ -138,18 +187,32 @@
             app:layout_columnWeight="1"
             app:layout_rowWeight="1"
             app:layout_column="1"
-            app:layout_row="0" />
+            app:layout_row="0">
 
-        <!-- Answer Button 3: HORSE -->
-        <Button
-            android:id="@+id/btn_answer3"
+            <Button
+                android:id="@+id/btn_answer2"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:text="B. History"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#424242"
+                android:background="@drawable/bg_answer_green" />
+
+            <ImageView
+                android:id="@+id/iv_feedback2"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:contentDescription="Feedback icon" />
+        </FrameLayout>
+
+        <!-- Answer Button 3: C. English -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:text="HORSE"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:background="@drawable/bg_answer_button"
+            android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:layout_marginTop="8dp"
@@ -157,18 +220,32 @@
             app:layout_columnWeight="1"
             app:layout_rowWeight="1"
             app:layout_column="0"
-            app:layout_row="1" />
+            app:layout_row="1">
 
-        <!-- Answer Button 4: HOSE -->
-        <Button
-            android:id="@+id/btn_answer4"
+            <Button
+                android:id="@+id/btn_answer3"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:text="C. English"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#424242"
+                android:background="@drawable/bg_answer_green" />
+
+            <ImageView
+                android:id="@+id/iv_feedback3"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:contentDescription="Feedback icon" />
+        </FrameLayout>
+
+        <!-- Answer Button 4: D. Music -->
+        <FrameLayout
             android:layout_width="0dp"
-            android:layout_height="70dp"
-            android:text="HOSE"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#424242"
-            android:background="@drawable/bg_answer_button"
+            android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
             android:layout_marginTop="8dp"
@@ -176,7 +253,27 @@
             app:layout_columnWeight="1"
             app:layout_rowWeight="1"
             app:layout_column="1"
-            app:layout_row="1" />
+            app:layout_row="1">
+
+            <Button
+                android:id="@+id/btn_answer4"
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:text="D. Music"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#424242"
+                android:background="@drawable/bg_answer_green" />
+
+            <ImageView
+                android:id="@+id/iv_feedback4"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="center_vertical|end"
+                android:layout_marginEnd="8dp"
+                android:visibility="gone"
+                android:contentDescription="Feedback icon" />
+        </FrameLayout>
 
     </androidx.gridlayout.widget.GridLayout>
 
@@ -189,10 +286,28 @@
         android:textSize="18sp"
         android:textStyle="bold"
         android:textColor="#FFFFFF"
-        android:background="@drawable/bg_button_check"
+        android:background="@drawable/bg_button_green"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Nút NEXT - Hiển thị sau khi đã kiểm tra đáp án -->
+    <Button
+        android:id="@+id/btn_next"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:text="NEXT"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/bg_button_green"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

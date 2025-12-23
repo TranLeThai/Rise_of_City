@@ -51,17 +51,17 @@
 
             <ImageView
                 android:id="@+id/iv_star"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_star_gold"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:src="@drawable/ic_star_reward"
                 android:contentDescription="Star icon"
-                android:layout_marginEnd="8dp" />
+                android:layout_marginEnd="6dp" />
 
             <TextView
                 android:id="@+id/tv_reward"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="+20 Kinh nghiệm"
+                android:text="+30 EXP • +15 Vàng"
                 android:textSize="18sp"
                 android:textStyle="bold"
                 android:textColor="#FFC107" />

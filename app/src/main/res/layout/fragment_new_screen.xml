@@ -1,0 +1,373 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <!-- Danh sách màn hình bên trái -->
+    <ScrollView
+        android:id="@+id/sidebar_menu"
+        android:layout_width="200dp"
+        android:layout_height="match_parent"
+        android:background="#FFFFFF"
+        android:elevation="4dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp">
+
+            <!-- Header với nút X -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Màn hình mới"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="#424242" />
+
+                <ImageButton
+                    android:id="@+id/btn_close_menu"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@drawable/ic_close"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Close menu"
+                    android:tint="#757575" />
+            </LinearLayout>
+
+            <!-- Menu Item 1: Contract Inspection -->
+            <LinearLayout
+                android:id="@+id/menu_contract_inspection"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Thanh tra hợp đồng"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_contract_inspection"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="visible" />
+            </LinearLayout>
+
+            <!-- Menu Item 2: Quiz -->
+            <LinearLayout
+                android:id="@+id/menu_quiz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Quiz"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_quiz"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 3: Word-Match -->
+            <LinearLayout
+                android:id="@+id/menu_word_match"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Word-Match"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_word_match"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 4: Image-Match -->
+            <LinearLayout
+                android:id="@+id/menu_image_match"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Image-Match"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_image_match"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 5: Guess -->
+            <LinearLayout
+                android:id="@+id/menu_guess"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Guess"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_guess"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 6: Guess-Image -->
+            <LinearLayout
+                android:id="@+id/menu_guess_image"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Guess-Image"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_guess_image"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 7: Bakery, Coffee -->
+            <LinearLayout
+                android:id="@+id/menu_bakery_coffee"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Bakery, Coffee"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_bakery_coffee"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 8: House Decorate -->
+            <LinearLayout
+                android:id="@+id/menu_house_decorate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="House Decorate"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_house_decorate"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Menu Item 9: School -->
+            <LinearLayout
+                android:id="@+id/menu_school"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="School"
+                    android:textSize="14sp"
+                    android:textColor="#424242" />
+
+                <View
+                    android:id="@+id/indicator_school"
+                    android:layout_width="4dp"
+                    android:layout_height="24dp"
+                    android:background="#4CAF50"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E0E0E0"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Button để ẩn menu -->
+            <LinearLayout
+                android:id="@+id/btn_hide_menu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp"
+                android:background="?attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@android:drawable/ic_menu_revert"
+                    android:tint="#757575"
+                    android:contentDescription="Hide menu" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ẩn menu"
+                    android:textSize="14sp"
+                    android:textColor="#757575"
+                    android:layout_marginStart="12dp" />
+            </LinearLayout>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Container cho fragment bên phải -->
+    <FrameLayout
+        android:id="@+id/fragment_container_new_screen"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sidebar_menu"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <!-- Toggle button để ẩn/hiện menu -->
+        <ImageButton
+            android:id="@+id/btn_toggle_menu"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@android:drawable/ic_menu_more"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle menu"
+            android:layout_margin="8dp"
+            android:elevation="4dp"
+            android:backgroundTint="#FFFFFF"
+            android:tint="#424242" />
+    </FrameLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

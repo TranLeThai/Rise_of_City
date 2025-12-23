@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- Outer circle (shadow) -->
+    <path
+        android:fillColor="#CC8800"
+        android:pathData="M12,2C6.48,2 2,6.48 2,12s4.48,10 10,10 10,-4.48 10,-10S17.52,2 12,2z"/>
+    
+    <!-- Gold coin -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M12,3C7.03,3 3,7.03 3,12s4.03,9 9,9 9,-4.03 9,-9S16.97,3 12,3z"/>
+    
+    <!-- Inner highlight -->
+    <path
+        android:fillColor="#FFEB3B"
+        android:pathData="M12,5C8.13,5 5,8.13 5,12s3.13,7 7,7 7,-3.13 7,-7S15.87,5 12,5z"/>
+    
+    <!-- Letter Y (for vàng/gold) -->
+    <path
+        android:fillColor="#FFC107"
+        android:pathData="M12,9.5L13,12h2l-2.5,4v2h-1v-2L9,12h2z"/>
+    
+    <!-- Shine effect -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.5"
+        android:pathData="M8,6C8.5,7 9.5,8 11,8c1.5,0 2.5,-1 3,-2c0.5,1 1.5,2 3,2c1.5,0 2.5,-1 3,-2L20,6C18,8 15,9 12,9C9,9 6,8 4,6L8,6z"/>
+</vector>
+

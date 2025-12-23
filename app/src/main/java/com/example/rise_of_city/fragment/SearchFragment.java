@@ -93,9 +93,7 @@ public class SearchFragment extends Fragment {
             if (getActivity() instanceof com.example.rise_of_city.ui.main.MainActivity) {
                 com.example.rise_of_city.ui.main.MainActivity mainActivity = 
                     (com.example.rise_of_city.ui.main.MainActivity) getActivity();
-                if (mainActivity.getBottomNavigationView() != null) {
-                    mainActivity.getBottomNavigationView().setSelectedItemId(R.id.nav_home);
-                }
+                mainActivity.setSelectedNavItem(R.id.nav_item_home);
             }
         });
 

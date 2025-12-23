@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="8dp">
+
+    <!-- Chef Message (Left) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_chef_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="80dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#F5F5F5"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_chef_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Chef message"
+            android:textColor="#000000"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:maxWidth="280dp" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- User Message (Right) -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/card_user_message"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="80dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="2dp"
+        app:cardBackgroundColor="#3FD0F1"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/tv_user_message"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="User message"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:padding="12dp"
+            android:maxWidth="280dp"
+            android:gravity="end" />
+
+    </com.google.android.material.card.MaterialCardView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

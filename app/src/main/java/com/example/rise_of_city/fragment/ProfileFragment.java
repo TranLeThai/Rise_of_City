@@ -19,7 +19,6 @@ import com.example.rise_of_city.ui.auth.LoginActivity;
 import com.example.rise_of_city.ui.dialog.BadgeUnlockDialogFragment;
 import com.example.rise_of_city.ui.main.MainActivity;
 import com.example.rise_of_city.utils.BadgeManager;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -63,11 +62,11 @@ public class ProfileFragment extends Fragment {
                 MainActivity mainActivity = (MainActivity) getActivity();
                 // Quay lại fragment trước đó (mặc định là Home)
                 int previousId = mainActivity.getPreviousSelectedItemId();
-                if (previousId == R.id.nav_profile) {
+                if (previousId == R.id.nav_item_profile || previousId == R.id.nav_profile) {
                     // Nếu trước đó là profile, quay về Home
-                    previousId = R.id.nav_home;
+                    previousId = R.id.nav_item_home;
                 }
-                mainActivity.getBottomNavigationView().setSelectedItemId(previousId);
+                mainActivity.setSelectedNavItem(previousId);
             }
         });
 

@@ -93,28 +93,8 @@
     </androidx.cardview.widget.CardView>
 
     <!-- Top Left: Money sack icon -->
-    <ImageView
-        android:id="@+id/money"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:elevation="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
-        app:srcCompat="@drawable/ic_money" />
 
     <!-- Top Left: Battery/Energy icon -->
-    <ImageView
-        android:id="@+id/battery"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="10dp"
-        android:elevation="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/money"
-        app:srcCompat="@drawable/ic_battery" />
 
     <!-- Top Right: Clipboard/Checklist icon -->
     <ImageView
@@ -129,51 +109,41 @@
         app:srcCompat="@drawable/icon_mission" />
 
     <!-- Left Side: Zoom/Pan Control Button -->
-    <ImageButton
-        android:id="@+id/btn_zoom"
-        android:layout_width="56dp"
-        android:layout_height="56dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="16dp"
-        android:background="@drawable/bg_green_circle"
-        android:src="@drawable/ic_zoom"
-        android:padding="14dp"
-        android:elevation="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent" />
 
     <!-- Play Button (invisible overlay on island) -->
+
+    <!-- Start Game Button - Below island, center of screen -->
+
     <Button
         android:id="@+id/btn_play"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="292dp"
+        android:layout_height="295dp"
         android:background="@android:color/transparent"
-        android:text=""
         android:elevation="2dp"
+        android:text=""
         app:layout_constraintBottom_toBottomOf="@+id/img_island"
         app:layout_constraintEnd_toEndOf="@+id/img_island"
         app:layout_constraintStart_toStartOf="@+id/img_island"
-        app:layout_constraintTop_toTopOf="@+id/img_island" />
+        app:layout_constraintTop_toTopOf="@+id/img_island"
+        app:layout_constraintVertical_bias="0.528" />
 
-    <!-- Start Game Button - Below island, center of screen -->
     <Button
         android:id="@+id/btn_start_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="236dp"
+        android:background="@drawable/bg_button_start_game"
+        android:elevation="8dp"
+        android:paddingStart="32dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="32dp"
+        android:paddingBottom="12dp"
         android:text="Start Game"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:textStyle="bold"
-        android:paddingStart="32dp"
-        android:paddingEnd="32dp"
-        android:paddingTop="12dp"
-        android:paddingBottom="12dp"
-        android:background="@drawable/bg_button_start_game"
-        android:elevation="8dp"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.5" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

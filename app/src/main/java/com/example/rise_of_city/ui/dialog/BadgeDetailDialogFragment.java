@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Badge;
+import com.example.rise_of_city.data.model.user.Badge;
 
 public class BadgeDetailDialogFragment extends DialogFragment {
     private static final String ARG_BADGE = "badge";

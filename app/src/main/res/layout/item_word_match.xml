@@ -1,0 +1,22 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="8dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_answer_green"> <TextView
+    android:id="@+id/tvWord"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_weight="1"
+    android:gravity="center"
+    android:text="Classroom"
+    android:textSize="18sp"
+    android:textColor="#333333" />
+
+    <View
+        android:id="@+id/dot"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:background="@drawable/dot_red" /> </LinearLayout>

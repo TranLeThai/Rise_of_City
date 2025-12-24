@@ -6,7 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
-import com.example.rise_of_city.data.model.BuildingProgress;
+import com.example.rise_of_city.data.model.game.BuildingProgress;
 import com.example.rise_of_city.data.repository.BuildingProgressRepository;
 import com.example.rise_of_city.data.repository.LearningLogRepository;
 

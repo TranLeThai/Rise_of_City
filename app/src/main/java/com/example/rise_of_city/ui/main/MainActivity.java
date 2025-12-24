@@ -1,5 +1,8 @@
-package com.example.rise_of_city.ui.main; // Đổi thành package của bạn
+package com.example.rise_of_city.ui.main;
 
+import android.app.Dialog;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -12,13 +15,12 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.fragment.HomeFragment;
-import com.example.rise_of_city.fragment.ChatAiFragment;
-import com.example.rise_of_city.fragment.RoadMapFragment;
-import com.example.rise_of_city.fragment.SearchFragment;
-import com.example.rise_of_city.fragment.ProfileFragment;
-import com.example.rise_of_city.fragment.NewScreenFragment;
-import com.example.rise_of_city.fragment.VocabMatchFragment;
+import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
+import com.example.rise_of_city.ui.game.ingame.HomeFragment;
+import com.example.rise_of_city.ui.game.ingame.ChatAiFragment;
+import com.example.rise_of_city.ui.game.roadmap.RoadMapFragment;
+import com.example.rise_of_city.ui.profile.SearchFragment;
+import com.example.rise_of_city.ui.profile.ProfileFragment;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +31,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // --- LOGIC MỚI: KIỂM TRA SURVEY LẦN ĐẦU ---
+        // Phải kiểm tra trước khi setContentView để tránh hiện giao diện Main rồi mới chuyển
+        SharedPreferences prefs = getSharedPreferences("RiseOfCity_Prefs", MODE_PRIVATE);
+        boolean isSurveyCompleted = prefs.getBoolean("is_survey_completed", false);
+
+        if (!isSurveyCompleted) {
+            // Nếu chưa hoàn thành survey, chuyển hướng ngay và đóng MainActivity
+            Intent intent = new Intent(this, KnowledgeSurveyActivity.class);
+            startActivity(intent);
+            finish(); // Quan trọng: Đóng Main để user không quay lại được bằng nút Back
+            return;
+        }
+
+        // --- GIỮ NGUYÊN TOÀN BỘ CODE CŨ CỦA BẠN BÊN DƯỚI ---
         setContentView(R.layout.activity_main);
 
         bottomNav = findViewById(R.id.bottom_navigation);
@@ -42,52 +59,84 @@ public class MainActivity extends AppCompatActivity {
 
         // Setup click listeners cho các nav items
         setupNavigationItems();
-        
+
         // Highlight item đầu tiên (Home)
         setSelectedItem(R.id.nav_item_home);
+
+        // Kiểm tra thông báo khi lần đầu Activity được tạo (Dành cho lúc vừa làm xong survey quay về)
+        checkSurveyIntent(getIntent());
     }
 
+    /**
+     * GIỮ NGUYÊN: Xử lý Intent mới khi Activity đang chạy (SingleTop/ClearTop)
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // Cập nhật intent mới
+        checkSurveyIntent(intent);
+    }
+
+    private void checkSurveyIntent(Intent intent) {
+        if (intent != null && intent.getBooleanExtra("SHOW_SURVEY_DIALOG", false)) {
+            showResultDialog();
+        }
+    }
+
+    // GIỮ NGUYÊN: Hàm hiển thị Dialog kết quả
+    private void showResultDialog() {
+        Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.layout_survey_result_dialog);
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        int score = getIntent().getIntExtra("SCORE", 0);
+        int total = getIntent().getIntExtra("TOTAL", 10);
+
+        TextView tvScore = dialog.findViewById(R.id.tvDialogScore);
+        if (tvScore != null) {
+            tvScore.setText("Bạn đã trả lời đúng " + score + "/" + total + " câu");
+        }
+
+        View rootLayout = dialog.findViewById(R.id.dialog_root_layout);
+        if (rootLayout != null) {
+            rootLayout.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(true);
+        dialog.show();
+    }
+
+    // GIỮ NGUYÊN: Setup click listeners
     private void setupNavigationItems() {
-        // Home
         LinearLayout navHome = findViewById(R.id.nav_item_home);
         navHome.setOnClickListener(v -> navigateToFragment(R.id.nav_item_home, new HomeFragment()));
 
-        // Search/Friends
         LinearLayout navSearch = findViewById(R.id.nav_item_search);
         navSearch.setOnClickListener(v -> navigateToFragment(R.id.nav_item_search, new SearchFragment()));
 
-        // Roadmap
         LinearLayout navExplore = findViewById(R.id.nav_item_explore);
         navExplore.setOnClickListener(v -> navigateToFragment(R.id.nav_item_explore, new RoadMapFragment()));
 
-        // Chat AI
         LinearLayout navChat = findViewById(R.id.nav_item_chat);
         navChat.setOnClickListener(v -> navigateToFragment(R.id.nav_item_chat, new ChatAiFragment()));
 
-        // Profile
         LinearLayout navProfile = findViewById(R.id.nav_item_profile);
         navProfile.setOnClickListener(v -> navigateToFragment(R.id.nav_item_profile, new ProfileFragment()));
-
-        // New Screen
-        LinearLayout navNewScreen = findViewById(R.id.nav_item_new_screen);
-        navNewScreen.setOnClickListener(v -> navigateToFragment(R.id.nav_item_new_screen, new NewScreenFragment()));
-
-        // Vocab Match
-        LinearLayout navVocabMatch = findViewById(R.id.nav_item_vocab_match);
-        navVocabMatch.setOnClickListener(v -> navigateToFragment(R.id.nav_item_vocab_match, new VocabMatchFragment()));
     }
 
+    // GIỮ NGUYÊN: Chuyển fragment
     private void navigateToFragment(int itemId, Fragment fragment) {
-        // Lưu lại item được chọn trước đó
         if (currentSelectedItemId != itemId) {
             previousSelectedItemId = currentSelectedItemId;
         }
-        
-        // Cập nhật selected item
+
         setSelectedItem(itemId);
         currentSelectedItemId = itemId;
 
-        // Chuyển fragment
         if (fragment != null) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.fragment_container, fragment)
@@ -95,11 +144,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // GIỮ NGUYÊN: Thay đổi UI khi chọn item
     private void setSelectedItem(int itemId) {
-        // Reset tất cả items về trạng thái không được chọn
         resetAllItems();
 
-        // Set item được chọn
         LinearLayout selectedItem = findViewById(itemId);
         if (selectedItem != null) {
             ImageView icon = null;
@@ -120,12 +168,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_item_profile) {
                 icon = findViewById(R.id.nav_icon_profile);
                 text = findViewById(R.id.nav_text_profile);
-            } else if (itemId == R.id.nav_item_new_screen) {
-                icon = findViewById(R.id.nav_icon_new_screen);
-                text = findViewById(R.id.nav_text_new_screen);
-            } else if (itemId == R.id.nav_item_vocab_match) {
-                icon = findViewById(R.id.nav_icon_vocab_match);
-                text = findViewById(R.id.nav_text_vocab_match);
             }
 
             if (icon != null) {
@@ -137,51 +179,24 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // GIỮ NGUYÊN: Reset toàn bộ UI thanh điều hướng
     private void resetAllItems() {
-        // Reset Home
-        ImageView iconHome = findViewById(R.id.nav_icon_home);
-        TextView textHome = findViewById(R.id.nav_text_home);
-        if (iconHome != null) iconHome.setColorFilter(Color.WHITE);
-        if (textHome != null) textHome.setTextColor(Color.WHITE);
+        int[] icons = {R.id.nav_icon_home, R.id.nav_icon_search, R.id.nav_icon_explore,
+                R.id.nav_icon_chat, R.id.nav_icon_profile};
+        int[] texts = {R.id.nav_text_home, R.id.nav_text_search, R.id.nav_text_explore,
+                R.id.nav_text_chat, R.id.nav_text_profile};
 
-        // Reset Search
-        ImageView iconSearch = findViewById(R.id.nav_icon_search);
-        TextView textSearch = findViewById(R.id.nav_text_search);
-        if (iconSearch != null) iconSearch.setColorFilter(Color.WHITE);
-        if (textSearch != null) textSearch.setTextColor(Color.WHITE);
-
-        // Reset Explore
-        ImageView iconExplore = findViewById(R.id.nav_icon_explore);
-        TextView textExplore = findViewById(R.id.nav_text_explore);
-        if (iconExplore != null) iconExplore.setColorFilter(Color.WHITE);
-        if (textExplore != null) textExplore.setTextColor(Color.WHITE);
-
-        // Reset Chat
-        ImageView iconChat = findViewById(R.id.nav_icon_chat);
-        TextView textChat = findViewById(R.id.nav_text_chat);
-        if (iconChat != null) iconChat.setColorFilter(Color.WHITE);
-        if (textChat != null) textChat.setTextColor(Color.WHITE);
-
-        // Reset Profile
-        ImageView iconProfile = findViewById(R.id.nav_icon_profile);
-        TextView textProfile = findViewById(R.id.nav_text_profile);
-        if (iconProfile != null) iconProfile.setColorFilter(Color.WHITE);
-        if (textProfile != null) textProfile.setTextColor(Color.WHITE);
-
-        // Reset New Screen
-        ImageView iconNewScreen = findViewById(R.id.nav_icon_new_screen);
-        TextView textNewScreen = findViewById(R.id.nav_text_new_screen);
-        if (iconNewScreen != null) iconNewScreen.setColorFilter(Color.WHITE);
-        if (textNewScreen != null) textNewScreen.setTextColor(Color.WHITE);
-
-        // Reset Vocab Match
-        ImageView iconVocabMatch = findViewById(R.id.nav_icon_vocab_match);
-        TextView textVocabMatch = findViewById(R.id.nav_text_vocab_match);
-        if (iconVocabMatch != null) iconVocabMatch.setColorFilter(Color.WHITE);
-        if (textVocabMatch != null) textVocabMatch.setTextColor(Color.WHITE);
+        for (int id : icons) {
+            ImageView img = findViewById(id);
+            if (img != null) img.setColorFilter(Color.WHITE);
+        }
+        for (int id : texts) {
+            TextView txt = findViewById(id);
+            if (txt != null) txt.setTextColor(Color.WHITE);
+        }
     }
 
-    // Method để quay lại fragment trước đó
+    // GIỮ NGUYÊN: Quay lại fragment trước đó
     public void navigateToPreviousFragment() {
         if (bottomNav != null && previousSelectedItemId != 0) {
             Fragment fragment = null;
@@ -195,27 +210,22 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new ChatAiFragment();
             } else if (previousSelectedItemId == R.id.nav_item_profile) {
                 fragment = new ProfileFragment();
-            } else if (previousSelectedItemId == R.id.nav_item_new_screen) {
-                fragment = new NewScreenFragment();
-            } else if (previousSelectedItemId == R.id.nav_item_vocab_match) {
-                fragment = new VocabMatchFragment();
             }
-            
+
             if (fragment != null) {
                 navigateToFragment(previousSelectedItemId, fragment);
             }
         }
     }
 
-    // Getter để lấy previous fragment ID
+    // GIỮ NGUYÊN: Getter
     public int getPreviousSelectedItemId() {
         return previousSelectedItemId;
     }
 
-    // Method để set selected item (thay thế cho getBottomNavigationView().setSelectedItemId())
+    // GIỮ NGUYÊN: Set item được chọn thủ công
     public void setSelectedNavItem(int itemId) {
         Fragment fragment = null;
-        
         if (itemId == R.id.nav_item_home || itemId == R.id.nav_home) {
             fragment = new HomeFragment();
             itemId = R.id.nav_item_home;
@@ -231,14 +241,8 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.nav_item_profile || itemId == R.id.nav_profile) {
             fragment = new ProfileFragment();
             itemId = R.id.nav_item_profile;
-        } else if (itemId == R.id.nav_item_new_screen || itemId == R.id.nav_new_screen) {
-            fragment = new NewScreenFragment();
-            itemId = R.id.nav_item_new_screen;
-        } else if (itemId == R.id.nav_item_vocab_match) {
-            fragment = new VocabMatchFragment();
-            itemId = R.id.nav_item_vocab_match;
         }
-        
+
         if (fragment != null) {
             navigateToFragment(itemId, fragment);
         }

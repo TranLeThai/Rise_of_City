@@ -20,8 +20,4 @@
         android:id="@+id/nav_profile"
         android:icon="@drawable/ic_user"
         android:title="Profile" />
-    <item
-        android:id="@+id/nav_new_screen"
-        android:icon="@drawable/ic_settings"
-        android:title="Mới" />
 </menu>

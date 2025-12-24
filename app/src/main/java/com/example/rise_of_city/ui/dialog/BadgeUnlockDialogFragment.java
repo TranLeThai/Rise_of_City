@@ -1,7 +1,5 @@
 package com.example.rise_of_city.ui.dialog;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
 import android.animation.ObjectAnimator;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,7 +15,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Badge;
+import com.example.rise_of_city.data.model.user.Badge;
 
 public class BadgeUnlockDialogFragment extends DialogFragment {
     private static final String ARG_BADGE = "badge";

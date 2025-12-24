@@ -3,7 +3,7 @@ package com.example.rise_of_city.utils;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.rise_of_city.data.model.Badge;
+import com.example.rise_of_city.data.model.user.Badge;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;

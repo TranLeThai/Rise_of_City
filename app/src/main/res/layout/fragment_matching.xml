@@ -48,7 +48,7 @@
         app:layout_constraintWidth_percent="0.48" />
 
     <!-- Custom View for Drawing Lines -->
-    <com.example.rise_of_city.ui.matching.MatchingLineView
+    <com.example.rise_of_city.ui.view.MatchingLineView
         android:id="@+id/matching_line_view"
         android:layout_width="0dp"
         android:layout_height="0dp"

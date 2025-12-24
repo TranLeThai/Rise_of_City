@@ -1,7 +1,7 @@
 package com.example.rise_of_city.data.repository;
 
 import android.util.Log;
-import com.example.rise_of_city.data.model.WritingQuiz;
+import com.example.rise_of_city.data.model.learning.WritingQuiz;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;

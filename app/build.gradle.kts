@@ -49,6 +49,9 @@ dependencies {
     
     // Fragment
     implementation("androidx.fragment:fragment:1.6.2")
+    implementation(libs.room.common.jvm)
+    implementation(libs.room.runtime)
+    implementation(libs.constraintlayout)
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
@@ -74,4 +77,5 @@ dependencies {
     
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
+    annotationProcessor(libs.room.compiler)
 }

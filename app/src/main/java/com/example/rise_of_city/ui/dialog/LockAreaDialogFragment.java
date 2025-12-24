@@ -14,7 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.data.model.game.Building;
 import com.example.rise_of_city.data.repository.GoldRepository;
 
 public class LockAreaDialogFragment extends DialogFragment {

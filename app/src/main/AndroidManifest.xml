@@ -1,97 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    package="com.example.rise_of_city">
+
     <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
-        android:dataExtractionRules="@xml/data_extraction_rules"
-        android:fullBackupContent="@xml/backup_rules"
+        android:enableOnBackInvokedCallback="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:screenOrientation="portrait"
         android:theme="@style/Theme.Rise_of_City">
 
         <activity
             android:name=".ui.auth.LoginActivity"
-            android:screenOrientation="portrait"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <activity
-            android:name=".ui.main.MainActivity"
-            android:screenOrientation="portrait"/>
+        <activity android:name=".ui.auth.SignUpActivity" android:screenOrientation="portrait" />
+        <activity android:name=".ui.main.MainActivity" android:screenOrientation="portrait" />
 
         <activity
-            android:name=".ui.quest.QuestsActivity"
-            android:screenOrientation="portrait"/>
-        <activity
-            android:name=".ui.auth.SignUpActivity"
-            android:screenOrientation="portrait"/>
-        <activity
-            android:name=".ui.assessment.KnowledgeSurveyActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-        <activity
-            android:name=".ui.profile.UserProfileActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-        <activity
-            android:name=".ui.profile.EditProfileActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-        <activity
-            android:name=".ui.topic.TopicDetailActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ingame.InGameActivity"
-            android:resizeableActivity="false"
-            android:screenOrientation="landscape"
-            android:exported="false"
-            tools:ignore="DiscouragedApi" />
+            android:name=".ui.game.ingame.InGameActivity"
+            android:screenOrientation="landscape" />
 
-        <activity
-            android:name=".ui.test.TestLockDialogActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+        <activity android:name=".ui.assessment.KnowledgeSurveyActivity" />
 
-        <activity
-            android:name=".ui.test.TestMissionDialogActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+        <activity android:name=".ui.game.ingame.LessonActivity" android:screenOrientation="portrait" />
 
-        <activity
-            android:name=".ui.test.TestVocabularyQuizActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.lesson.LessonActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.lesson.LessonDetailActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.quiz.VocabularyQuizActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
-
-        <activity
-            android:name=".ui.settings.SettingsActivity"
-            android:screenOrientation="portrait"
-            android:exported="false" />
+        <activity android:name=".ui.quiz.VocabularyQuizActivity" />
 
     </application>
-
 </manifest>

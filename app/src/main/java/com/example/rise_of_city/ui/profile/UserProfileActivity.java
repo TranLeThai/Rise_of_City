@@ -13,17 +13,15 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.bumptech.glide.Glide;
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Badge;
+import com.example.rise_of_city.data.model.user.Badge;
 import com.example.rise_of_city.data.repository.UserStatsRepository;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class UserProfileActivity extends AppCompatActivity {
     private static final String TAG = "UserProfileActivity";

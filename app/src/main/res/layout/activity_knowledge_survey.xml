@@ -1,201 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg">
+    android:background="#F8F9FA"
+    android:fillViewport="true">
 
-    <!-- Header Section - Fixed at top -->
     <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:padding="20dp">
 
         <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="match_parent"
+            android:id="@+id/tvQuestionTitle"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="Khảo sát kiến thức"
-            android:textColor="@color/black"
+            android:text="Knowledge Survey"
+            android:textColor="#2D3436"
             android:textSize="24sp"
             android:textStyle="bold" />
 
         <TextView
-            android:id="@+id/tvSubtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:gravity="center"
-            android:text="Hãy trả lời các câu hỏi để chúng tôi xác định trình độ phù hợp với bạn"
-            android:textColor="#666666"
-            android:textSize="12sp" />
-
-        <!-- Progress Bar -->
-        <ProgressBar
-            android:id="@+id/progressBar"
-            style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="8dp"
-            android:layout_marginTop="16dp"
-            android:max="100"
-            android:progress="0"
-            android:progressTint="#4CAF50" />
-
-        <!-- Question Number -->
-        <TextView
-            android:id="@+id/tvQuestionNumber"
+            android:id="@+id/tvInstruction"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="Câu 1/10"
-            android:textColor="#666666"
-            android:textSize="14sp"
+            android:layout_marginTop="4dp"
+            android:text="Please follow the instructions for each question"
+            android:textColor="#636E72"
+            android:textSize="14sp" />
+
+        <ImageView
+            android:id="@+id/imgHouseReference"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_launcher_background" />
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp">
+
+            <TextView
+                android:id="@+id/tvParagraph"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="6dp"
+                android:padding="20dp"
+                android:textColor="#2D3436"
+                android:textSize="17sp" />
+        </androidx.cardview.widget.CardView>
+
+        <LinearLayout
+            android:id="@+id/layoutOptions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="vertical"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/tvProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="1 / 10"
+            android:textColor="#B2BEC3"
             android:textStyle="bold" />
 
     </LinearLayout>
-
-    <!-- Scrollable Content Section -->
-    <ScrollView
-        android:id="@+id/scrollView"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        app:layout_constraintBottom_toTopOf="@id/buttonLayout"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout">
-
-        <!-- Question Card -->
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardQuestion"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="16dp"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="4dp"
-            app:cardBackgroundColor="#FFFFFF">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:id="@+id/tvQuestion"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Câu hỏi sẽ hiển thị ở đây"
-                    android:textColor="@color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:lineSpacingExtra="4dp" />
-
-                <RadioGroup
-                    android:id="@+id/radioGroup"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:orientation="vertical">
-
-                    <RadioButton
-                        android:id="@+id/rbOption1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:padding="12dp"
-                        android:text="Đáp án 1"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:buttonTint="#4CAF50"
-                        android:minHeight="48dp" />
-
-                    <RadioButton
-                        android:id="@+id/rbOption2"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:padding="12dp"
-                        android:text="Đáp án 2"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:buttonTint="#4CAF50"
-                        android:minHeight="48dp" />
-
-                    <RadioButton
-                        android:id="@+id/rbOption3"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
-                        android:padding="12dp"
-                        android:text="Đáp án 3"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:buttonTint="#4CAF50"
-                        android:minHeight="48dp" />
-
-                    <RadioButton
-                        android:id="@+id/rbOption4"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:padding="12dp"
-                        android:text="Đáp án 4"
-                        android:textColor="@color/black"
-                        android:textSize="16sp"
-                        android:buttonTint="#4CAF50"
-                        android:minHeight="48dp" />
-
-                </RadioGroup>
-
-            </LinearLayout>
-
-        </com.google.android.material.card.MaterialCardView>
-
-    </ScrollView>
-
-    <!-- Navigation Buttons - Fixed at bottom -->
-    <LinearLayout
-        android:id="@+id/buttonLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <Button
-            android:id="@+id/btnPrevious"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="12dp"
-            android:layout_weight="1"
-            android:minHeight="56dp"
-            android:text="Quay lại"
-            android:textSize="16sp"
-            android:visibility="gone" />
-
-        <Button
-            android:id="@+id/btnNext"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:minHeight="56dp"
-            android:text="Tiếp theo"
-            android:textSize="16sp" />
-
-    </LinearLayout>
-
-</androidx.constraintlayout.widget.ConstraintLayout>
-
+</ScrollView>

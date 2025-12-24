@@ -1,160 +1,161 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F7FA">
+    android:background="#FFFFFF">
 
-    <!-- Header -->
-    <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="#FFFFFF"
-        android:padding="16dp"
+    <RelativeLayout
+        android:id="@+id/layout_header"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="#FCE4EC"
         android:elevation="4dp"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent">
 
         <ImageButton
             android:id="@+id/btn_back"
             android:layout_width="48dp"
             android:layout_height="48dp"
+            android:layout_centerVertical="true"
+            android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_revert"
-            app:tint="#212121"
-            android:contentDescription="Back" />
+            android:src="@drawable/ic_back_arrow"
+            app:tint="#333333" />
 
         <TextView
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
+            android:layout_centerInParent="true"
+            android:fontFamily="serif"
             android:text="Chi tiết bài học"
+            android:textColor="#333333"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#212121"
-            android:gravity="center_horizontal"
-            android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp" />
+            android:textStyle="bold" />
+    </RelativeLayout>
 
-    </LinearLayout>
-
-    <!-- Content ScrollView -->
-    <ScrollView
-        android:id="@+id/scroll_view"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout"
+    <ProgressBar
+        android:id="@+id/progressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_start_lesson"
+        app:layout_constraintTop_toBottomOf="@id/layout_header">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:orientation="vertical">
 
-            <!-- Lesson Title -->
             <TextView
                 android:id="@+id/tv_lesson_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Tiêu đề bài học"
+                android:fontFamily="serif"
+                android:textColor="#000000"
                 android:textSize="24sp"
                 android:textStyle="bold"
-                android:textColor="#212121"
-                android:layout_marginBottom="8dp" />
+                tools:text="Tên bài học của Thị trưởng" />
 
-            <!-- Lesson Meta Info -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
+                android:layout_marginTop="8dp"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="16dp">
-
-                <TextView
-                    android:id="@+id/tv_lesson_level"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Beginner"
-                    android:textSize="12sp"
-                    android:textColor="#FFFFFF"
-                    android:background="#4CAF50"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="4dp"
-                    android:paddingBottom="4dp"
-                    android:layout_marginEnd="12dp" />
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/tv_lesson_author"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Bởi: Tác giả"
+                    android:textColor="#757575"
                     android:textSize="14sp"
+                    tools:text="Bởi: Admin" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="8dp"
+                    android:text="•"
                     android:textColor="#757575" />
 
                 <TextView
                     android:id="@+id/tv_lesson_views"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="0 lượt xem"
-                    android:textSize="12sp"
-                    android:textColor="#999999" />
-
+                    android:textColor="#757575"
+                    android:textSize="14sp"
+                    tools:text="120 lượt xem" />
             </LinearLayout>
 
-            <!-- Lesson Date -->
             <TextView
                 android:id="@+id/tv_lesson_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Ngày đăng: 01/01/2024"
+                android:layout_marginTop="4dp"
+                android:textColor="#9E9E9E"
                 android:textSize="12sp"
-                android:textColor="#999999"
-                android:layout_marginBottom="16dp" />
+                tools:text="Ngày đăng: 24/12/2025" />
 
-            <!-- Divider -->
+            <TextView
+                android:id="@+id/tv_lesson_level"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_lesson_level"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:textColor="#FFFFFF"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                tools:text="Cơ bản" />
+
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#E0E0E0"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginVertical="16dp"
+                android:background="#EEEEEE" />
 
-            <!-- Lesson Content -->
             <TextView
                 android:id="@+id/tv_lesson_content"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Nội dung bài học..."
+                android:lineSpacingExtra="6dp"
+                android:textColor="#333333"
                 android:textSize="16sp"
-                android:textColor="#212121"
-                android:lineSpacingMultiplier="1.4"
-                android:paddingBottom="16dp" />
+                tools:text="Nội dung bài học sẽ hiển thị ở đây với định dạng HTML/Markdown..." />
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="32dp" />
 
         </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
 
-    </ScrollView>
-
-    <!-- Loading Indicator -->
-    <ProgressBar
-        android:id="@+id/progressBar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+    <Button
+        android:id="@+id/btn_start_lesson"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_margin="16dp"
+        android:backgroundTint="#81C784"
+        android:text="Bắt đầu thử thách"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        app:cornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

@@ -1,24 +1,41 @@
 package com.example.rise_of_city.ui.viewmodel;
 
 import android.content.Context;
+import android.os.Handler;
+import android.os.Looper;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
-import com.example.rise_of_city.data.model.Building;
+
+import com.example.rise_of_city.data.model.game.Building;
+import com.example.rise_of_city.data.model.game.Mission;
 import com.example.rise_of_city.data.repository.GameRepository;
 import com.example.rise_of_city.data.repository.BuildingProgressRepository;
+import com.example.rise_of_city.data.repository.GoldRepository;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Arrays;
+import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameViewModel extends ViewModel {
 
     private GameRepository repository;
     private BuildingProgressRepository progressRepository;
+    private GoldRepository goldRepo;
 
-    // LiveData để UI lắng nghe
     private MutableLiveData<Building> selectedBuilding = new MutableLiveData<>();
-    private MutableLiveData<java.util.Map<String, Boolean>> buildingsLockStatus = new MutableLiveData<>();
+    private MutableLiveData<Map<String, Boolean>> buildingsLockStatus = new MutableLiveData<>();
 
-    // --- KHỞI TẠO ---
-    // Vì ViewModel mặc định không nhận Context, ta cần hàm init này
+    // --- NEW: LiveData cho hệ thống nhiệm vụ ---
+    private MutableLiveData<List<Mission>> activeMissions = new MutableLiveData<>(new ArrayList<>());
+    private Handler missionHandler = new Handler(Looper.getMainLooper());
+    private Runnable missionCheckRunnable;
+
     public void init(Context context) {
         if (repository == null) {
             repository = GameRepository.getInstance(context);
@@ -26,106 +43,188 @@ public class GameViewModel extends ViewModel {
         if (progressRepository == null) {
             progressRepository = BuildingProgressRepository.getInstance();
         }
+        if (goldRepo == null) {
+            goldRepo = GoldRepository.getInstance();
+        }
+
+        // Bắt đầu hệ thống nhiệm vụ tự động
+        startMissionSystem();
     }
 
-    // --- GETTER CHO UI ---
-    public LiveData<Building> getSelectedBuilding() {
-        return selectedBuilding;
-    }
-    
-    public LiveData<java.util.Map<String, Boolean>> getBuildingsLockStatus() {
-        return buildingsLockStatus;
+    public LiveData<Building> getSelectedBuilding() { return selectedBuilding; }
+    public LiveData<Map<String, Boolean>> getBuildingsLockStatus() { return buildingsLockStatus; }
+    public LiveData<List<Mission>> getActiveMissions() { return activeMissions; }
+
+    // --- LOGIC NHIỆM VỤ MỚI ---
+
+    private void startMissionSystem() {
+        if (missionCheckRunnable != null) return;
+
+        missionCheckRunnable = new Runnable() {
+            @Override
+            public void run() {
+                checkAndGenerateMissions();
+                checkMissionExpiration();
+                // Kiểm tra mỗi 5 phút (300,000ms)
+                missionHandler.postDelayed(this, 300000);
+            }
+        };
+        missionHandler.post(missionCheckRunnable);
     }
 
-    // --- XỬ LÝ SỰ KIỆN ---
+    private void checkAndGenerateMissions() {
+        Map<String, Boolean> status = buildingsLockStatus.getValue();
+        if (status == null) return;
 
-    // Khi người dùng click vào tòa nhà
-    // Sử dụng Firebase data thay vì mock data để đảm bảo consistency với roadmap
-    public void onBuildingClicked(String buildingId) {
-        // Load từ Firebase để có data chính xác (giống như roadmap)
+        List<String> unlockedIds = new ArrayList<>();
+        for (Map.Entry<String, Boolean> entry : status.entrySet()) {
+            if (!entry.getValue()) { // Nếu value là false nghĩa là isLocked = false -> đã mở khóa
+                unlockedIds.add(entry.getKey());
+            }
+        }
+
+        // Tỉ lệ 30% xuất hiện nhiệm vụ random nếu đã có ít nhất 1 nhà mở khóa
+        if (!unlockedIds.isEmpty() && new Random().nextFloat() < 0.3) {
+            String randomBuildingId = unlockedIds.get(new Random().nextInt(unlockedIds.size()));
+            String missionTitle = getMissionTitleForBuilding(randomBuildingId);
+
+            Mission newMission = new Mission(missionTitle, randomBuildingId, Mission.Type.RANDOM);
+            List<Mission> currentMissions = activeMissions.getValue();
+            if (currentMissions != null) {
+                currentMissions.add(newMission);
+                activeMissions.setValue(currentMissions);
+            }
+        }
+    }
+
+    private void checkMissionExpiration() {
+        List<Mission> currentMissions = activeMissions.getValue();
+        if (currentMissions == null || currentMissions.isEmpty()) return;
+
+        long currentTime = System.currentTimeMillis();
+        List<Mission> toRemove = new ArrayList<>();
+        boolean penaltyApplied = false;
+
+        for (Mission mission : currentMissions) {
+            if (!mission.isCompleted && (currentTime - mission.startTime) > mission.durationMs) {
+                // QUÁ 12 TIẾNG -> PHẠT
+                applyPenalty(mission.goldPenalty);
+                toRemove.add(mission);
+                penaltyApplied = true;
+            }
+        }
+
+        if (penaltyApplied) {
+            currentMissions.removeAll(toRemove);
+            activeMissions.setValue(currentMissions);
+        }
+    }
+
+    private void applyPenalty(int penalty) {
+        if (goldRepo != null) {
+            goldRepo.addGold(-penalty, new GoldRepository.OnGoldUpdatedListener() {
+                @Override
+                public void onGoldUpdated(int newGold) {
+                    // Cập nhật UI tiền tệ nếu cần
+                }
+                @Override
+                public void onError(String error) {}
+            });
+        }
+    }
+
+    private String getMissionTitleForBuilding(String id) {
+        switch (id) {
+            case "house": return "Sắp xếp nhà cửa";
+            case "bakery": return "Nướng bánh mì nóng";
+            case "coffee": return "Pha cà phê sáng";
+            case "library": return "Sắp xếp sách";
+            case "school": return "Soạn giáo án";
+            default: return "Kiểm tra công trình " + id;
+        }
+    }
+
+    public void completeMission(String missionId) {
+        List<Mission> current = activeMissions.getValue();
+        if (current == null) return;
+
+        for (Mission m : current) {
+            if (m.id.equals(missionId)) {
+                m.isCompleted = true;
+                // Cộng thưởng vàng qua GoldRepo...
+                break;
+            }
+        }
+        activeMissions.setValue(current);
+    }
+
+    // --- GIỮ NGUYÊN CÁC CHỨC NĂNG CŨ ---
+
+    public void loadBuildingById(String buildingId) {
         loadBuildingFromFirebase(buildingId);
     }
-    
-    /**
-     * Load building từ Firebase khi navigate từ roadmap hoặc click vào building
-     * Sử dụng BuildingProgressRepository để lấy data thực tế từ Firebase
-     */
+
+    public void onBuildingClicked(String buildingId) {
+        loadBuildingFromFirebase(buildingId);
+    }
+
     public void loadBuildingFromFirebase(String buildingId) {
         if (progressRepository == null || buildingId == null || buildingId.isEmpty()) {
-            // Fallback về mock data nếu không có repository
             fallbackToMockData(buildingId);
             return;
         }
-        
-        // Load building info từ collection buildings
+
         progressRepository.getBuildingInfo(buildingId, new BuildingProgressRepository.OnBuildingInfoLoadedListener() {
             @Override
-            public void onBuildingInfoLoaded(java.util.Map<String, Object> buildingInfo) {
-                // Kiểm tra xem building có tồn tại trong user progress không
-                // Nếu không có, nghĩa là building chưa unlock
+            public void onBuildingInfoLoaded(Map<String, Object> buildingInfo) {
                 progressRepository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
                     @Override
-                    public void onBuildingsLoaded(java.util.Map<String, java.util.Map<String, Object>> buildingProgressMap) {
-                        // Kiểm tra xem building có trong user progress không
+                    public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
                         boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-                        
-                        // Load user progress cho building này
+
                         progressRepository.getBuildingProgress(buildingId, new BuildingProgressRepository.OnProgressLoadedListener() {
                             @Override
                             public void onProgressLoaded(int level, int currentExp, int maxExp) {
-                                // Tạo Building object từ data Firebase
                                 String buildingName = (String) buildingInfo.get("name");
-                                if (buildingName == null) {
-                                    buildingName = buildingId; // Fallback
-                                }
-                                
-                                // Kiểm tra locked status: locked nếu không có trong Firebase user progress
+                                if (buildingName == null) buildingName = buildingId;
+
                                 boolean isLocked = !isUnlocked;
-                                
-                                boolean hasMission = Boolean.TRUE.equals(buildingInfo.get("hasMission"));
+                                boolean hasMission = false; // Mặc định false, logic nhiệm vụ giờ quản lý tập trung
+
+                                // Kiểm tra xem công trình này có đang có nhiệm vụ trong list Active không
+                                List<Mission> missions = activeMissions.getValue();
+                                if (missions != null) {
+                                    for (Mission m : missions) {
+                                        if (m.buildingId.equals(buildingId)) {
+                                            hasMission = true;
+                                            break;
+                                        }
+                                    }
+                                }
+
                                 String requiredLessonName = (String) buildingInfo.get("requiredLessonName");
-                                
+
                                 Building building = new Building(
-                                    buildingId,
-                                    buildingName,
-                                    level,
-                                    currentExp,
-                                    maxExp,
-                                    hasMission,
-                                    isLocked,
-                                    requiredLessonName
+                                        buildingId, buildingName, level, currentExp, maxExp,
+                                        hasMission, isLocked, requiredLessonName
                                 );
-                                
+
                                 selectedBuilding.setValue(building);
                             }
-                            
+
                             @Override
-                            public void onError(String error) {
-                                // Nếu không load được progress, coi như locked
-                                fallbackToMockData(buildingId);
-                            }
+                            public void onError(String error) { fallbackToMockData(buildingId); }
                         });
                     }
-                    
                     @Override
-                    public void onError(String error) {
-                        // Nếu không load được building progress, fallback về mock data
-                        fallbackToMockData(buildingId);
-                    }
+                    public void onError(String error) { fallbackToMockData(buildingId); }
                 });
             }
-            
             @Override
-            public void onError(String error) {
-                // Nếu không load được building info, fallback về mock data
-                fallbackToMockData(buildingId);
-            }
+            public void onError(String error) { fallbackToMockData(buildingId); }
         });
     }
-    
-    /**
-     * Fallback về mock data khi không load được từ Firebase
-     */
+
     private void fallbackToMockData(String buildingId) {
         if (repository != null) {
             Building building = repository.getBuildingById(buildingId);
@@ -135,106 +234,71 @@ public class GameViewModel extends ViewModel {
         }
     }
 
-    // Đóng menu popup
-    public void closeMenu() {
-        selectedBuilding.setValue(null);
-    }
-    
-    /**
-     * Load tất cả buildings và kiểm tra locked status từ Firebase
-     * Dùng để update visual state của buildings trên map
-     */
+    public void closeMenu() { selectedBuilding.setValue(null); }
+
     public void loadAllBuildingsLockStatus() {
-        if (progressRepository == null) {
-            return;
-        }
-        
-        // Danh sách tất cả building IDs
-        final java.util.List<String> allBuildingIds = java.util.Arrays.asList(
-            "house", "school", "library", "park", "farmer", 
-            "coffee", "clothers", "bakery"
+        if (progressRepository == null) return;
+
+        final List<String> allBuildingIds = Arrays.asList(
+                "house", "school", "library", "park", "farmer",
+                "coffee", "clothers", "bakery"
         );
-        
-        // Lấy tất cả building progress của user
+
         progressRepository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
             @Override
-            public void onBuildingsLoaded(java.util.Map<String, java.util.Map<String, Object>> buildingProgressMap) {
-                // Map để lưu lock status của từng building
-                final java.util.Map<String, Boolean> lockStatusMap = new java.util.HashMap<>();
-                final java.util.concurrent.atomic.AtomicInteger loadedCount = new java.util.concurrent.atomic.AtomicInteger(0);
-                
-                // Load building info cho từng building
+            public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
+                final Map<String, Boolean> lockStatusMap = new HashMap<>();
+                final AtomicInteger loadedCount = new AtomicInteger(0);
+
                 for (String buildingId : allBuildingIds) {
                     progressRepository.getBuildingInfo(buildingId, new BuildingProgressRepository.OnBuildingInfoLoadedListener() {
                         @Override
-                        public void onBuildingInfoLoaded(java.util.Map<String, Object> buildingInfo) {
-                            // CHỈ unlock nếu building có trong Firebase user progress
-                            // Nếu có trong buildingProgressMap, nghĩa là đã unlock
+                        public void onBuildingInfoLoaded(Map<String, Object> buildingInfo) {
                             boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-                            
-                            if (isUnlocked) {
-                                // Building đã unlock (có trong Firebase user progress)
-                                lockStatusMap.put(buildingId, false);
-                            } else {
-                                // Building chưa unlock (không có trong Firebase user progress)
-                                lockStatusMap.put(buildingId, true);
-                            }
-                            
-                            // Nếu đã load xong tất cả buildings, update LiveData
-                            int count = loadedCount.incrementAndGet();
-                            if (count == allBuildingIds.size()) {
+                            lockStatusMap.put(buildingId, !isUnlocked);
+
+                            if (loadedCount.incrementAndGet() == allBuildingIds.size()) {
                                 buildingsLockStatus.setValue(lockStatusMap);
                             }
                         }
-                        
                         @Override
                         public void onError(String error) {
-                            // Nếu không load được building info, kiểm tra xem có trong progress không
                             boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-                            lockStatusMap.put(buildingId, !isUnlocked); // Locked nếu không có trong progress
-                            
-                            int count = loadedCount.incrementAndGet();
-                            if (count == allBuildingIds.size()) {
+                            lockStatusMap.put(buildingId, !isUnlocked);
+                            if (loadedCount.incrementAndGet() == allBuildingIds.size()) {
                                 buildingsLockStatus.setValue(lockStatusMap);
                             }
                         }
                     });
                 }
             }
-            
             @Override
             public void onError(String error) {
-                // Nếu không load được progress, TẤT CẢ buildings đều locked
-                java.util.Map<String, Boolean> defaultMap = new java.util.HashMap<>();
-                for (String buildingId : allBuildingIds) {
-                    defaultMap.put(buildingId, true); // Tất cả đều locked
-                }
+                Map<String, Boolean> defaultMap = new HashMap<>();
+                for (String buildingId : allBuildingIds) defaultMap.put(buildingId, true);
                 buildingsLockStatus.setValue(defaultMap);
             }
         });
     }
-    
-    /**
-     * Unlock building với vàng
-     */
+
     public void unlockBuilding(String buildingId) {
-        if (progressRepository == null) {
-            return;
-        }
-        
+        if (progressRepository == null) return;
         progressRepository.unlockBuilding(buildingId, new BuildingProgressRepository.OnProgressUpdatedListener() {
             @Override
             public void onProgressUpdated(long level, int currentExp, int maxExp) {
-                // Building đã được unlock, reload lock status để update UI
                 loadAllBuildingsLockStatus();
-                // Reload building để update selected building state
                 loadBuildingFromFirebase(buildingId);
             }
-            
             @Override
-            public void onError(String error) {
-                // Error handling
-            }
+            public void onError(String error) {}
         });
+    }
+
+    @Override
+    protected void onCleared() {
+        super.onCleared();
+        if (missionHandler != null && missionCheckRunnable != null) {
+            missionHandler.removeCallbacks(missionCheckRunnable);
+        }
     }
 }

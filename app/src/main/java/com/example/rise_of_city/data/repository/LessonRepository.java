@@ -2,9 +2,7 @@ package com.example.rise_of_city.data.repository;
 
 import android.util.Log;
 
-import androidx.annotation.NonNull;
-
-import com.example.rise_of_city.data.model.Lesson;
+import com.example.rise_of_city.data.model.learning.Lesson;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;

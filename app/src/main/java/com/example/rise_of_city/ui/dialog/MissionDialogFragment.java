@@ -15,38 +15,39 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.model.game.Mission;
 
 public class MissionDialogFragment extends DialogFragment {
 
-    private String missionText = "Mission Text";
-    private String missionTitle = "Mission random";
+    private Mission mission;
     private OnAcceptClickListener onAcceptClickListener;
     private OnDenyClickListener onDenyClickListener;
 
     public interface OnAcceptClickListener {
-        void onAcceptClick();
+        void onAcceptClick(Mission mission);
     }
 
     public interface OnDenyClickListener {
-        void onDenyClick();
+        void onDenyClick(Mission mission);
     }
 
-    public static MissionDialogFragment newInstance(String missionTitle, String missionText) {
+    // Cập nhật: Nhận trực tiếp đối tượng Mission để lấy dữ liệu phạt/thưởng
+    public static MissionDialogFragment newInstance(Mission mission) {
         MissionDialogFragment fragment = new MissionDialogFragment();
         Bundle args = new Bundle();
-        args.putString("missionTitle", missionTitle);
-        args.putString("missionText", missionText);
+        args.putSerializable("mission_data", mission);
         fragment.setArguments(args);
         return fragment;
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onContextItemSelected(null);
         super.onCreate(savedInstanceState);
         if (getArguments() != null) {
-            missionTitle = getArguments().getString("missionTitle", "Mission random");
-            missionText = getArguments().getString("missionText", "Mission Text");
+            mission = (Mission) getArguments().getSerializable("mission_data");
         }
+        // Thiết lập theme full screen hoặc không khung
         setStyle(DialogFragment.STYLE_NO_FRAME, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
 
@@ -77,27 +78,33 @@ public class MissionDialogFragment extends DialogFragment {
         Button btnAccept = view.findViewById(R.id.btn_accept);
         Button btnDeny = view.findViewById(R.id.btn_deny);
 
-        // Set texts
-        tvMissionTitle.setText(missionTitle);
-        tvMissionText.setText(missionText);
+        if (mission != null) {
+            // Hiển thị thông báo sự cố khẩn cấp
+            tvMissionTitle.setText("⚠️ SỰ CỐ: " + mission.title);
 
-        // Button Back - Quay lại in game screen
-        btnBack.setOnClickListener(v -> {
-            dismiss();
-        });
+            String detailText = "Một sự cố vừa xảy ra tại công trình này!\n\n" +
+                    "• Yêu cầu: Ôn tập kiến thức để giải quyết.\n" +
+                    "• Thời hạn: 12 tiếng.\n" +
+                    "• Phần thưởng: " + mission.goldReward + " Vàng.\n" +
+                    "• Hình phạt: Trừ " + mission.goldPenalty + " Vàng nếu quá hạn.";
+            tvMissionText.setText(detailText);
+        }
 
-        // Button Accept
+        // Đóng thông báo
+        btnBack.setOnClickListener(v -> dismiss());
+
+        // Chấp nhận làm nhiệm vụ ôn bài
         btnAccept.setOnClickListener(v -> {
             if (onAcceptClickListener != null) {
-                onAcceptClickListener.onAcceptClick();
+                onAcceptClickListener.onAcceptClick(mission);
             }
             dismiss();
         });
 
-        // Button Deny
+        // Từ chối (Bỏ qua sự cố nhưng vẫn tốn 12h để tự phục hồi hoặc chờ phạt)
         btnDeny.setOnClickListener(v -> {
             if (onDenyClickListener != null) {
-                onDenyClickListener.onDenyClick();
+                onDenyClickListener.onDenyClick(mission);
             }
             dismiss();
         });
@@ -111,4 +118,3 @@ public class MissionDialogFragment extends DialogFragment {
         this.onDenyClickListener = listener;
     }
 }
-

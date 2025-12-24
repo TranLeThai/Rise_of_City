@@ -1,7 +1,7 @@
 package com.example.rise_of_city.data.repository;
 
 import android.content.Context;
-import com.example.rise_of_city.data.model.Building;
+import com.example.rise_of_city.data.model.game.Building;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

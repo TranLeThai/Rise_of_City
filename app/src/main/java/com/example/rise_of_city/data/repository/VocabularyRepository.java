@@ -1,12 +1,10 @@
 package com.example.rise_of_city.data.repository;
 
-import android.content.Context;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.example.rise_of_city.data.model.Vocabulary;
-import com.google.firebase.auth.FirebaseAuth;
+import com.example.rise_of_city.data.model.learning.Vocabulary;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -18,7 +16,6 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Repository để quản lý từ vựng từ Firebase

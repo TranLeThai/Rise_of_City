@@ -1,10 +1,11 @@
 package com.example.rise_of_city.ui.lesson;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Html;
 import android.text.method.LinkMovementMethod;
-import android.util.Log;
 import android.view.View;
+import android.widget.Button; // Thêm nút bắt đầu bài học
 import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.ScrollView;
@@ -14,64 +15,55 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Lesson;
+import com.example.rise_of_city.data.model.learning.Lesson;
 import com.example.rise_of_city.data.repository.LessonRepository;
+import com.example.rise_of_city.ui.game.ingame.LessonActivity; // Import để chuyển sang màn hình Quiz
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 public class LessonDetailActivity extends AppCompatActivity {
-    private static final String TAG = "LessonDetailActivity";
-    
     private Lesson lesson;
     private LessonRepository lessonRepository;
-    
+
     private ImageButton btnBack;
-    private TextView tvLessonTitle;
-    private TextView tvLessonAuthor;
-    private TextView tvLessonDate;
-    private TextView tvLessonLevel;
-    private TextView tvLessonContent;
-    private TextView tvLessonViews;
+    private Button btnStartLesson; // Nút bắt đầu game/quiz
+    private TextView tvLessonTitle, tvLessonAuthor, tvLessonDate, tvLessonLevel, tvLessonContent, tvLessonViews;
     private ScrollView scrollView;
     private ProgressBar progressBar;
-    
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson_detail);
-        
-        // Get lesson from intent
-        lesson = (Lesson) getIntent().getSerializableExtra("lesson");
-        String lessonId = getIntent().getStringExtra("lessonId");
-        String topicId = getIntent().getStringExtra("topicId");
-        
-        if (lesson == null && (lessonId == null || topicId == null)) {
-            Toast.makeText(this, "Không tìm thấy thông tin bài học", Toast.LENGTH_SHORT).show();
-            finish();
-            return;
-        }
-        
+
+        // Khởi tạo Repository
         lessonRepository = LessonRepository.getInstance();
-        
+
+        // Nhận dữ liệu bài học
+        lesson = (Lesson) getIntent().getSerializableExtra("lesson");
+        String topicId = getIntent().getStringExtra("topicId");
+
         initViews();
-        setupListeners();
-        
+        setupListeners(topicId);
+
         if (lesson != null) {
             displayLesson(lesson);
-            // Increment view count
+            // Tăng lượt xem (không liên quan gì tới Survey)
             if (topicId != null && lesson.getId() != null) {
                 lessonRepository.incrementViewCount(topicId, lesson.getId());
             }
         } else {
-            // Load lesson from Firestore
-            loadLesson(topicId, lessonId);
+            // Nếu không có lesson, báo lỗi và thoát
+            Toast.makeText(this, "Thưa Thị trưởng, không tìm thấy nội dung bài học!", Toast.LENGTH_SHORT).show();
+            finish();
         }
     }
-    
+
     private void initViews() {
         btnBack = findViewById(R.id.btn_back);
+        btnStartLesson = findViewById(R.id.btn_start_lesson); // Đảm bảo bạn đã thêm ID này vào XML
         tvLessonTitle = findViewById(R.id.tv_lesson_title);
         tvLessonAuthor = findViewById(R.id.tv_lesson_author);
         tvLessonDate = findViewById(R.id.tv_lesson_date);
@@ -81,102 +73,70 @@ public class LessonDetailActivity extends AppCompatActivity {
         scrollView = findViewById(R.id.scroll_view);
         progressBar = findViewById(R.id.progressBar);
     }
-    
-    private void setupListeners() {
+
+    private void setupListeners(String topicId) {
         btnBack.setOnClickListener(v -> finish());
+
+        // Chuyển sang màn hình chơi game (LessonActivity) đã sửa ở bước trước
+        if (btnStartLesson != null) {
+            btnStartLesson.setOnClickListener(v -> {
+                Intent intent = new Intent(this, LessonActivity.class);
+                // Bạn có thể truyền ID bài học hoặc danh sách câu hỏi qua đây
+                intent.putExtra("lessonId", lesson.getId());
+                startActivity(intent);
+            });
+        }
     }
-    
-    private void loadLesson(String topicId, String lessonId) {
-        showLoading(true);
-        // Note: We need to load the lesson from Firestore
-        // For now, show error if lesson is not passed
-        showLoading(false);
-        Toast.makeText(this, "Vui lòng thử lại", Toast.LENGTH_SHORT).show();
-        finish();
-    }
-    
+
     private void displayLesson(Lesson lesson) {
         showLoading(false);
-        
-        // Title
-        if (lesson.getTitle() != null) {
-            tvLessonTitle.setText(lesson.getTitle());
-        }
-        
-        // Author
-        String authorName = lesson.getAuthorName() != null ? lesson.getAuthorName() : "Ẩn danh";
-        tvLessonAuthor.setText("Bởi: " + authorName);
-        
-        // Date
+
+        tvLessonTitle.setText(lesson.getTitle() != null ? lesson.getTitle() : "Chưa có tiêu đề");
+        tvLessonAuthor.setText("Bởi: " + (lesson.getAuthorName() != null ? lesson.getAuthorName() : "Hệ thống"));
+        tvLessonViews.setText(lesson.getViewCount() + " lượt xem");
+
+        // Định dạng ngày tháng
         if (lesson.getCreatedAt() > 0) {
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-            String dateStr = sdf.format(new Date(lesson.getCreatedAt()));
-            tvLessonDate.setText("Ngày đăng: " + dateStr);
+            tvLessonDate.setText("Ngày đăng: " + sdf.format(new Date(lesson.getCreatedAt())));
         }
-        
-        // Level
+
+        // Cấp độ bài học
         if (lesson.getLevel() != null && !lesson.getLevel().isEmpty()) {
             tvLessonLevel.setText(lesson.getLevel());
             tvLessonLevel.setVisibility(View.VISIBLE);
         } else {
             tvLessonLevel.setVisibility(View.GONE);
         }
-        
-        // Views
-        tvLessonViews.setText(lesson.getViewCount() + " lượt xem");
-        
-        // Content - Parse markdown/HTML
-        if (lesson.getContent() != null && !lesson.getContent().isEmpty()) {
-            String content = lesson.getContent();
-            
-            // Convert markdown-style headers to HTML (multiline)
-            String[] lines = content.split("\n");
-            StringBuilder htmlContent = new StringBuilder();
-            
-            for (String line : lines) {
-                if (line.trim().isEmpty()) {
-                    htmlContent.append("<br/>");
-                    continue;
-                }
-                
-                // Headers
-                if (line.startsWith("### ")) {
-                    htmlContent.append("<h3>").append(line.substring(4)).append("</h3>");
-                } else if (line.startsWith("## ")) {
-                    htmlContent.append("<h2>").append(line.substring(3)).append("</h2>");
-                } else if (line.startsWith("# ")) {
-                    htmlContent.append("<h1>").append(line.substring(2)).append("</h1>");
-                } else {
-                    // Convert bold **text** to <b>text</b>
-                    String processedLine = line.replaceAll("\\*\\*(.+?)\\*\\*", "<b>$1</b>");
-                    // Convert italic *text* to <i>text</i> (but not if it's part of **)
-                    processedLine = processedLine.replaceAll("(?<!\\*)\\*([^*]+?)\\*(?!\\*)", "<i>$1</i>");
-                    htmlContent.append("<p>").append(processedLine).append("</p>");
-                }
-            }
-            
-            // Display as HTML
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
-                tvLessonContent.setText(Html.fromHtml(htmlContent.toString(), Html.FROM_HTML_MODE_LEGACY));
-            } else {
-                tvLessonContent.setText(Html.fromHtml(htmlContent.toString()));
-            }
-            
-            tvLessonContent.setMovementMethod(LinkMovementMethod.getInstance());
-            tvLessonContent.setVisibility(View.VISIBLE);
-        } else {
-            tvLessonContent.setText("Nội dung bài học đang được cập nhật...");
-            tvLessonContent.setVisibility(View.VISIBLE);
-        }
+
+        // Xử lý nội dung Markdown/HTML đơn giản
+        parseAndDisplayContent(lesson.getContent());
     }
-    
+
+    private void parseAndDisplayContent(String content) {
+        if (content == null || content.isEmpty()) {
+            tvLessonContent.setText("Nội dung đang được cập nhật...");
+            return;
+        }
+
+        // Chuyển đổi Markdown cơ bản sang HTML
+        String formattedContent = content
+                .replaceAll("\\*\\*(.+?)\\*\\*", "<b>$1</b>") // Bold
+                .replaceAll("### (.+)", "<h3>$1</h3>")        // Header 3
+                .replaceAll("## (.+)", "<h2>$1</h2>")         // Header 2
+                .replaceAll("# (.+)", "<h1>$1</h1>")          // Header 1
+                .replace("\n", "<br>");                        // Xuống dòng
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+            tvLessonContent.setText(Html.fromHtml(formattedContent, Html.FROM_HTML_MODE_LEGACY));
+        } else {
+            tvLessonContent.setText(Html.fromHtml(formattedContent));
+        }
+        tvLessonContent.setMovementMethod(LinkMovementMethod.getInstance());
+    }
+
     private void showLoading(boolean show) {
-        if (progressBar != null) {
-            progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
-        if (scrollView != null) {
-            scrollView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+        if (progressBar != null) progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (scrollView != null) scrollView.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 }
-

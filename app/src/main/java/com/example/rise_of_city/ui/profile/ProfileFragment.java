@@ -20,16 +20,16 @@ import com.example.rise_of_city.ui.dialog.BadgeUnlockDialogFragment;
 import com.example.rise_of_city.ui.main.MainActivity;
 import com.example.rise_of_city.ui.profile.status.LevelStatusFragment;
 import com.example.rise_of_city.utils.BadgeManager;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+// import com.google.firebase.auth.FirebaseAuth;
+// import com.google.firebase.auth.FirebaseUser;
+// import com.google.firebase.firestore.DocumentSnapshot;
+// import com.google.firebase.firestore.FirebaseFirestore;
+// import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 public class ProfileFragment extends Fragment {
 
-    private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
+    // private FirebaseAuth mAuth;
+    // private FirebaseFirestore db;
     private UserStatsRepository statsRepository;
     private TextView tvUserName;
     private TextView tvLogout;
@@ -41,7 +41,7 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        mAuth = FirebaseAuth.getInstance();
+        // mAuth = FirebaseAuth.getInstance();
         statsRepository = UserStatsRepository.getInstance();
 
         // Tìm các view
@@ -52,7 +52,7 @@ public class ProfileFragment extends Fragment {
         tvBuildings = view.findViewById(R.id.tvBuildings);
         statsCard = view.findViewById(R.id.statsCard);
         
-        db = FirebaseFirestore.getInstance();
+        // db = FirebaseFirestore.getInstance();
 
         // Nút back - quay lại fragment trước đó
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
@@ -119,10 +119,11 @@ public class ProfileFragment extends Fragment {
     public void onResume() {
         super.onResume();
         // Refresh statistics khi quay lại từ màn hình khác (ví dụ: sau khi thu hoạch/nâng cấp)
-        loadUserStatistics();
+        // loadUserStatistics();
     }
     
     private void checkForNewBadges() {
+        /*
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
         
@@ -147,9 +148,11 @@ public class ProfileFragment extends Fragment {
                         );
                     }
                 });
+        */
     }
     
     private void loadUserStatistics() {
+        /*
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) return;
         
@@ -188,9 +191,11 @@ public class ProfileFragment extends Fragment {
                     Log.e("ProfileFragment", "Error loading buildings: ", e);
                     tvBuildings.setText("0");
                 });
+        */
     }
 
     private void loadUserInfo() {
+        /*
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             // Ưu tiên hiển thị tên từ Firestore (nếu có)
@@ -198,9 +203,12 @@ public class ProfileFragment extends Fragment {
         } else {
             navigateToLogin();
         }
+        */
+        tvUserName.setText("User (Offline)");
     }
 
-    private void loadUserNameFromFirestore(String uid, FirebaseUser user) {
+    private void loadUserNameFromFirestore(/* String uid, FirebaseUser user */) {
+        /*
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
         db.collection("user_profiles")
@@ -254,14 +262,19 @@ public class ProfileFragment extends Fragment {
                         tvUserName.setText(name);
                     }
                 });
+        */
     }
 
     private void logout() {
+        /*
         if (mAuth != null) {
             mAuth.signOut();
             Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
             navigateToLogin();
         }
+        */
+         Toast.makeText(getContext(), "Offline Mode: Cannot logout", Toast.LENGTH_SHORT).show();
+         navigateToLogin();
     }
 
     private void navigateToLogin() {
@@ -273,4 +286,3 @@ public class ProfileFragment extends Fragment {
         }
     }
 }
-

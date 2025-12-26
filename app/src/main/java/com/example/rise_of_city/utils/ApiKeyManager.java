@@ -13,7 +13,7 @@ public class ApiKeyManager {
     
     // Default API key - THAY ĐỔI BẰNG API KEY CỦA BẠN
     // Lấy API key tại: https://makersuite.google.com/app/apikey
-    private static final String DEFAULT_API_KEY = "AIzaSyBrPPyM52MsFYj0hEy-USWZb5wmaF6GRdI";
+    private static final String DEFAULT_API_KEY = "AIzaSyCY5rY34d7iJ7Sq605SJnL_TOrC-O-QFbo";
     
     /**
      * Lấy API key từ SharedPreferences hoặc trả về default
@@ -32,6 +32,16 @@ public class ApiKeyManager {
     }
     
     /**
+     * Lưu API key vào SharedPreferences
+     */
+    public static void setApiKey(Context context, String apiKey) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.putString(KEY_GEMINI_API_KEY, apiKey);
+        editor.apply();
+    }
+    
+    /**
      * Kiểm tra xem API key đã được cấu hình chưa
      */
     public static boolean isApiKeyConfigured(Context context) {
@@ -44,3 +54,4 @@ public class ApiKeyManager {
                apiKey.length() > 20; // API key thường dài hơn 20 ký tự
     }
 }
+

@@ -34,7 +34,7 @@
 
         <activity android:name=".ui.game.ingame.LessonActivity" android:screenOrientation="portrait" />
 
-        <activity android:name=".ui.quiz.VocabularyQuizActivity" />
+        <activity android:name=".ui.quiz_fragment.VocabularyQuizActivity" />
 
     </application>
 </manifest>

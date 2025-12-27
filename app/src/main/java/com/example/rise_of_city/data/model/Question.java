@@ -2,7 +2,6 @@ package com.example.rise_of_city.data.model;
 
 // Xóa import của KnowledgeSurveyQuestion
 // Import đúng enum Type của phần bài học/game
-import com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type;
 
 public class Question {
     private int id;

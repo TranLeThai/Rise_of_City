@@ -1,11 +1,5 @@
 package com.example.rise_of_city.ui.game.ingame;
 
-import static com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type.GUESS;
-import static com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type.GUESS_IMAGE;
-import static com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type.IMAGE_MATCH;
-import static com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type.LECTURE;
-import static com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type.WORD_MATCH;
-
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.widget.ProgressBar;
@@ -18,12 +12,11 @@ import androidx.fragment.app.Fragment;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.Question;
 // Đảm bảo chỉ sử dụng Type từ LessonQuestion
-import com.example.rise_of_city.data.model.learning.LessionQuiz.LessonQuestion.Type;
-import com.example.rise_of_city.ui.quiz.GuessFragment;
-import com.example.rise_of_city.ui.quiz.GuessImageFragment;
-import com.example.rise_of_city.ui.quiz.ImageMatchFragment;
-import com.example.rise_of_city.ui.quiz.LectureFragment;
-import com.example.rise_of_city.ui.quiz.WordMatchFragment;
+import com.example.rise_of_city.ui.quiz_fragment.GuessFragment;
+import com.example.rise_of_city.ui.quiz_fragment.GuessImageFragment;
+import com.example.rise_of_city.ui.quiz_fragment.ImageMatchFragment;
+import com.example.rise_of_city.ui.quiz_fragment.LectureFragment;
+import com.example.rise_of_city.ui.quiz_fragment.WordMatchFragment;
 
 import java.util.ArrayList;
 import java.util.List;

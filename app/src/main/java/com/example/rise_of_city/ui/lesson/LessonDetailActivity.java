@@ -15,7 +15,6 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.learning.Lesson;
 import com.example.rise_of_city.data.repository.LessonRepository;
 import com.example.rise_of_city.ui.game.ingame.LessonActivity; // Import để chuyển sang màn hình Quiz
 

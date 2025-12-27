@@ -3,7 +3,6 @@ package com.example.rise_of_city.data.repository;
 import android.content.Context;
 import android.util.Log;
 
-import com.example.rise_of_city.data.model.learning.Quest;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;

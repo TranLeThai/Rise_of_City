@@ -1,4 +1,4 @@
-package com.example.rise_of_city.ui.quiz;
+package com.example.rise_of_city.ui.quiz_fragment;
 
 import android.graphics.Color;
 import android.os.Bundle;

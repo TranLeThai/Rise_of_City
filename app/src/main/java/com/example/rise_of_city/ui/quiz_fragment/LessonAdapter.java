@@ -1,4 +1,4 @@
-package com.example.rise_of_city.ui.quiz;
+package com.example.rise_of_city.ui.quiz_fragment;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -9,7 +9,6 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.learning.Lesson;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package com.example.rise_of_city.ui.quiz;
+package com.example.rise_of_city.ui.quiz_fragment;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,14 +22,14 @@ import androidx.fragment.app.Fragment;
 import com.example.rise_of_city.R;
 
 /**
- * Fragment cho màn hình Guess (Word Scramble)
- * Người dùng đoán từ từ các chữ cái bị xáo trộn
+ * Fragment cho màn hình Guess-Image
+ * Người dùng đoán từ dựa trên hình ảnh
  */
-public class GuessFragment extends Fragment {
+public class GuessImageFragment extends Fragment {
 
     private TextView tvTitle;
-    private TextView tvScrambledWord;
-    private EditText etAnswer;
+    private ImageView ivImage;
+    private EditText etAnswer1, etAnswer2, etAnswer3;
     private TextView tvTimer;
     private ProgressBar progressTimer;
     private ImageButton btnSettings;
@@ -40,17 +41,16 @@ public class GuessFragment extends Fragment {
     private boolean timerRunning = false;
     
     // Quiz data
-    private String correctAnswer = "English";
-    private String scrambledWord = "n/g/E/h/l/i/s"; // Scrambled version
+    private String correctAnswer = "Mountain";
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_guess, container, false);
+        View view = inflater.inflate(R.layout.fragment_guess_image, container, false);
         
         initViews(view);
-        setupScrambledWord();
-        setupAnswerInput();
+        setupImage();
+        setupAnswerInputs();
         initTimer();
         startTimer();
         
@@ -59,8 +59,10 @@ public class GuessFragment extends Fragment {
     
     private void initViews(View view) {
         tvTitle = view.findViewById(R.id.tv_title);
-        tvScrambledWord = view.findViewById(R.id.tv_scrambled_word);
-        etAnswer = view.findViewById(R.id.et_answer);
+        ivImage = view.findViewById(R.id.iv_image);
+        etAnswer1 = view.findViewById(R.id.et_answer1);
+        etAnswer2 = view.findViewById(R.id.et_answer2);
+        etAnswer3 = view.findViewById(R.id.et_answer3);
         tvTimer = view.findViewById(R.id.tv_timer);
         progressTimer = view.findViewById(R.id.progress_timer);
         btnSettings = view.findViewById(R.id.btn_settings);
@@ -74,12 +76,16 @@ public class GuessFragment extends Fragment {
         timerHandler = new Handler(Looper.getMainLooper());
     }
     
-    private void setupScrambledWord() {
-        tvScrambledWord.setText(scrambledWord);
+    private void setupImage() {
+        // Set placeholder image - có thể load từ resource hoặc URL
+        // ivImage.setImageResource(R.drawable.placeholder_landscape);
+        // Hoặc dùng placeholder icon
+        ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
     }
     
-    private void setupAnswerInput() {
-        etAnswer.addTextChangedListener(new TextWatcher() {
+    private void setupAnswerInputs() {
+        // Setup text watchers for all answer fields
+        TextWatcher answerWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
             }
@@ -90,15 +96,24 @@ public class GuessFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
-                String answer = s.toString().trim();
-                // Auto-check when answer matches
-                if (answer.equalsIgnoreCase(correctAnswer)) {
-                    stopTimer();
-                    Toast.makeText(getContext(), "Correct! The answer is " + correctAnswer, Toast.LENGTH_LONG).show();
-                    etAnswer.setEnabled(false);
-                }
+                checkAnswer(s.toString().trim());
             }
-        });
+        };
+        
+        etAnswer1.addTextChangedListener(answerWatcher);
+        etAnswer2.addTextChangedListener(answerWatcher);
+        etAnswer3.addTextChangedListener(answerWatcher);
+    }
+    
+    private void checkAnswer(String answer) {
+        if (answer.equalsIgnoreCase(correctAnswer)) {
+            stopTimer();
+            Toast.makeText(getContext(), "Correct! The answer is " + correctAnswer, Toast.LENGTH_LONG).show();
+            // Disable all inputs
+            etAnswer1.setEnabled(false);
+            etAnswer2.setEnabled(false);
+            etAnswer3.setEnabled(false);
+        }
     }
     
     private void initTimer() {
@@ -118,7 +133,9 @@ public class GuessFragment extends Fragment {
                     // Time's up
                     Toast.makeText(getContext(), "Hết thời gian! Đáp án đúng là: " + correctAnswer, Toast.LENGTH_LONG).show();
                     stopTimer();
-                    etAnswer.setEnabled(false);
+                    etAnswer1.setEnabled(false);
+                    etAnswer2.setEnabled(false);
+                    etAnswer3.setEnabled(false);
                 }
             }
         };
@@ -152,3 +169,4 @@ public class GuessFragment extends Fragment {
         stopTimer();
     }
 }
+

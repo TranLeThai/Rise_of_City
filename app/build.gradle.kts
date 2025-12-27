@@ -78,4 +78,9 @@ dependencies {
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor(libs.room.compiler)
+
+    implementation("com.github.centic9:poi-on-android:5.2.3.0")
+    implementation("org.apache.poi:poi-ooxml:5.2.3")
+    // Hỗ trợ đọc các định dạng nén (xlsx)
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
 }

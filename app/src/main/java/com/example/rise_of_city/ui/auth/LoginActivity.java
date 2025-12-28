@@ -3,6 +3,7 @@ package com.example.rise_of_city.ui.auth;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.util.Patterns;
 import android.widget.Button;
 import android.widget.EditText;
@@ -55,6 +56,17 @@ public class LoginActivity extends AppCompatActivity {
         if (!validateInput(email, password)) return;
 
         executorService.execute(() -> {
+            // DEBUG: Kiểm tra xem user có tồn tại không
+            User existingUser = db.userDao().getUserByEmail(email);
+            if (existingUser == null) {
+                Log.e("LoginActivity", "User not found with email: " + email);
+            } else {
+                Log.d("LoginActivity", "User found: " + existingUser.email + ", Pass: " + existingUser.password);
+                if (!existingUser.password.equals(password)) {
+                    Log.e("LoginActivity", "Password mismatch! Input: '" + password + "', DB: '" + existingUser.password + "'");
+                }
+            }
+
             User user = db.userDao().login(email, password);
 
             runOnUiThread(() -> {

@@ -6,7 +6,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 // Chắc chắn version là 4 và có UserBuilding.class
-@Database(entities = {User.class, ChatMessageEntity.class, UserBuilding.class, SurveyAnswer.class}, version = 5, exportSchema = false)
+@Database(entities = {User.class, ChatMessageEntity.class, UserBuilding.class, SurveyAnswer.class, UserLessonProgress.class}, version = 6, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
@@ -25,4 +25,5 @@ public abstract class AppDatabase extends RoomDatabase {
         }
         return instance;
     }
+    public abstract UserLessonProgressDao userLessonProgressDao();
 }

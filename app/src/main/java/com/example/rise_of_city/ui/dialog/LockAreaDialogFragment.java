@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -20,10 +21,12 @@ import com.example.rise_of_city.data.repository.GoldRepository;
 public class LockAreaDialogFragment extends DialogFragment {
 
     private String lessonName = "Thì hiện tại đơn";
-    private Building building; // Building cần unlock
+    private Building building;
     private OnLearnNowClickListener onLearnNowClickListener;
     private OnCloseClickListener onCloseClickListener;
     private OnUnlockWithGoldClickListener onUnlockWithGoldClickListener;
+
+    private static final int UNLOCK_COST = 50; // Chi phí mở khóa bằng vàng
 
     public interface OnLearnNowClickListener {
         void onLearnNowClick();
@@ -32,7 +35,7 @@ public class LockAreaDialogFragment extends DialogFragment {
     public interface OnCloseClickListener {
         void onCloseClick();
     }
-    
+
     public interface OnUnlockWithGoldClickListener {
         void onUnlockWithGoldClick(Building building);
     }
@@ -40,7 +43,7 @@ public class LockAreaDialogFragment extends DialogFragment {
     public static LockAreaDialogFragment newInstance(String lessonName) {
         return newInstance(lessonName, null);
     }
-    
+
     public static LockAreaDialogFragment newInstance(String lessonName, Building building) {
         LockAreaDialogFragment fragment = new LockAreaDialogFragment();
         Bundle args = new Bundle();
@@ -72,7 +75,8 @@ public class LockAreaDialogFragment extends DialogFragment {
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
         return inflater.inflate(R.layout.dialog_lock_area, container, false);
     }
 
@@ -85,51 +89,59 @@ public class LockAreaDialogFragment extends DialogFragment {
         Button btnLearnNow = view.findViewById(R.id.btn_learn_now);
         TextView tvClose = view.findViewById(R.id.tv_close);
 
-        // Set description với lesson name
-        String description = "Hoàn thành bài học '" + lessonName + "' để mở khóa cửa hàng này.\n\nHoặc mở khóa ngay bằng vàng!";
+        // Set mô tả
+        String description = "Hoàn thành bài học '" + lessonName + "' để mở khóa công trình này.\n\nHoặc mở khóa ngay bằng vàng!";
         tvDescription.setText(description);
 
-        // Kiểm tra vàng hiện tại và cập nhật button
-        final int UNLOCK_COST = 50; // Chi phí mở khóa
         GoldRepository goldRepo = GoldRepository.getInstance();
+
+        // Cập nhật trạng thái nút mở bằng vàng
         if (getContext() != null) {
             goldRepo.getCurrentGold(getContext(), currentGold -> {
                 if (currentGold >= UNLOCK_COST) {
-                    btnUnlockWithGold.setText("Mở Khóa (" + UNLOCK_COST + " Vàng)");
+                    btnUnlockWithGold.setText("MỞ KHÓA (" + UNLOCK_COST + " VÀNG)");
                     btnUnlockWithGold.setEnabled(true);
+                    btnUnlockWithGold.setAlpha(1.0f);
                 } else {
-                    btnUnlockWithGold.setText("Không đủ vàng! (Cần " + UNLOCK_COST + " Vàng)");
+                    btnUnlockWithGold.setText("KHÔNG ĐỦ VÀNG (CẦN " + UNLOCK_COST + ")");
                     btnUnlockWithGold.setEnabled(false);
                     btnUnlockWithGold.setAlpha(0.6f);
                 }
             });
         }
 
-        // Button Mở Khóa Bằng Vàng
+        // Nút MỞ BẰNG VÀNG
         btnUnlockWithGold.setOnClickListener(v -> {
-            if (building != null && onUnlockWithGoldClickListener != null && getContext() != null) {
-                goldRepo.checkCanUnlockBuilding(getContext(), UNLOCK_COST, (canUnlock, currentGold, message) -> {
-                    if (canUnlock) {
-                        goldRepo.spendGold(getContext(), UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
-                            @Override
-                            public void onGoldUpdated(int newGold) {
-                                onUnlockWithGoldClickListener.onUnlockWithGoldClick(building);
-                                dismiss();
-                            }
-                            
-                            @Override
-                            public void onError(String error) {
-                                android.widget.Toast.makeText(getContext(), error, android.widget.Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    } else {
-                        android.widget.Toast.makeText(getContext(), message, android.widget.Toast.LENGTH_SHORT).show();
+            if (building == null || onUnlockWithGoldClickListener == null || getContext() == null) {
+                Toast.makeText(getContext(), "Lỗi hệ thống", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Kiểm tra đủ vàng (dùng hasEnoughGold mới)
+            goldRepo.hasEnoughGold(getContext(), UNLOCK_COST, (enough, currentGold, message) -> {
+                if (!enough) {
+                    Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                // Trừ vàng (dùng addGold với số âm)
+                goldRepo.addGold(getContext(), -UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
+                    @Override
+                    public void onGoldUpdated(int newGold) {
+                        // Gọi callback để ViewModel unlock building
+                        onUnlockWithGoldClickListener.onUnlockWithGoldClick(building);
+                        dismiss();
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
                     }
                 });
-            }
+            });
         });
 
-        // Button Học Ngay
+        // Nút HỌC NGAY
         btnLearnNow.setOnClickListener(v -> {
             if (onLearnNowClickListener != null) {
                 onLearnNowClickListener.onLearnNowClick();
@@ -137,7 +149,7 @@ public class LockAreaDialogFragment extends DialogFragment {
             dismiss();
         });
 
-        // Button Đóng
+        // Nút ĐÓNG
         tvClose.setOnClickListener(v -> {
             if (onCloseClickListener != null) {
                 onCloseClickListener.onCloseClick();
@@ -150,11 +162,9 @@ public class LockAreaDialogFragment extends DialogFragment {
     public void onStart() {
         super.onStart();
         if (getDialog() != null && getDialog().getWindow() != null) {
-            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.85);
-            int height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            getDialog().getWindow().setLayout(width, height);
-            // Thêm shadow/elevation cho dialog
-            getDialog().getWindow().setElevation(8f);
+            int width = (int) (getResources().getDisplayMetrics().widthPixels * 0.9);
+            getDialog().getWindow().setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT);
+            getDialog().getWindow().setElevation(12f);
         }
     }
 
@@ -165,9 +175,8 @@ public class LockAreaDialogFragment extends DialogFragment {
     public void setOnCloseClickListener(OnCloseClickListener listener) {
         this.onCloseClickListener = listener;
     }
-    
+
     public void setOnUnlockWithGoldClickListener(OnUnlockWithGoldClickListener listener) {
         this.onUnlockWithGoldClickListener = listener;
     }
 }
-

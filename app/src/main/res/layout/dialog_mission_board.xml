@@ -3,8 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:padding="16dp"
-    android:background="@drawable/dialog_rounded_bg">
+    android:background="@android:color/white"
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
@@ -12,22 +12,69 @@
         android:text="📋 BẢNG NHIỆM VỤ"
         android:textSize="20sp"
         android:textStyle="bold"
+        android:textColor="#333333"
         android:layout_gravity="center"
-        android:layout_marginBottom="16dp"
-        android:textColor="#2D3436"/>
+        android:layout_marginBottom="20dp" />
+
+    <!-- PHẦN NHIỆM VỤ HÀNG NGÀY -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="🌟 NHIỆM VỤ HÀNG NGÀY"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#1976D2"
+        android:layout_marginBottom="12dp" />
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvMissions"
+        android:id="@+id/rvDailyMissions"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:minHeight="200dp"
-        android:maxHeight="400dp" />
+        android:nestedScrollingEnabled="false"
+        android:layout_marginBottom="24dp" />
+
+    <!-- PHẦN SỰ CỐ KHẨN CẤP -->
+    <LinearLayout
+        android:id="@+id/layoutEmergencySection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️ SỰ CỐ KHẨN CẤP"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#D32F2F"
+            android:layout_marginBottom="12dp" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvEmergencyMissions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:nestedScrollingEnabled="false" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvNoEmergency"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Không có sự cố khẩn cấp nào lúc này."
+        android:textSize="15sp"
+        android:textColor="#666666"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/btnClose"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="24dp"
         android:text="Đóng"
-        android:layout_marginTop="16dp"
-        android:backgroundTint="#D32F2F"/>
+        android:backgroundTint="#9E9E9E"
+        android:textStyle="bold" />
+
 </LinearLayout>

@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+
 import com.example.rise_of_city.data.local.AppDatabase;
 import com.example.rise_of_city.data.local.User;
 import com.example.rise_of_city.data.local.UserDao;
@@ -11,239 +13,124 @@ import com.example.rise_of_city.data.local.UserDao;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Repository để quản lý vàng (gold/coin) của người dùng
- * Vàng được dùng để mở khóa building mới
- */
 public class GoldRepository {
+
     private static final String TAG = "GoldRepository";
     private static final String PREF_NAME = "RiseOfCity_Prefs";
     private static final String KEY_USER_ID = "logged_user_id";
+
     private static GoldRepository instance;
-    
-    private ExecutorService executorService;
-    
+    private final ExecutorService executor;
+
     private GoldRepository() {
-        executorService = Executors.newSingleThreadExecutor();
+        executor = Executors.newSingleThreadExecutor();
     }
-    
-    public static GoldRepository getInstance() {
+
+    public static synchronized GoldRepository getInstance() {
         if (instance == null) {
             instance = new GoldRepository();
         }
         return instance;
     }
-    
-    /**
-     * Lấy userId từ SharedPreferences
-     */
-    private int getUserId(Context context) {
+
+    private int getCurrentUserId(Context context) {
         SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
         return prefs.getInt(KEY_USER_ID, -1);
     }
-    
-    /**
-     * Lấy số vàng hiện tại của user
-     */
-    public void getCurrentGold(Context context, OnGoldLoadedListener listener) {
-        int userId = getUserId(context);
+
+    public void getCurrentGold(@NonNull Context context, @NonNull OnGoldLoadedListener listener) {
+        int userId = getCurrentUserId(context);
         if (userId == -1) {
-            if (listener != null) {
-                listener.onGoldLoaded(0);
-            }
+            listener.onGoldLoaded(0);
             return;
         }
-        
-        executorService.execute(() -> {
+
+        executor.execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(context);
                 UserDao userDao = db.userDao();
                 User user = userDao.getUserById(userId);
-                
-                if (user != null) {
-                    int gold = user.gold;
-                    if (listener != null) {
-                        // Run on main thread for UI updates
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onGoldLoaded(gold);
-                        });
-                    }
-                } else {
-                    Log.e(TAG, "User not found with id: " + userId);
-                    if (listener != null) {
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onGoldLoaded(0);
-                        });
-                    }
-                }
+                int gold = (user != null) ? user.gold : 0;
+                new android.os.Handler(context.getMainLooper()).post(() -> listener.onGoldLoaded(gold));
             } catch (Exception e) {
-                Log.e(TAG, "Error loading gold: " + e.getMessage(), e);
-                if (listener != null) {
-                    new android.os.Handler(context.getMainLooper()).post(() -> {
-                        listener.onGoldLoaded(0);
-                    });
-                }
+                Log.e(TAG, "Error loading gold", e);
+                new android.os.Handler(context.getMainLooper()).post(() -> listener.onGoldLoaded(0));
             }
         });
     }
-    
-    /**
-     * Thêm vàng cho user (khi quiz đúng, hoàn thành mission, etc.)
-     */
-    public void addGold(Context context, int amount, OnGoldUpdatedListener listener) {
-        int userId = getUserId(context);
+
+    public void addGold(@NonNull Context context, int amount, OnGoldUpdatedListener listener) {
+        int userId = getCurrentUserId(context);
         if (userId == -1) {
-            if (listener != null) {
-                listener.onError("Người dùng chưa đăng nhập");
-            }
+            if (listener != null) listener.onError("Người dùng chưa đăng nhập");
             return;
         }
-        
-        if (amount <= 0) {
-            if (listener != null) {
-                listener.onError("Số vàng phải lớn hơn 0");
-            }
-            return;
-        }
-        
-        executorService.execute(() -> {
+
+        executor.execute(() -> {
             try {
                 AppDatabase db = AppDatabase.getInstance(context);
                 UserDao userDao = db.userDao();
                 User user = userDao.getUserById(userId);
-                
-                if (user != null) {
-                    int newGold = user.gold + amount;
-                    user.gold = newGold;
-                    userDao.updateUser(user);
-                    
-                    Log.d(TAG, "Added " + amount + " gold. New total: " + newGold);
-                    
+
+                if (user == null) {
                     if (listener != null) {
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onGoldUpdated(newGold);
-                        });
+                        postToMain(context, () -> listener.onError("Không tìm thấy người dùng"));
                     }
-                } else {
-                    String error = "Không tìm thấy user với id: " + userId;
-                    Log.e(TAG, error);
-                    if (listener != null) {
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onError(error);
-                        });
-                    }
+                    return;
                 }
-            } catch (Exception e) {
-                Log.e(TAG, "Error adding gold: " + e.getMessage(), e);
+
+                if (amount < 0 && user.gold < Math.abs(amount)) {
+                    String error = "Không đủ vàng! Cần " + Math.abs(amount) + " nhưng chỉ có " + user.gold;
+                    if (listener != null) {
+                        postToMain(context, () -> listener.onError(error));
+                    }
+                    return;
+                }
+
+                int newGold = user.gold + amount;
+                if (newGold < 0) newGold = 0;
+
+                user.gold = newGold;
+                userDao.updateUser(user);
+
+                Log.d(TAG, (amount > 0 ? "Added" : "Spent") + " " + Math.abs(amount) + " gold → New total: " + newGold);
+
                 if (listener != null) {
-                    new android.os.Handler(context.getMainLooper()).post(() -> {
-                        listener.onError(e.getMessage());
-                    });
+                    final int finalNewGold = newGold; // Sửa lỗi lambda
+                    postToMain(context, () -> listener.onGoldUpdated(finalNewGold));
                 }
-            }
-        });
-    }
-    
-    /**
-     * Trừ vàng của user (khi mở khóa building)
-     */
-    public void spendGold(Context context, int amount, OnGoldUpdatedListener listener) {
-        int userId = getUserId(context);
-        if (userId == -1) {
-            if (listener != null) {
-                listener.onError("Người dùng chưa đăng nhập");
-            }
-            return;
-        }
-        
-        if (amount <= 0) {
-            if (listener != null) {
-                listener.onError("Số vàng phải lớn hơn 0");
-            }
-            return;
-        }
-        
-        executorService.execute(() -> {
-            try {
-                AppDatabase db = AppDatabase.getInstance(context);
-                UserDao userDao = db.userDao();
-                User user = userDao.getUserById(userId);
-                
-                if (user != null) {
-                    if (user.gold < amount) {
-                        String error = "Không đủ vàng! Bạn cần " + amount + " vàng nhưng chỉ có " + user.gold;
-                        if (listener != null) {
-                            new android.os.Handler(context.getMainLooper()).post(() -> {
-                                listener.onError(error);
-                            });
-                        }
-                        return;
-                    }
-                    
-                    int newGold = user.gold - amount;
-                    user.gold = newGold;
-                    userDao.updateUser(user);
-                    
-                    Log.d(TAG, "Spent " + amount + " gold. New total: " + newGold);
-                    
-                    if (listener != null) {
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onGoldUpdated(newGold);
-                        });
-                    }
-                } else {
-                    String error = "Không tìm thấy user với id: " + userId;
-                    Log.e(TAG, error);
-                    if (listener != null) {
-                        new android.os.Handler(context.getMainLooper()).post(() -> {
-                            listener.onError(error);
-                        });
-                    }
-                }
+
             } catch (Exception e) {
-                Log.e(TAG, "Error spending gold: " + e.getMessage(), e);
+                Log.e(TAG, "Error updating gold", e);
                 if (listener != null) {
-                    new android.os.Handler(context.getMainLooper()).post(() -> {
-                        listener.onError(e.getMessage());
-                    });
+                    postToMain(context, () -> listener.onError(e.getMessage()));
                 }
             }
         });
     }
-    
-    /**
-     * Kiểm tra xem user có đủ vàng để mở khóa building không
-     */
-    public void checkCanUnlockBuilding(Context context, int requiredGold, OnCanUnlockListener listener) {
-        int userId = getUserId(context);
-        if (userId == -1) {
-            if (listener != null) {
-                listener.onCanUnlock(false, 0, "Người dùng chưa đăng nhập");
-            }
-            return;
-        }
-        
-        getCurrentGold(context, currentGold -> {
-            boolean canUnlock = currentGold >= requiredGold;
-            if (listener != null) {
-                listener.onCanUnlock(canUnlock, currentGold, 
-                    canUnlock ? "Có thể mở khóa" : "Không đủ vàng! Cần " + requiredGold + " vàng");
-            }
+
+    public void hasEnoughGold(@NonNull Context context, int required, OnCheckGoldListener listener) {
+        getCurrentGold(context, current -> {
+            boolean enough = current >= required;
+            String message = enough ? "Đủ vàng" : "Không đủ vàng (cần " + required + ", có " + current + ")";
+            if (listener != null) listener.onResult(enough, current, message);
         });
     }
-    
-    // Interfaces
+
+    private void postToMain(Context context, Runnable runnable) {
+        new android.os.Handler(context.getMainLooper()).post(runnable);
+    }
+
     public interface OnGoldLoadedListener {
         void onGoldLoaded(int gold);
     }
-    
+
     public interface OnGoldUpdatedListener {
         void onGoldUpdated(int newGold);
         void onError(String error);
     }
-    
-    public interface OnCanUnlockListener {
-        void onCanUnlock(boolean canUnlock, int currentGold, String message);
+
+    public interface OnCheckGoldListener {
+        void onResult(boolean enough, int currentGold, String message);
     }
 }
-

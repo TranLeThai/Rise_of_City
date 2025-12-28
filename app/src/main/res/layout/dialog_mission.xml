@@ -1,86 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="#80000000"> <androidx.cardview.widget.CardView
-    android:layout_width="320dp"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="#FFFFFF"
-    app:cardCornerRadius="20dp"
-    app:cardElevation="8dp"
-    app:layout_constraintBottom_toBottomOf="parent"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
+    android:orientation="vertical"
+    android:background="@drawable/dialog_mission_background"
+    android:padding="24dp">
 
+    <!-- Nút đóng -->
+    <ImageButton
+        android:id="@+id/btnClose"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_gravity="end"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_close"
+        android:contentDescription="Đóng" />
+
+    <!-- Tiêu đề nhiệm vụ -->
+    <TextView
+        android:id="@+id/tvMissionTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sự cố tại Tiệm Bánh"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#1A1A1A"
+        android:gravity="center"
+        android:layout_marginTop="8dp"
+        android:maxLines="3"
+        android:ellipsize="end" />
+
+    <!-- Mô tả -->
+    <TextView
+        android:id="@+id/tvMissionDesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Ôn lại bài học để giải quyết sự cố khẩn cấp!"
+        android:textSize="15sp"
+        android:textColor="#424242"
+        android:gravity="center"
+        android:layout_marginTop="16dp"
+        android:maxLines="4"
+        android:ellipsize="end" />
+
+    <!-- Thưởng -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        android:background="@drawable/bg_button_green"
+        android:padding="12dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_coin"
+            android:layout_gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/tvReward"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Thưởng: +100 vàng"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#1B5E20"
+            android:layout_marginStart="8dp" />
+    </LinearLayout>
+
+    <!-- Phạt (chỉ hiện với Emergency) -->
+    <LinearLayout
+        android:id="@+id/layoutPenalty"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp"
+        android:background="@drawable/bg_red_circle"
+        android:padding="10dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_warning"
+            android:layout_gravity="center_vertical" />
+
+        <TextView
+            android:id="@+id/tvPenalty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Phạt nếu quá hạn: -50 vàng"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#B71C1C"
+            android:layout_marginStart="6dp" />
+    </LinearLayout>
+
+    <!-- Nút hành động -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="20dp">
+        android:orientation="horizontal"
+        android:layout_marginTop="32dp"
+        android:weightSum="2">
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+        <Button
+            android:id="@+id/btnDeny"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginEnd="8dp"
+            android:text="BỎ QUA"
+            android:textStyle="bold"
+            android:textColor="#666666"
+            android:backgroundTint="#E0E0E0"
+            app:cornerRadius="12dp" />
 
-            <ImageButton
-                android:id="@+id/btn_back"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_alignParentStart="true"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:src="@android:drawable/ic_menu_revert"
-                app:tint="#636E72" />
-
-            <TextView
-                android:id="@+id/tv_mission_title"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
-                android:text="⚠️ SỰ CỐ KHẨN CẤP"
-                android:textColor="#D32F2F"
-                android:textSize="20sp"
-                android:textStyle="bold" />
-        </RelativeLayout>
-
-        <TextView
-            android:id="@+id/tv_mission_text"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:lineSpacingExtra="4dp"
-            android:text="Nội dung nhiệm vụ sẽ hiển thị ở đây..."
-            android:textColor="#2D3436"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:orientation="horizontal">
-
-            <Button
-                android:id="@+id/btn_deny"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="#B2BEC3"
-                android:text="BỎ QUA"
-                android:textColor="#FFFFFF" />
-
-            <Button
-                android:id="@+id/btn_accept"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:backgroundTint="#2196F3"
-                android:text="XỬ LÝ NGAY"
-                android:textColor="#FFFFFF" />
-        </LinearLayout>
-
+        <Button
+            android:id="@+id/btnAccept"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="CHẤP NHẬN"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:backgroundTint="#2196F3"
+            app:cornerRadius="12dp" />
     </LinearLayout>
-</androidx.cardview.widget.CardView>
-</androidx.constraintlayout.widget.ConstraintLayout>
+
+</LinearLayout>

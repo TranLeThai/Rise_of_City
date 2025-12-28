@@ -1,4 +1,4 @@
-package com.example.rise_of_city.ui.dialog;
+package com.example.rise_of_city.ui.game.ingame.mission;
 
 import android.graphics.Color;
 import android.os.Handler;
@@ -41,40 +41,47 @@ public class MissionAdapter extends RecyclerView.Adapter<MissionAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Mission mission = missionList.get(position);
         holder.tvTitle.setText(mission.title);
-        
-        // Lấy tên building từ GameRepository
-        String buildingName = mission.buildingId; // Default
-        if (holder.itemView.getContext() != null) {
-            GameRepository repo = GameRepository.getInstance(holder.itemView.getContext());
-            if (repo != null) {
-                com.example.rise_of_city.data.model.game.Building building = repo.getBuildingById(mission.buildingId);
-                if (building != null) {
-                    buildingName = building.getName();
+
+        if (mission.type == Mission.Type.EMERGENCY) {
+            // Lấy tên building từ GameRepository
+            String buildingName = mission.buildingId; // Default
+            if (holder.itemView.getContext() != null) {
+                GameRepository repo = GameRepository.getInstance(holder.itemView.getContext());
+                if (repo != null) {
+                    com.example.rise_of_city.data.model.game.Building building = repo.getBuildingById(mission.buildingId);
+                    if (building != null) {
+                        buildingName = building.getName();
+                    }
                 }
             }
+            holder.tvBuilding.setText("Địa điểm: " + buildingName);
+            holder.tvBuilding.setVisibility(View.VISIBLE);
+
+            // Cập nhật đếm ngược mỗi giây cho emergency
+            Runnable updateTimer = new Runnable() {
+                @Override
+                public void run() {
+                    long now = System.currentTimeMillis();
+                    long timeLeft = mission.durationMs - (now - mission.startTime);
+
+                    if (timeLeft > 0) {
+                        long h = timeLeft / 3600000;
+                        long m = (timeLeft % 3600000) / 60000;
+                        long s = (timeLeft % 60000) / 1000;
+                        holder.tvTime.setText(String.format("Hạn chót: %02d:%02d:%02d", h, m, s));
+                        handler.postDelayed(this, 1000);
+                    } else {
+                        holder.tvTime.setText("ĐÃ QUÁ HẠN! (Sẽ bị phạt tiền)");
+                        holder.tvTime.setTextColor(Color.RED);
+                    }
+                }
+            };
+            handler.post(updateTimer);
+            holder.tvTime.setVisibility(View.VISIBLE);
+        } else { // DAILY
+            holder.tvBuilding.setVisibility(View.GONE);
+            holder.tvTime.setVisibility(View.GONE);
         }
-        holder.tvBuilding.setText("Địa điểm: " + buildingName);
-
-        // Cập nhật đếm ngược mỗi giây
-        Runnable updateTimer = new Runnable() {
-            @Override
-            public void run() {
-                long now = System.currentTimeMillis();
-                long timeLeft = mission.durationMs - (now - mission.startTime);
-
-                if (timeLeft > 0) {
-                    long h = timeLeft / 3600000;
-                    long m = (timeLeft % 3600000) / 60000;
-                    long s = (timeLeft % 60000) / 1000;
-                    holder.tvTime.setText(String.format("Hạn chót: %02d:%02d:%02d", h, m, s));
-                    handler.postDelayed(this, 1000);
-                } else {
-                    holder.tvTime.setText("ĐÃ QUÁ HẠN! (Sẽ bị phạt tiền)");
-                    holder.tvTime.setTextColor(Color.BLACK);
-                }
-            }
-        };
-        handler.post(updateTimer);
 
         holder.btnGo.setOnClickListener(v -> listener.onGoToClick(mission));
     }

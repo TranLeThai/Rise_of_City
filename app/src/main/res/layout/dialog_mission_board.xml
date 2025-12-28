@@ -19,7 +19,9 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvMissions"
         android:layout_width="match_parent"
-        android:layout_height="300dp" />
+        android:layout_height="wrap_content"
+        android:minHeight="200dp"
+        android:maxHeight="400dp" />
 
     <Button
         android:id="@+id/btnClose"

@@ -4,56 +4,66 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
+    android:minHeight="180dp"
     app:cardCornerRadius="12dp"
     app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical">
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:gravity="center">
 
-        <LinearLayout
-            android:layout_width="0dp"
+        <TextView
+            android:id="@+id/tvMissionTitle"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:orientation="vertical">
+            android:text="Tên nhiệm vụ"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#2D3436"
+            android:gravity="center"
+            android:maxLines="3"
+            android:ellipsize="end"
+            android:lineSpacingExtra="4dp" />
 
-            <TextView
-                android:id="@+id/tvMissionTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tên nhiệm vụ"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:textColor="#2D3436" />
+        <TextView
+            android:id="@+id/tvTargetBuilding"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="Địa điểm: Tiệm bánh"
+            android:textSize="14sp"
+            android:textColor="#636E72"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:lineSpacingExtra="2dp" />
 
-            <TextView
-                android:id="@+id/tvTargetBuilding"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tại: Tiệm bánh"
-                android:textSize="14sp"
-                android:textColor="#636E72" />
-
-            <TextView
-                android:id="@+id/tvTimeLeft"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:text="Còn lại: 11:59:59"
-                android:textSize="13sp"
-                android:textStyle="italic"
-                android:textColor="#D32F2F" />
-        </LinearLayout>
+        <TextView
+            android:id="@+id/tvTimeLeft"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Hạn chót: 11:59:59"
+            android:textSize="13sp"
+            android:textStyle="italic"
+            android:textColor="#D32F2F"
+            android:gravity="center"
+            android:maxLines="2"
+            android:ellipsize="end" />
 
         <Button
             android:id="@+id/btnGoToMission"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:text="LÀM NGAY"
             android:backgroundTint="#2196F3"
-            android:textColor="#FFFFFF" />
+            android:textColor="#FFFFFF"
+            android:padding="14dp"
+            android:textSize="14sp"
+            android:textStyle="bold" />
     </LinearLayout>
 </androidx.cardview.widget.CardView>

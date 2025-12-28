@@ -1,12 +1,15 @@
 package com.example.rise_of_city.data.repository;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
+import com.example.rise_of_city.data.local.AppDatabase;
+import com.example.rise_of_city.data.local.User;
+import com.example.rise_of_city.data.local.UserDao;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Repository để quản lý vàng (gold/coin) của người dùng
@@ -14,14 +17,14 @@ import java.util.Map;
  */
 public class GoldRepository {
     private static final String TAG = "GoldRepository";
+    private static final String PREF_NAME = "RiseOfCity_Prefs";
+    private static final String KEY_USER_ID = "logged_user_id";
     private static GoldRepository instance;
     
-    private FirebaseFirestore firestore;
-    private FirebaseAuth auth;
+    private ExecutorService executorService;
     
     private GoldRepository() {
-        firestore = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
+        executorService = Executors.newSingleThreadExecutor();
     }
     
     public static GoldRepository getInstance() {
@@ -32,68 +35,64 @@ public class GoldRepository {
     }
     
     /**
+     * Lấy userId từ SharedPreferences
+     */
+    private int getUserId(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        return prefs.getInt(KEY_USER_ID, -1);
+    }
+    
+    /**
      * Lấy số vàng hiện tại của user
      */
-    public void getCurrentGold(OnGoldLoadedListener listener) {
-        if (auth.getCurrentUser() == null) {
+    public void getCurrentGold(Context context, OnGoldLoadedListener listener) {
+        int userId = getUserId(context);
+        if (userId == -1) {
             if (listener != null) {
                 listener.onGoldLoaded(0);
             }
             return;
         }
         
-        String userId = auth.getCurrentUser().getUid();
-        
-        firestore.collection("user_profiles")
-                .document(userId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        Long gold = documentSnapshot.getLong("gold");
-                        if (listener != null) {
-                            listener.onGoldLoaded(gold != null ? gold.intValue() : 0);
-                        }
-                    } else {
-                        // Nếu chưa có profile, tạo mới với 0 vàng
-                        initializeGold(userId, listener);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error loading gold: " + e.getMessage());
+        executorService.execute(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(context);
+                UserDao userDao = db.userDao();
+                User user = userDao.getUserById(userId);
+                
+                if (user != null) {
+                    int gold = user.gold;
                     if (listener != null) {
+                        // Run on main thread for UI updates
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
+                            listener.onGoldLoaded(gold);
+                        });
+                    }
+                } else {
+                    Log.e(TAG, "User not found with id: " + userId);
+                    if (listener != null) {
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
+                            listener.onGoldLoaded(0);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error loading gold: " + e.getMessage(), e);
+                if (listener != null) {
+                    new android.os.Handler(context.getMainLooper()).post(() -> {
                         listener.onGoldLoaded(0);
-                    }
-                });
-    }
-    
-    /**
-     * Khởi tạo vàng cho user mới (mặc định 100 vàng để bắt đầu)
-     */
-    private void initializeGold(String userId, OnGoldLoadedListener listener) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("gold", 100); // Bắt đầu với 100 vàng
-        
-        firestore.collection("user_profiles")
-                .document(userId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    if (listener != null) {
-                        listener.onGoldLoaded(100);
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error initializing gold: " + e.getMessage());
-                    if (listener != null) {
-                        listener.onGoldLoaded(0);
-                    }
-                });
+                    });
+                }
+            }
+        });
     }
     
     /**
      * Thêm vàng cho user (khi quiz đúng, hoàn thành mission, etc.)
      */
-    public void addGold(int amount, OnGoldUpdatedListener listener) {
-        if (auth.getCurrentUser() == null) {
+    public void addGold(Context context, int amount, OnGoldUpdatedListener listener) {
+        int userId = getUserId(context);
+        if (userId == -1) {
             if (listener != null) {
                 listener.onError("Người dùng chưa đăng nhập");
             }
@@ -107,37 +106,50 @@ public class GoldRepository {
             return;
         }
         
-        String userId = auth.getCurrentUser().getUid();
-        
-        // Lấy vàng hiện tại
-        getCurrentGold(currentGold -> {
-            int newGold = currentGold + amount;
-            
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("gold", newGold);
-            
-            firestore.collection("user_profiles")
-                    .document(userId)
-                    .update(updates)
-                    .addOnSuccessListener(aVoid -> {
-                        if (listener != null) {
+        executorService.execute(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(context);
+                UserDao userDao = db.userDao();
+                User user = userDao.getUserById(userId);
+                
+                if (user != null) {
+                    int newGold = user.gold + amount;
+                    user.gold = newGold;
+                    userDao.updateUser(user);
+                    
+                    Log.d(TAG, "Added " + amount + " gold. New total: " + newGold);
+                    
+                    if (listener != null) {
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
                             listener.onGoldUpdated(newGold);
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error adding gold: " + e.getMessage());
-                        if (listener != null) {
-                            listener.onError(e.getMessage());
-                        }
+                        });
+                    }
+                } else {
+                    String error = "Không tìm thấy user với id: " + userId;
+                    Log.e(TAG, error);
+                    if (listener != null) {
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
+                            listener.onError(error);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error adding gold: " + e.getMessage(), e);
+                if (listener != null) {
+                    new android.os.Handler(context.getMainLooper()).post(() -> {
+                        listener.onError(e.getMessage());
                     });
+                }
+            }
         });
     }
     
     /**
      * Trừ vàng của user (khi mở khóa building)
      */
-    public void spendGold(int amount, OnGoldUpdatedListener listener) {
-        if (auth.getCurrentUser() == null) {
+    public void spendGold(Context context, int amount, OnGoldUpdatedListener listener) {
+        int userId = getUserId(context);
+        if (userId == -1) {
             if (listener != null) {
                 listener.onError("Người dùng chưa đăng nhập");
             }
@@ -151,51 +163,67 @@ public class GoldRepository {
             return;
         }
         
-        String userId = auth.getCurrentUser().getUid();
-        
-        // Lấy vàng hiện tại
-        getCurrentGold(currentGold -> {
-            if (currentGold < amount) {
-                if (listener != null) {
-                    listener.onError("Không đủ vàng! Bạn cần " + amount + " vàng nhưng chỉ có " + currentGold);
-                }
-                return;
-            }
-            
-            int newGold = currentGold - amount;
-            
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("gold", newGold);
-            
-            firestore.collection("user_profiles")
-                    .document(userId)
-                    .update(updates)
-                    .addOnSuccessListener(aVoid -> {
+        executorService.execute(() -> {
+            try {
+                AppDatabase db = AppDatabase.getInstance(context);
+                UserDao userDao = db.userDao();
+                User user = userDao.getUserById(userId);
+                
+                if (user != null) {
+                    if (user.gold < amount) {
+                        String error = "Không đủ vàng! Bạn cần " + amount + " vàng nhưng chỉ có " + user.gold;
                         if (listener != null) {
+                            new android.os.Handler(context.getMainLooper()).post(() -> {
+                                listener.onError(error);
+                            });
+                        }
+                        return;
+                    }
+                    
+                    int newGold = user.gold - amount;
+                    user.gold = newGold;
+                    userDao.updateUser(user);
+                    
+                    Log.d(TAG, "Spent " + amount + " gold. New total: " + newGold);
+                    
+                    if (listener != null) {
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
                             listener.onGoldUpdated(newGold);
-                        }
-                    })
-                    .addOnFailureListener(e -> {
-                        Log.e(TAG, "Error spending gold: " + e.getMessage());
-                        if (listener != null) {
-                            listener.onError(e.getMessage());
-                        }
+                        });
+                    }
+                } else {
+                    String error = "Không tìm thấy user với id: " + userId;
+                    Log.e(TAG, error);
+                    if (listener != null) {
+                        new android.os.Handler(context.getMainLooper()).post(() -> {
+                            listener.onError(error);
+                        });
+                    }
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error spending gold: " + e.getMessage(), e);
+                if (listener != null) {
+                    new android.os.Handler(context.getMainLooper()).post(() -> {
+                        listener.onError(e.getMessage());
                     });
+                }
+            }
         });
     }
     
     /**
      * Kiểm tra xem user có đủ vàng để mở khóa building không
      */
-    public void checkCanUnlockBuilding(int requiredGold, OnCanUnlockListener listener) {
-        if (auth.getCurrentUser() == null) {
+    public void checkCanUnlockBuilding(Context context, int requiredGold, OnCanUnlockListener listener) {
+        int userId = getUserId(context);
+        if (userId == -1) {
             if (listener != null) {
                 listener.onCanUnlock(false, 0, "Người dùng chưa đăng nhập");
             }
             return;
         }
         
-        getCurrentGold(currentGold -> {
+        getCurrentGold(context, currentGold -> {
             boolean canUnlock = currentGold >= requiredGold;
             if (listener != null) {
                 listener.onCanUnlock(canUnlock, currentGold, 

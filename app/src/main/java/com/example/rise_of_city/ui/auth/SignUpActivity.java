@@ -80,11 +80,14 @@ public class SignUpActivity extends AppCompatActivity {
 
     private void initializeDefaultBuildings(int userId) {
         List<UserBuilding> defaultBuildings = new ArrayList<>();
-        String[] buildingIds = {"coffee_shop", "house", "farm", "park", "school", "library"};
-
-        for (String id : buildingIds) {
-            defaultBuildings.add(new UserBuilding(userId, id, 0));
-        }
+        
+        // Tạo building với ID khớp với GameRepository
+        // House và Bakery được unlock mặc định (level = 1), các building khác locked (không thêm vào DB)
+        defaultBuildings.add(new UserBuilding(userId, "house", 1));   // Nhà - unlock mặc định
+        defaultBuildings.add(new UserBuilding(userId, "bakery", 1));  // Tiệm bánh - unlock mặc định
+        
+        // Các building khác sẽ bị locked (không có trong DB = locked)
+        // "school", "library", "park", "farmer", "coffee", "clothers"
 
         db.userBuildingDao().insertAll(defaultBuildings);
     }

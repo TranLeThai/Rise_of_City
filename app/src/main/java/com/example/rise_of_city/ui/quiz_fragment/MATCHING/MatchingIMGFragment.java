@@ -48,6 +48,10 @@ public class MatchingIMGFragment extends Fragment {
         layoutWords = view.findViewById(R.id.layoutWords);
         btnCheckAll = view.findViewById(R.id.btnCheckAll);
 
+        if (layoutImages == null || layoutWords == null || btnCheckAll == null) {
+            return; // Views not found, cannot proceed
+        }
+
         if (question != null) {
             setupGame();
         }
@@ -55,9 +59,15 @@ public class MatchingIMGFragment extends Fragment {
     }
 
     private void setupGame() {
+        if (layoutImages == null || layoutWords == null || getContext() == null) {
+            return; // Views not initialized or context is null
+        }
+        
         layoutImages.removeAllViews();
         layoutWords.removeAllViews();
         userPairs.clear();
+        imgViews.clear();
+        wordButtons.clear();
 
         // 1. Lấy danh sách tên ảnh và từ vựng
         List<String> imageNames = new ArrayList<>(question.getImageNames());
@@ -69,7 +79,7 @@ public class MatchingIMGFragment extends Fragment {
 
         // 3. Hiển thị ảnh
         for (String imgName : imageNames) {
-            ImageView iv = new ImageView(getContext());
+            ImageView iv = new ImageView(requireContext());
             // Dùng hàm chuyển đổi từ String sang ResID
             int resId = getResId(imgName);
             iv.setImageResource(resId);
@@ -86,7 +96,7 @@ public class MatchingIMGFragment extends Fragment {
 
         // 4. Hiển thị chữ
         for (String word : words) {
-            Button btn = new Button(getContext());
+            Button btn = new Button(requireContext());
             btn.setText(word);
             btn.setOnClickListener(v -> linkWordToSelectedImage(word, btn));
             layoutWords.addView(btn);
@@ -154,6 +164,8 @@ public class MatchingIMGFragment extends Fragment {
         }
 
         LessonActivity activity = (LessonActivity) getActivity();
+        if (activity == null) return;
+        
         if (allCorrect) {
             btnCheckAll.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_correct));
             new android.os.Handler().postDelayed(activity::handleCorrectAnswer, 500);
@@ -181,7 +193,14 @@ public class MatchingIMGFragment extends Fragment {
     }
 
     private void resetGame() {
-        btnCheckAll.setBackgroundTintList(null);
+        // Check if fragment is still attached before resetting
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+        
+        if (btnCheckAll != null) {
+            btnCheckAll.setBackgroundTintList(null);
+        }
         setupGame();
     }
 }

@@ -61,8 +61,8 @@ public class HomeFragment extends Fragment {
     }
     
     private void loadGold() {
-        if (goldRepo != null && tvCoinValue != null) {
-            goldRepo.getCurrentGold(gold -> {
+        if (goldRepo != null && tvCoinValue != null && getContext() != null) {
+            goldRepo.getCurrentGold(getContext(), gold -> {
                 tvCoinValue.setText(String.valueOf(gold));
             });
         }

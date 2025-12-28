@@ -26,7 +26,8 @@
         </activity>
         <activity
             android:name=".ui.game.ingame.InGameActivity"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape" />
 
         <activity android:name=".ui.auth.SignUpActivity" />
 
@@ -38,7 +39,8 @@
         <activity
             android:name=".ui.lesson.LessonActivity"
             android:exported="false"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="portrait"
+            android:configChanges="orientation|screenSize" />
 
         <activity android:name=".ui.assessment.KnowledgeSurveyActivity" />
         <activity android:name=".ui.profile.EditProfileActivity" />

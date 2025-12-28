@@ -12,6 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.game.Mission;
+import com.example.rise_of_city.data.repository.GameRepository;
 import java.util.List;
 
 public class MissionAdapter extends RecyclerView.Adapter<MissionAdapter.ViewHolder> {
@@ -40,7 +41,19 @@ public class MissionAdapter extends RecyclerView.Adapter<MissionAdapter.ViewHold
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Mission mission = missionList.get(position);
         holder.tvTitle.setText(mission.title);
-        holder.tvBuilding.setText("Địa điểm: " + mission.buildingId);
+        
+        // Lấy tên building từ GameRepository
+        String buildingName = mission.buildingId; // Default
+        if (holder.itemView.getContext() != null) {
+            GameRepository repo = GameRepository.getInstance(holder.itemView.getContext());
+            if (repo != null) {
+                com.example.rise_of_city.data.model.game.Building building = repo.getBuildingById(mission.buildingId);
+                if (building != null) {
+                    buildingName = building.getName();
+                }
+            }
+        }
+        holder.tvBuilding.setText("Địa điểm: " + buildingName);
 
         // Cập nhật đếm ngược mỗi giây
         Runnable updateTimer = new Runnable() {

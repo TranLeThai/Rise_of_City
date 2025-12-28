@@ -1,0 +1,114 @@
+[
+  {
+    "type": "LECTURE",
+    "id": "L_BAK_001",
+    "title": "The Bakery",
+    "order": 1,
+    "contentEnglish": "This is a bakery. The baker makes fresh bread and cakes every morning. There are many delicious pastries in the display case. Customers buy bread, cookies, and muffins. The bakery smells like fresh baked goods.",
+    "contentVietnamese": "Đây là tiệm bánh. Người thợ làm bánh làm bánh mì và bánh ngọt tươi mỗi sáng. Có nhiều bánh ngọt ngon trong tủ trưng bày. Khách hàng mua bánh mì, bánh quy và bánh nướng. Tiệm bánh có mùi thơm của bánh mới ra lò.",
+    "wrongWordList": [
+      {
+        "originalWrongWord": "cook",
+        "options": ["baker", "chef", "waiter"],
+        "correctAnswer": "baker"
+      },
+      {
+        "originalWrongWord": "shop",
+        "options": ["bakery", "restaurant", "cafe"],
+        "correctAnswer": "bakery"
+      }
+    ]
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_BAK_001",
+    "title": "Từ vựng tiệm bánh",
+    "order": 2,
+    "content": "bakery"
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_BAK_002",
+    "title": "Từ vựng tiệm bánh",
+    "order": 3,
+    "content": "bread"
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_BAK_003",
+    "title": "Từ vựng tiệm bánh",
+    "order": 4,
+    "content": "cake"
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "SO_BAK_001",
+    "title": "Câu về tiệm bánh",
+    "order": 5,
+    "content": "The baker makes fresh bread every morning."
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "SO_BAK_002",
+    "title": "Câu về tiệm bánh",
+    "order": 6,
+    "content": "Customers buy cookies and muffins at the bakery."
+  },
+  {
+    "type": "MATCHINGTEXT",
+    "id": "MT_BAK_001",
+    "title": "Từ vựng tiệm bánh",
+    "order": 7,
+    "leftSide": ["bread", "cake", "cookie", "muffin"],
+    "rightSide": ["bánh mì", "bánh ngọt", "bánh quy", "bánh nướng"]
+  },
+  {
+    "type": "MATCHINGIMG",
+    "id": "MI_BAK_001",
+    "title": "Các loại bánh",
+    "order": 8,
+    "images": ["bread.jpg", "cake.jpg", "cookie.jpg"],
+    "answers": ["bread", "cake", "cookie"]
+  },
+  {
+    "type": "LISTENING",
+    "id": "LS_BAK_001",
+    "title": "Nghe về tiệm bánh",
+    "order": 9,
+    "audioPath": "bakery_ls_01.mp3",
+    "options": ["bread", "cake", "cookie", "muffin"],
+    "correctAnswerIndex": 0,
+    "transcript": "I buy fresh ___ from the bakery every day."
+  },
+  {
+    "type": "INPUT",
+    "id": "I_BAK_001",
+    "title": "Điền từ",
+    "order": 10,
+    "question": "The ____ makes fresh bread every morning.",
+    "correctAnswer": "baker",
+    "hint": "Person who makes bread"
+  },
+  {
+    "type": "DECISION",
+    "id": "TF_BAK_001",
+    "title": "Đúng hay Sai",
+    "order": 11,
+    "imagePath": "bakery.jpg",
+    "statement": "This is a library where people read books.",
+    "answer": false,
+    "explanation": "This is a bakery, not a library. People buy bread and cakes here."
+  },
+  {
+    "type": "CHOICE",
+    "subType": "GRAMMAR",
+    "id": "C_BAK_001",
+    "title": "Ngữ pháp",
+    "order": 12,
+    "question": "There ____ many pastries in the bakery.",
+    "options": ["is", "are", "be", "has"],
+    "correctAnswerIndex": 1,
+    "explanation": "Danh từ số nhiều 'pastries' → dùng 'are'."
+  }
+]
+

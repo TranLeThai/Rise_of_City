@@ -14,8 +14,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.local.AppDatabase;
 import com.example.rise_of_city.data.local.User;
+import com.example.rise_of_city.data.local.UserBuilding;
 import com.example.rise_of_city.ui.main.MainActivity;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -71,6 +74,9 @@ public class LoginActivity extends AppCompatActivity {
 
             runOnUiThread(() -> {
                 if (user != null) {
+                    // Đảm bảo user có building mặc định (migration cho user cũ)
+                    ensureDefaultBuildings(user.id);
+                    
                     Toast.makeText(this, "Chào mừng " + user.fullName, Toast.LENGTH_SHORT).show();
 
                     // LƯU TRẠNG THÁI TỪ DATABASE VÀO PREFS ĐỂ ĐIỀU HƯỚNG
@@ -101,5 +107,23 @@ public class LoginActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+    
+    /**
+     * Đảm bảo user có building mặc định (migration cho user cũ)
+     */
+    private void ensureDefaultBuildings(int userId) {
+        executorService.execute(() -> {
+            List<UserBuilding> existingBuildings = db.userBuildingDao().getBuildingsForUser(userId);
+            
+            // Nếu user chưa có building nào, tạo mặc định
+            if (existingBuildings == null || existingBuildings.isEmpty()) {
+                List<UserBuilding> defaultBuildings = new ArrayList<>();
+                defaultBuildings.add(new UserBuilding(userId, "house", 1));   // Nhà - unlock mặc định
+                defaultBuildings.add(new UserBuilding(userId, "bakery", 1));  // Tiệm bánh - unlock mặc định
+                db.userBuildingDao().insertAll(defaultBuildings);
+                Log.d("LoginActivity", "Created default buildings for user " + userId);
+            }
+        });
     }
 }

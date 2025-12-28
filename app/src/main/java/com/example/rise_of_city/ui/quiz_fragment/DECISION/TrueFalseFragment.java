@@ -57,18 +57,37 @@ public class TrueFalseFragment extends Fragment {
     }
 
     private void setupUI() {
-        tvDescription.setText(question.getDescriptionEnglish());
+        if (question == null) return;
 
-        // Lấy Resource ID từ tên file ảnh trong drawable
-        int imageResId = requireContext().getResources().getIdentifier(
-                question.getImagePath(), "drawable", requireContext().getPackageName());
-
-        if (imageResId != 0) {
-            ivQuestionImage.setImageResource(imageResId);
+        if (tvDescription != null && question.getDescriptionEnglish() != null) {
+            tvDescription.setText(question.getDescriptionEnglish());
         }
 
-        btnTrue.setOnClickListener(v -> checkAnswer(true));
-        btnFalse.setOnClickListener(v -> checkAnswer(false));
+        // Lấy Resource ID từ tên file ảnh trong drawable
+        // Xử lý extension nếu có (ví dụ: "kitchen.jpg" -> "kitchen")
+        if (ivQuestionImage != null && question.getImagePath() != null) {
+            String imagePath = question.getImagePath();
+            // Loại bỏ extension nếu có
+            if (imagePath.contains(".")) {
+                imagePath = imagePath.substring(0, imagePath.lastIndexOf("."));
+            }
+            
+            int imageResId = requireContext().getResources().getIdentifier(
+                    imagePath, "drawable", requireContext().getPackageName());
+
+            if (imageResId != 0) {
+                ivQuestionImage.setImageResource(imageResId);
+            } else {
+                android.util.Log.e("TrueFalseFragment", "Image not found: " + imagePath);
+            }
+        }
+
+        if (btnTrue != null) {
+            btnTrue.setOnClickListener(v -> checkAnswer(true));
+        }
+        if (btnFalse != null) {
+            btnFalse.setOnClickListener(v -> checkAnswer(false));
+        }
     }
 
     private void checkAnswer(boolean userChoice) {

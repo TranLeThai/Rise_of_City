@@ -57,9 +57,13 @@ public class MatchingTextFragment extends Fragment {
             question = (MatchingTextQuestion) getArguments().getSerializable("data");
         }
 
-        layoutLeft = view.findViewById(R.id.layoutLeft);
-        layoutRight = view.findViewById(R.id.layoutRight);
-        btnCheckAll = view.findViewById(R.id.btnCheckAll);
+        layoutLeft = view.findViewById(R.id.layoutEnglish);
+        layoutRight = view.findViewById(R.id.layoutVietnamese);
+        btnCheckAll = view.findViewById(R.id.btnCheck);
+
+        if (layoutLeft == null || layoutRight == null || btnCheckAll == null) {
+            return; // Views not found, cannot proceed
+        }
 
         if (question != null) {
             setupGame();
@@ -69,9 +73,15 @@ public class MatchingTextFragment extends Fragment {
     }
 
     private void setupGame() {
+        if (layoutLeft == null || layoutRight == null || getContext() == null) {
+            return; // Views not initialized or context is null
+        }
+        
         layoutLeft.removeAllViews();
         layoutRight.removeAllViews();
         userPairs.clear();
+        leftButtons.clear();
+        rightButtons.clear();
 
         // Xáo trộn danh sách hiển thị để tạo thử thách
         List<String> leftList = new ArrayList<>(question.getEnglishWords());
@@ -81,7 +91,7 @@ public class MatchingTextFragment extends Fragment {
 
         // Tạo cột bên trái (Tiếng Anh)
         for (String word : leftList) {
-            Button btn = new Button(getContext());
+            Button btn = new Button(requireContext());
             btn.setText(word);
             btn.setOnClickListener(v -> selectLeftWord(word, btn));
             layoutLeft.addView(btn);
@@ -90,7 +100,7 @@ public class MatchingTextFragment extends Fragment {
 
         // Tạo cột bên phải (Tiếng Việt)
         for (String word : rightList) {
-            Button btn = new Button(getContext());
+            Button btn = new Button(requireContext());
             btn.setText(word);
             btn.setOnClickListener(v -> selectRightWord(word, btn));
             layoutRight.addView(btn);
@@ -152,7 +162,14 @@ public class MatchingTextFragment extends Fragment {
     }
 
     private void resetGame() {
-        btnCheckAll.setBackgroundTintList(null);
+        // Check if fragment is still attached before resetting
+        if (!isAdded() || getContext() == null) {
+            return;
+        }
+        
+        if (btnCheckAll != null) {
+            btnCheckAll.setBackgroundTintList(null);
+        }
         setupGame();
     }
 }

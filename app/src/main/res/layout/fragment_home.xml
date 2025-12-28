@@ -131,7 +131,7 @@
         android:id="@+id/btn_start_game"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="236dp"
+        android:layout_marginBottom="48dp"
         android:background="@drawable/bg_button_start_game"
         android:elevation="8dp"
         android:paddingStart="32dp"

@@ -64,21 +64,21 @@ public class GameRepository {
         addBuilding(new Building("library", "Thư Viện",
                 0, 0, 100, false, true, "Library_lv1"));
 
-        // Công viên
+        // Công viên - dùng Park_lv1.json (sẽ tạo)
         addBuilding(new Building("park", "Công Viên",
                 0, 0, 100, false, true, "Park_lv1"));
 
-        // Nông trại
+        // Nông trại - dùng House_lv1.json tạm thời
         addBuilding(new Building("farmer", "Nông Trại",
-                0, 0, 100, true, true, "Farmer_lv1"));
+                0, 0, 100, true, true, "House_lv1"));
 
-        // Tiệm Cafe
+        // Tiệm Cafe - dùng Bakery_lv1.json
         addBuilding(new Building("coffee", "Tiệm Cafe",
-                0, 0, 100, true, true, "Coffee_lv1"));
+                0, 0, 100, true, true, "Bakery_lv1"));
 
-        // Shop Quần Áo
+        // Shop Quần Áo - dùng House_lv1.json tạm thời
         addBuilding(new Building("clothers", "Shop Quần Áo",
-                0, 0, 100, false, true, "Clothes_lv1"));
+                0, 0, 100, false, true, "House_lv1"));
 
         // Tiệm Bánh
         addBuilding(new Building("bakery", "Tiệm Bánh",

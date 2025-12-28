@@ -92,23 +92,25 @@ public class LockAreaDialogFragment extends DialogFragment {
         // Kiểm tra vàng hiện tại và cập nhật button
         final int UNLOCK_COST = 50; // Chi phí mở khóa
         GoldRepository goldRepo = GoldRepository.getInstance();
-        goldRepo.getCurrentGold(currentGold -> {
-            if (currentGold >= UNLOCK_COST) {
-                btnUnlockWithGold.setText("Mở Khóa (" + UNLOCK_COST + " Vàng)");
-                btnUnlockWithGold.setEnabled(true);
-            } else {
-                btnUnlockWithGold.setText("Không đủ vàng! (Cần " + UNLOCK_COST + " Vàng)");
-                btnUnlockWithGold.setEnabled(false);
-                btnUnlockWithGold.setAlpha(0.6f);
-            }
-        });
+        if (getContext() != null) {
+            goldRepo.getCurrentGold(getContext(), currentGold -> {
+                if (currentGold >= UNLOCK_COST) {
+                    btnUnlockWithGold.setText("Mở Khóa (" + UNLOCK_COST + " Vàng)");
+                    btnUnlockWithGold.setEnabled(true);
+                } else {
+                    btnUnlockWithGold.setText("Không đủ vàng! (Cần " + UNLOCK_COST + " Vàng)");
+                    btnUnlockWithGold.setEnabled(false);
+                    btnUnlockWithGold.setAlpha(0.6f);
+                }
+            });
+        }
 
         // Button Mở Khóa Bằng Vàng
         btnUnlockWithGold.setOnClickListener(v -> {
-            if (building != null && onUnlockWithGoldClickListener != null) {
-                goldRepo.checkCanUnlockBuilding(UNLOCK_COST, (canUnlock, currentGold, message) -> {
+            if (building != null && onUnlockWithGoldClickListener != null && getContext() != null) {
+                goldRepo.checkCanUnlockBuilding(getContext(), UNLOCK_COST, (canUnlock, currentGold, message) -> {
                     if (canUnlock) {
-                        goldRepo.spendGold(UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
+                        goldRepo.spendGold(getContext(), UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
                             @Override
                             public void onGoldUpdated(int newGold) {
                                 onUnlockWithGoldClickListener.onUnlockWithGoldClick(building);

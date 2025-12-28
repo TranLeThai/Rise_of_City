@@ -1,0 +1,114 @@
+[
+  {
+    "type": "LECTURE",
+    "id": "L_LIB_001",
+    "title": "Thanh tra hợp đồng",
+    "order": 1,
+    "contentEnglish": "This is the library. There are many books on the kitchens. People read quietly at the tables. The teacher helps students find books. There are computers for research and magazines on the reading tables.",
+    "contentVietnamese": "Đây là thư viện. Có nhiều sách trên kệ. Mọi người đọc sách yên lặng ở các bàn. Người thủ thư giúp học sinh tìm sách. Có máy tính để nghiên cứu và tạp chí trên các bàn đọc.",
+    "wrongWordList": [
+      {
+        "originalWrongWord": "kitchens",
+        "options": ["shelves", "desks", "chairs"],
+        "correctAnswer": "shelves"
+      },
+      {
+        "originalWrongWord": "teacher",
+        "options": ["librarian", "student", "reader"],
+        "correctAnswer": "librarian"
+      }
+    ]
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_LIB_001",
+    "title": "Từ vựng thư viện",
+    "order": 2,
+    "content": "library"
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_LIB_002",
+    "title": "Từ vựng thư viện",
+    "order": 3,
+    "content": "book"
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_LIB_003",
+    "title": "Từ vựng thư viện",
+    "order": 4,
+    "content": "shelf"
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "SO_LIB_001",
+    "title": "Câu về thư viện",
+    "order": 5,
+    "content": "The librarian helps students find books."
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "SO_LIB_002",
+    "title": "Câu về thư viện",
+    "order": 6,
+    "content": "People read books quietly in the library."
+  },
+  {
+    "type": "MATCHINGTEXT",
+    "id": "MT_LIB_001",
+    "title": "Từ vựng thư viện",
+    "order": 7,
+    "leftSide": ["book", "shelf", "librarian", "magazine"],
+    "rightSide": ["sách", "kệ sách", "thủ thư", "tạp chí"]
+  },
+  {
+    "type": "MATCHINGIMG",
+    "id": "MI_LIB_001",
+    "title": "Các vật dụng trong thư viện",
+    "order": 8,
+    "images": ["book.jpg", "shelf.jpg", "computer.jpg"],
+    "answers": ["book", "shelf", "computer"]
+  },
+  {
+    "type": "LISTENING",
+    "id": "LS_LIB_001",
+    "title": "Nghe về thư viện",
+    "order": 9,
+    "audioPath": "library_ls_01.mp3",
+    "options": ["book", "magazine", "newspaper", "computer"],
+    "correctAnswerIndex": 0,
+    "transcript": "I borrow a ___ from the library every week."
+  },
+  {
+    "type": "INPUT",
+    "id": "I_LIB_001",
+    "title": "Điền từ",
+    "order": 10,
+    "question": "The books are on the ____.",
+    "correctAnswer": "shelf",
+    "hint": "Where books are stored"
+  },
+  {
+    "type": "DECISION",
+    "id": "TF_LIB_001",
+    "title": "Đúng hay Sai",
+    "order": 11,
+    "imagePath": "library.jpg",
+    "statement": "This is a kitchen where people cook food.",
+    "answer": false,
+    "explanation": "This is a library, not a kitchen. People read books here, not cook."
+  },
+  {
+    "type": "CHOICE",
+    "subType": "GRAMMAR",
+    "id": "C_LIB_001",
+    "title": "Ngữ pháp",
+    "order": 12,
+    "question": "There ____ many books in the library.",
+    "options": ["is", "are", "be", "has"],
+    "correctAnswerIndex": 1,
+    "explanation": "Danh từ số nhiều 'books' → dùng 'are'."
+  }
+]
+

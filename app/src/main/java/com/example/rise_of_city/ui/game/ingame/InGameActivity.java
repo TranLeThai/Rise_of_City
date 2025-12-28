@@ -25,6 +25,7 @@ import com.example.rise_of_city.ui.game.ingame.mission.MissionBoardDialog;
 import com.example.rise_of_city.ui.lesson.LessonActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class InGameActivity extends AppCompatActivity implements View.OnClickListener {
@@ -138,6 +139,16 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         // Tải trạng thái khóa lần đầu
         viewModel.loadAllBuildingsLockStatus();
     }
+    
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Reload building status mỗi khi quay lại activity
+        if (viewModel != null) {
+            viewModel.loadAllBuildingsLockStatus();
+        }
+        loadGold();
+    }
 
     private void showBuildingDetail(Building building) {
         if (fragmentContainer == null) return;
@@ -149,7 +160,7 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         // Nếu BuildingDetailFragment có nút upgrade → reload lại thông tin building sau khi upgrade
         // (vì giờ dùng Room, không còn loadFromFirebase nữa → dùng loadBuildingFromLocal)
         detailFragment.setOnUpgradeClickListener(b -> {
-            // Sau khi upgrade thành công ở đâu đó (nếu có), chỉ cần reload building này
+            // Sau khi upgrade thành công, reload building để cập nhật level mới
             viewModel.loadBuildingById(b.getId());
         });
 
@@ -195,14 +206,29 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         });
 
         dialog.setOnUnlockWithGoldClickListener(b -> {
-            // Gọi unlock từ ViewModel (dùng Room)
-            viewModel.unlockBuilding(b.getId());
-
-            // Cập nhật lại số vàng hiển thị
-            loadGold();
-
-            // Optional: Thông báo thành công
-            Toast.makeText(this, "Đã mở khóa " + b.getName() + "!", Toast.LENGTH_SHORT).show();
+            // Gọi unlock từ ViewModel với cost vàng
+            viewModel.unlockBuildingWithGold(b.getId(), new com.example.rise_of_city.ui.viewmodel.GameViewModel.UnlockCallback() {
+                @Override
+                public void onSuccess(int newGold) {
+                    // Cập nhật lại số vàng hiển thị
+                    loadGold();
+                    Toast.makeText(InGameActivity.this, "Đã mở khóa " + b.getName() + "! Vàng còn lại: " + newGold, Toast.LENGTH_SHORT).show();
+                    
+                    // Đóng dialog
+                    dialog.dismiss();
+                    
+                    // Reload building để cập nhật trạng thái và hiển thị BuildingDetailFragment
+                    // Sau một chút delay để dialog dismiss hoàn toàn
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        viewModel.loadBuildingById(b.getId());
+                    }, 300);
+                }
+                
+                @Override
+                public void onError(String error) {
+                    Toast.makeText(InGameActivity.this, error, Toast.LENGTH_SHORT).show();
+                }
+            });
         });
 
         dialog.show(getSupportFragmentManager(), "LockAreaDialog");
@@ -242,11 +268,13 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void loadGold() {
-        goldRepo.getCurrentGold(gold -> {
-            if (tvCoinCount != null) {
-                tvCoinCount.setText(String.valueOf(gold));
-            }
-        });
+        if (goldRepo != null) {
+            goldRepo.getCurrentGold(this, gold -> {
+                if (tvCoinCount != null) {
+                    tvCoinCount.setText(String.valueOf(gold));
+                }
+            });
+        }
     }
 
     private void scrollToCenter() {
@@ -279,7 +307,45 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     // Có thể dùng để đổi hình ảnh building khi đã mở khóa (nếu bạn có 2 hình khác nhau)
     private void updateBuildingImages(Map<String, Boolean> status) {
-        // Ví dụ: thay đổi alpha hoặc hình ảnh nếu đã unlock
-        // Hiện tại để trống hoặc thêm logic nếu cần
+        if (status == null) return;
+        
+        // Map building ID to view ID
+        Map<String, Integer> buildingViewMap = new HashMap<>();
+        buildingViewMap.put("school", R.id.school);
+        buildingViewMap.put("library", R.id.library);
+        buildingViewMap.put("park", R.id.park);
+        buildingViewMap.put("farmer", R.id.farmer);
+        buildingViewMap.put("coffee", R.id.coffee);
+        buildingViewMap.put("clothers", R.id.clothers);
+        buildingViewMap.put("bakery", R.id.bakery);
+        buildingViewMap.put("house", R.id.house);
+        
+        // Cập nhật visibility/alpha cho từng building
+        for (Map.Entry<String, Boolean> entry : status.entrySet()) {
+            String buildingId = entry.getKey();
+            boolean isLocked = entry.getValue();
+            
+            Integer viewId = buildingViewMap.get(buildingId);
+            if (viewId != null) {
+                View buildingView = findViewById(viewId);
+                if (buildingView != null) {
+                    if (isLocked) {
+                        // Building bị khóa → chỉ làm mờ một chút, KHÔNG đổi màu đen
+                        buildingView.setAlpha(0.5f);
+                        // Xóa color filter để giữ nguyên màu gốc
+                        if (buildingView instanceof ImageView) {
+                            ((ImageView) buildingView).clearColorFilter();
+                        }
+                    } else {
+                        // Building đã mở → hiển thị bình thường
+                        buildingView.setAlpha(1.0f);
+                        // Xóa color filter
+                        if (buildingView instanceof ImageView) {
+                            ((ImageView) buildingView).clearColorFilter();
+                        }
+                    }
+                }
+            }
+        }
     }
 }

@@ -84,17 +84,33 @@ public class OrderingFragment extends Fragment {
         }
     }
 
+    /**
+     * Normalize chuỗi để so sánh: lowercase, trim, xóa dấu cách thừa
+     */
+    private String normalizeString(String str) {
+        if (str == null) return "";
+        // Trim và lowercase
+        str = str.trim().toLowerCase();
+        // Xóa dấu cách thừa (thay nhiều dấu cách liên tiếp bằng 1 dấu cách)
+        str = str.replaceAll("\\s+", " ");
+        return str;
+    }
+
     private void checkAnswer() {
-        String user = edtAnswer.getText().toString().trim();
+        String user = edtAnswer.getText().toString();
         boolean isCorrect = false;
 
         if (question instanceof WordOrderQuestion) {
             WordOrderQuestion q = (WordOrderQuestion) question;
-            isCorrect = user.equalsIgnoreCase(q.getCorrectWord());
+            String normalizedUser = normalizeString(user);
+            String normalizedCorrect = normalizeString(q.getCorrectWord());
+            isCorrect = normalizedUser.equals(normalizedCorrect);
 
         } else if (question instanceof SentenceOrderQuestion) {
             SentenceOrderQuestion q = (SentenceOrderQuestion) question;
-            isCorrect = user.equalsIgnoreCase(q.getCorrectSentence());
+            String normalizedUser = normalizeString(user);
+            String normalizedCorrect = normalizeString(q.getCorrectSentence());
+            isCorrect = normalizedUser.equals(normalizedCorrect);
         }
 
         LessonActivity activity = (LessonActivity) getActivity();

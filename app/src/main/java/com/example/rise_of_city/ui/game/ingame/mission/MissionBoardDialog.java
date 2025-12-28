@@ -31,12 +31,15 @@ public class MissionBoardDialog extends DialogFragment {
         View view = inflater.inflate(R.layout.dialog_mission_board, container, false);
 
         RecyclerView rv = view.findViewById(R.id.rvMissions);
-        rv.setLayoutManager(new LinearLayoutManager(getContext()));
+        rv.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.VERTICAL, false));
 
-        // Thiết lập Adapter (Bạn cần tạo MissionAdapter)
+        // Thiết lập Adapter - hiển thị MissionDialogFragment khi click
         MissionAdapter adapter = new MissionAdapter(missions, mission -> {
-            // Xử lý khi bấm vào làm nhiệm vụ (Mở com.example.rise_of_city.ui.lesson.LessonActivity)
-            dismiss();
+            // Hiển thị dialog chi tiết mission với thông tin building
+            com.example.rise_of_city.ui.dialog.MissionDialogFragment dialog = 
+                com.example.rise_of_city.ui.dialog.MissionDialogFragment.newInstance(mission);
+            dialog.show(getParentFragmentManager(), "MissionDetail");
+            dismiss(); // Đóng mission board
         });
         rv.setAdapter(adapter);
 

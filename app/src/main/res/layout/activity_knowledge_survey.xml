@@ -64,6 +64,48 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/tvErrorCount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text=""
+            android:textColor="#636E72"
+            android:textSize="14sp"
+            android:visibility="gone" />
+
+        <LinearLayout
+            android:id="@+id/layoutActionButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/btnSkip"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:text="Skip"
+                android:textColor="#636E72"
+                android:backgroundTint="#E0E0E0" />
+
+            <Button
+                android:id="@+id/btnSubmit"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="Submit"
+                android:textColor="#FFFFFF"
+                android:backgroundTint="#4CAF50"
+                android:enabled="false" />
+        </LinearLayout>
+
+        <TextView
             android:id="@+id/tvProgress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

@@ -1,5 +1,6 @@
 package com.example.rise_of_city.data.repository;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -59,10 +60,17 @@ public class BuildingUpgradeRepository {
     /**
      * Nâng cấp building
      */
-    public void upgradeBuilding(String buildingId, int currentLevel, OnUpgradeListener listener) {
+    public void upgradeBuilding(Context context, String buildingId, int currentLevel, OnUpgradeListener listener) {
         if (auth.getCurrentUser() == null) {
             if (listener != null) {
                 listener.onError("Người dùng chưa đăng nhập");
+            }
+            return;
+        }
+        
+        if (context == null) {
+            if (listener != null) {
+                listener.onError("Context không hợp lệ");
             }
             return;
         }
@@ -72,7 +80,7 @@ public class BuildingUpgradeRepository {
         
         // Kiểm tra đủ vàng không
         GoldRepository goldRepo = GoldRepository.getInstance();
-        goldRepo.checkCanUnlockBuilding(upgradeCost, (canUpgrade, currentGold, message) -> {
+        goldRepo.checkCanUnlockBuilding(context, upgradeCost, (canUpgrade, currentGold, message) -> {
             if (!canUpgrade) {
                 if (listener != null) {
                     listener.onError(message);
@@ -81,7 +89,7 @@ public class BuildingUpgradeRepository {
             }
             
             // Trừ vàng
-            goldRepo.spendGold(upgradeCost, new GoldRepository.OnGoldUpdatedListener() {
+            goldRepo.spendGold(context, upgradeCost, new GoldRepository.OnGoldUpdatedListener() {
                 @Override
                 public void onGoldUpdated(int newGold) {
                     // Cập nhật level building

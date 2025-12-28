@@ -1,5 +1,7 @@
 package com.example.rise_of_city.ui.game.roadmap;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -15,11 +17,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.local.AppDatabase;
+import com.example.rise_of_city.data.local.UserBuilding;
 import com.example.rise_of_city.data.model.game.BuildingProgress;
 import com.example.rise_of_city.data.repository.BuildingProgressRepository;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,33 +38,46 @@ public class RoadMapDialogFragment extends DialogFragment implements BuildingRoa
     private ProgressBar progressBar;
     private BuildingProgressRepository repository;
     
-    // Thứ tự building trong map
+    // Thứ tự building trong roadmap - logic phát triển thành phố hợp lý
+    // Roadmap được thiết kế theo trình tự tự nhiên của việc xây dựng cộng đồng:
+    // 1. Cơ sở hạ tầng cơ bản (nhà ở)
+    // 2. Giáo dục và kiến thức (trường học, thư viện)
+    // 3. Giải trí và thư giãn (công viên)
+    // 4. Sản xuất và kinh tế (nông trại)
+    // 5. Dịch vụ và thương mại (tiệm bánh, quán cafe, shop quần áo)
     private static final String[] BUILDING_ORDER = {
-        "house", "farm", "park", "school", "library", "coffee", "clothers", "bakery"
+        "house",        // 🏠 Nhà ở - Nơi an cư lạc nghiệp, nền tảng của mọi cộng đồng
+        "school",       // 🏫 Trường học - Giáo dục và phát triển tri thức
+        "library",      // 📚 Thư viện - Nghiên cứu và học tập nâng cao
+        "park",         // 🌳 Công viên - Giải trí và thư giãn cho cộng đồng
+        "farm",         // 🌾 Nông trại - Sản xuất lương thực, đảm bảo an ninh thực phẩm
+        "bakery",       // 🥖 Tiệm bánh - Dịch vụ ăn uống cơ bản
+        "coffee",       // ☕ Quán cafe - Nơi giao lưu văn hóa và xã hội
+        "clothers"      // 👕 Shop quần áo - Thương mại và thời trang
     };
     
     // Tên hiển thị
     private static final Map<String, String> BUILDING_NAMES = Map.of(
         "house", "Nhà ở",
-        "farm", "Nông trại",
-        "park", "Công viên",
         "school", "Trường học",
         "library", "Thư viện",
+        "park", "Công viên",
+        "farm", "Nông trại",
+        "bakery", "Tiệm Bánh",
         "coffee", "Quán Cafe",
-        "clothers", "Shop Quần Áo",
-        "bakery", "Tiệm Bánh"
+        "clothers", "Shop Quần Áo"
     );
     
     // Số từ vựng giả định (thực tế nên lấy từ database)
     private static final Map<String, Integer> VOCABULARY_COUNTS = Map.of(
-        "house", 50,
-        "farm", 60,
-        "park", 45,
-        "school", 120,
-        "library", 200,
-        "coffee", 80,
-        "clothers", 90,
-        "bakery", 75
+        "house", 50,      // Nhà ở - cơ bản
+        "school", 120,    // Trường học - nhiều từ vựng học thuật
+        "library", 200,   // Thư viện - nhiều từ vựng sách vở
+        "park", 45,       // Công viên - ít từ vựng hơn
+        "farm", 60,       // Nông trại - từ vựng nông nghiệp
+        "bakery", 75,     // Tiệm bánh - từ vựng thực phẩm
+        "coffee", 80,     // Quán cafe - từ vựng đồ uống
+        "clothers", 90    // Shop quần áo - từ vựng thời trang
     );
 
     public static RoadMapDialogFragment newInstance(int currentLevel) {
@@ -112,88 +130,152 @@ public class RoadMapDialogFragment extends DialogFragment implements BuildingRoa
     
     private void loadData() {
         progressBar.setVisibility(View.VISIBLE);
-        
-        repository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
-            @Override
-            public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
+
+        // Sử dụng Room database như RoadMapFragment để đồng bộ level
+        new Thread(() -> {
+            try {
+                AppDatabase database = AppDatabase.getInstance(requireContext());
+                SharedPreferences prefs = requireContext().getSharedPreferences("RiseOfCity_Prefs", Context.MODE_PRIVATE);
+                int userId = prefs.getInt("logged_user_id", -1);
+
+                if (userId == -1) {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            Toast.makeText(getContext(), "Chưa đăng nhập", Toast.LENGTH_SHORT).show();
+                        });
+                    }
+                    return;
+                }
+
+                // Load buildings từ Room database
+                List<UserBuilding> userBuildings = database.userBuildingDao().getBuildingsForUser(userId);
+
+                // Convert sang Map để dễ xử lý
+                Map<String, UserBuilding> buildingMap = new HashMap<>();
+                for (UserBuilding ub : userBuildings) {
+                    buildingMap.put(ub.buildingId, ub);
+                }
+
+                // Build list BuildingProgress
                 List<BuildingProgress> buildings = new ArrayList<>();
                 boolean previousUnlocked = true; // House luôn mở
-                
+
                 for (int i = 0; i < BUILDING_ORDER.length; i++) {
                     String buildingId = BUILDING_ORDER[i];
                     String name = BUILDING_NAMES.getOrDefault(buildingId, buildingId);
                     int vocabCount = VOCABULARY_COUNTS.getOrDefault(buildingId, 0);
-                    
+
                     BuildingProgress building = new BuildingProgress();
                     building.setBuildingId(buildingId);
                     building.setBuildingName(name);
                     building.setVocabularyCount(vocabCount);
-                    
-                    // Kiểm tra xem user có dữ liệu cho building này chưa
-                    if (buildingProgressMap.containsKey(buildingId)) {
-                        Map<String, Object> data = buildingProgressMap.get(buildingId);
-                        
-                        Long level = (Long) data.get("level");
-                        Long currentExp = (Long) data.get("currentExp");
-                        Long maxExp = (Long) data.get("maxExp");
-                        Boolean completed = (Boolean) data.get("completed");
-                        Long vocabLearned = (Long) data.get("vocabularyLearned");
-                        
-                        building.setLevel(level != null ? level.intValue() : 1);
-                        building.setCurrentExp(currentExp != null ? currentExp.intValue() : 0);
-                        building.setMaxExp(maxExp != null ? maxExp.intValue() : 100);
-                        building.setCompleted(completed != null && completed);
-                        building.setVocabularyLearned(vocabLearned != null ? vocabLearned.intValue() : 0);
-                        
-                        // Đã có dữ liệu nghĩa là đã unlock
-                        building.setLocked(false);
+
+                    UserBuilding userBuilding = buildingMap.get(buildingId);
+
+                    if (userBuilding != null && userBuilding.level > 0) {
+                        // ✅ Building đã unlock (có trong database với level > 0)
+                        building.setLevel(userBuilding.level);
+                        building.setCurrentExp(0);
+                        building.setMaxExp(100);
+                        building.setCompleted(userBuilding.level >= 4); // Level 4 = completed
+                        building.setVocabularyLearned(0);
+                        building.setLocked(false); // Đã unlock - hiển thị xanh dương
+
+                        previousUnlocked = true; // Cho phép building sau unlock
                     } else {
-                        // Chưa có dữ liệu
+                        // 🔒 Building chưa unlock
                         building.setLevel(1);
                         building.setCurrentExp(0);
                         building.setMaxExp(100);
                         building.setCompleted(false);
                         building.setVocabularyLearned(0);
-                        
-                        // Logic khóa: Mở khóa nếu building trước đó đã completed hoặc đạt level nhất định
-                        // Ở đây đơn giản hóa: Mở khóa theo thứ tự, cái trước mở thì cái sau mới hiện (nhưng bị lock)
-                        // Hoặc logic: Cái trước completed -> Cái sau unlocked
-                        
+
+                        // Logic unlock theo thứ tự roadmap
                         if (i == 0) {
-                            building.setLocked(false); // House luôn mở
+                            // 🏠 House - luôn có thể unlock đầu tiên
+                            building.setLocked(false); // House luôn available để unlock
+                            previousUnlocked = true;
                         } else {
-                            // Kiểm tra building trước đó
+                            // Kiểm tra building trước đã completed chưa
                             String prevBuildingId = BUILDING_ORDER[i-1];
-                            boolean prevCompleted = false;
-                            
-                            if (buildingProgressMap.containsKey(prevBuildingId)) {
-                                Map<String, Object> prevData = buildingProgressMap.get(prevBuildingId);
-                                Boolean pCompleted = (Boolean) prevData.get("completed");
-                                prevCompleted = pCompleted != null && pCompleted;
-                                
-                                // Hoặc check level > 1
-                                Long pLevel = (Long) prevData.get("level");
-                                if (pLevel != null && pLevel > 1) prevCompleted = true; 
+                            UserBuilding prevBuilding = buildingMap.get(prevBuildingId);
+
+                            if (prevBuilding != null && prevBuilding.level >= 4) {
+                                // Building trước đã completed - cho phép unlock building này
+                                building.setLocked(false); // Available để unlock
+                                previousUnlocked = true;
+                            } else {
+                                // Building trước chưa completed - locked
+                                building.setLocked(true); // Locked - hiển thị xám
+                                previousUnlocked = false;
                             }
-                            
-                            building.setLocked(!prevCompleted);
                         }
                     }
-                    
+
                     buildings.add(building);
                 }
-                
-                progressBar.setVisibility(View.GONE);
-                adapter.setBuildings(buildings);
+
+                // Sort buildings: unlocked buildings lên đầu, locked buildings xuống cuối
+                sortBuildingsByUnlockStatus(buildings);
+
+                // Update UI on main thread
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        adapter.setBuildings(buildings);
+
+                        // Scroll to top để xem buildings đã unlock
+                        if (recyclerView != null) {
+                            recyclerView.post(() -> {
+                                LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
+                                if (layoutManager != null) {
+                                    layoutManager.scrollToPositionWithOffset(0, 0);
+                                }
+                            });
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+                }
             }
-            
-            @Override
-            public void onError(String error) {
-                progressBar.setVisibility(View.GONE);
-                Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + error, Toast.LENGTH_SHORT).show();
+        }).start();
+    }
+
+    /**
+     * Sort buildings: unlocked buildings lên đầu, locked buildings xuống cuối
+     */
+    private void sortBuildingsByUnlockStatus(List<BuildingProgress> buildings) {
+        if (buildings == null || buildings.size() <= 1) return;
+
+        buildings.sort((b1, b2) -> {
+            // Rule 1: Unlocked buildings (không locked) lên trước
+            if (!b1.isLocked() && b2.isLocked()) return -1;  // b1 unlocked, b2 locked → b1 lên trước
+            if (b1.isLocked() && !b2.isLocked()) return 1;   // b1 locked, b2 unlocked → b2 lên trước
+
+            // Rule 2: Nếu cùng trạng thái, ưu tiên completed buildings
+            if (b1.isCompleted() && !b2.isCompleted()) return -1;
+            if (!b1.isCompleted() && b2.isCompleted()) return 1;
+
+            // Rule 3: Nếu cùng trạng thái completed, ưu tiên level cao hơn
+            if (!b1.isLocked() && !b2.isLocked()) {
+                return Integer.compare(b2.getLevel(), b1.getLevel()); // Level cao hơn lên trước
             }
+
+            // Rule 4: Nếu đều locked, ưu tiên building có thể unlock sớm hơn
+            if (b1.isLocked() && b2.isLocked()) {
+                return Integer.compare(b1.getLevel(), b2.getLevel()); // Level thấp hơn lên trước (dễ unlock hơn)
+            }
+
+            return 0;
         });
     }
+
 
     @Override
     public void onBuildingClick(BuildingProgress building) {

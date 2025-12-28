@@ -5,22 +5,63 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
-import android.widget.TextView;
+import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.rise_of_city.R;
-import com.google.android.material.card.MaterialCardView;
+import com.example.rise_of_city.data.model.game.BuildingProgress;
+import com.example.rise_of_city.data.repository.BuildingProgressRepository;
 
-public class RoadMapDialogFragment extends DialogFragment {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+public class RoadMapDialogFragment extends DialogFragment implements BuildingRoadMapAdapter.OnBuildingClickListener {
 
     private static final String ARG_LEVEL = "arg_current_level";
-    private int mCurrentLevel = 1; // Mặc định level 1
+    private int mCurrentLevel = 1;
+    
+    private RecyclerView recyclerView;
+    private BuildingRoadMapAdapter adapter;
+    private ProgressBar progressBar;
+    private BuildingProgressRepository repository;
+    
+    // Thứ tự building trong map
+    private static final String[] BUILDING_ORDER = {
+        "house", "farm", "park", "school", "library", "coffee", "clothers", "bakery"
+    };
+    
+    // Tên hiển thị
+    private static final Map<String, String> BUILDING_NAMES = Map.of(
+        "house", "Nhà ở",
+        "farm", "Nông trại",
+        "park", "Công viên",
+        "school", "Trường học",
+        "library", "Thư viện",
+        "coffee", "Quán Cafe",
+        "clothers", "Shop Quần Áo",
+        "bakery", "Tiệm Bánh"
+    );
+    
+    // Số từ vựng giả định (thực tế nên lấy từ database)
+    private static final Map<String, Integer> VOCABULARY_COUNTS = Map.of(
+        "house", 50,
+        "farm", 60,
+        "park", 45,
+        "school", 120,
+        "library", 200,
+        "coffee", 80,
+        "clothers", 90,
+        "bakery", 75
+    );
 
-    // Hàm tạo instance và truyền level vào
     public static RoadMapDialogFragment newInstance(int currentLevel) {
         RoadMapDialogFragment fragment = new RoadMapDialogFragment();
         Bundle args = new Bundle();
@@ -32,122 +73,137 @@ public class RoadMapDialogFragment extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Style full màn hình, không có title bar
         setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Light_NoTitleBar_Fullscreen);
 
         if (getArguments() != null) {
             mCurrentLevel = getArguments().getInt(ARG_LEVEL);
         }
+        
+        repository = BuildingProgressRepository.getInstance();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_road_map, container, false);
+        // Sử dụng layout mới chứa RecyclerView
+        View view = inflater.inflate(R.layout.fragment_roadmap_list, container, false);
 
-        // Nút đóng (bạn cần thêm nút đóng vào XML hoặc dùng nút back hệ thống)
-        // view.findViewById(R.id.btnClose).setOnClickListener(v -> dismiss());
-
-        setupMapLogic(view);
+        recyclerView = view.findViewById(R.id.recycler_roadmap);
+        progressBar = view.findViewById(R.id.progressBar);
+        
+        setupRecyclerView();
+        loadData();
 
         return view;
     }
-
-    private void setupMapLogic(View view) {
-        // --- 1. Ánh xạ các thành phần ---
-
-        // Các đường nối (Lines)
-        View line1 = view.findViewById(R.id.line_1);
-        View line2 = view.findViewById(R.id.line_2);
-        View line3 = view.findViewById(R.id.line_3);
-        View line4 = view.findViewById(R.id.line_4);
-        View line5 = view.findViewById(R.id.line_5);
-        View line6 = view.findViewById(R.id.line_6);
-        View line7 = view.findViewById(R.id.line_7);
-
-        // Các Building (Include Layout)
-        View buildingHouse = view.findViewById(R.id.building_house);
-        View buildingFarm = view.findViewById(R.id.building_farm);
-        View buildingPark = view.findViewById(R.id.building_park);
-        View buildingSchool = view.findViewById(R.id.building_school);
-        View buildingLibrary = view.findViewById(R.id.building_library);
-        View buildingCafe = view.findViewById(R.id.building_cafe);
-        View buildingClothers = view.findViewById(R.id.building_clothers);
-        View buildingBakery = view.findViewById(R.id.building_bakery);
-
-        // Cấu hình thông tin từng building
-        setupBuilding(buildingHouse, "House", R.drawable.vector_house, R.drawable.vector_house_lock, 1, true);
-        setupBuilding(buildingFarm, "Farm", R.drawable.vector_farmer, R.drawable.vector_farmer_lock, 2, mCurrentLevel >= 2);
-        setupBuilding(buildingPark, "Park", R.drawable.vector_park, R.drawable.vector_park_lock, 3, mCurrentLevel >= 3);
-        setupBuilding(buildingSchool, "School", R.drawable.vector_school, R.drawable.vector_school_lock, 4, mCurrentLevel >= 4);
-        setupBuilding(buildingLibrary, "Library", R.drawable.vector_library, R.drawable.vector_library_lock, 5, mCurrentLevel >= 5);
-        setupBuilding(buildingCafe, "Cafe", R.drawable.vector_coffee, R.drawable.vector_coffee_lock, 6, mCurrentLevel >= 6);
-        setupBuilding(buildingClothers, "Clothes", R.drawable.vector_clothers, R.drawable.vector_clothers_lock, 7, mCurrentLevel >= 7);
-        setupBuilding(buildingBakery, "Bakery", R.drawable.vector_bakery, R.drawable.vector_bakery_lock, 8, mCurrentLevel >= 8);
-
-        // --- 2. Logic Hiển thị Line theo Level ---
-
-        // Mặc định ẩn hết line nếu chưa đạt level
-        // Line 1 nối House (Lv1) -> Farm (Lv2). Hiện khi >= Lv2
-        line1.setVisibility(mCurrentLevel >= 2 ? View.VISIBLE : View.INVISIBLE);
+    
+    private void setupRecyclerView() {
+        adapter = new BuildingRoadMapAdapter(new ArrayList<>());
+        adapter.setOnBuildingClickListener(this);
         
-        // Line 2 nối Farm (Lv2) -> Park (Lv3). Hiện khi >= Lv3
-        line2.setVisibility(mCurrentLevel >= 3 ? View.VISIBLE : View.INVISIBLE);
-
-        // Line 3 nối Park (Lv3) -> School (Lv4). Hiện khi >= Lv4
-        line3.setVisibility(mCurrentLevel >= 4 ? View.VISIBLE : View.INVISIBLE);
-
-        // Line 4 nối School (Lv4) -> Library (Lv5). Hiện khi >= Lv5
-        line4.setVisibility(mCurrentLevel >= 5 ? View.VISIBLE : View.INVISIBLE);
-
-        // Line 5 nối Library (Lv5) -> Cafe (Lv6). Hiện khi >= Lv6
-        line5.setVisibility(mCurrentLevel >= 6 ? View.VISIBLE : View.INVISIBLE);
-
-        // Line 6 nối Cafe (Lv6) -> Clothers (Lv7). Hiện khi >= Lv7
-        line6.setVisibility(mCurrentLevel >= 7 ? View.VISIBLE : View.INVISIBLE);
-
-        // Line 7 nối Clothers (Lv7) -> Bakery (Lv8). Hiện khi >= Lv8
-        line7.setVisibility(mCurrentLevel >= 8 ? View.VISIBLE : View.INVISIBLE);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
+        // Reverse layout để item đầu tiên (House) ở dưới cùng, giống như leo núi
+        // layoutManager.setReverseLayout(true); 
+        // layoutManager.setStackFromEnd(true);
+        
+        recyclerView.setLayoutManager(layoutManager);
+        recyclerView.setAdapter(adapter);
+    }
+    
+    private void loadData() {
+        progressBar.setVisibility(View.VISIBLE);
+        
+        repository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
+            @Override
+            public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
+                List<BuildingProgress> buildings = new ArrayList<>();
+                boolean previousUnlocked = true; // House luôn mở
+                
+                for (int i = 0; i < BUILDING_ORDER.length; i++) {
+                    String buildingId = BUILDING_ORDER[i];
+                    String name = BUILDING_NAMES.getOrDefault(buildingId, buildingId);
+                    int vocabCount = VOCABULARY_COUNTS.getOrDefault(buildingId, 0);
+                    
+                    BuildingProgress building = new BuildingProgress();
+                    building.setBuildingId(buildingId);
+                    building.setBuildingName(name);
+                    building.setVocabularyCount(vocabCount);
+                    
+                    // Kiểm tra xem user có dữ liệu cho building này chưa
+                    if (buildingProgressMap.containsKey(buildingId)) {
+                        Map<String, Object> data = buildingProgressMap.get(buildingId);
+                        
+                        Long level = (Long) data.get("level");
+                        Long currentExp = (Long) data.get("currentExp");
+                        Long maxExp = (Long) data.get("maxExp");
+                        Boolean completed = (Boolean) data.get("completed");
+                        Long vocabLearned = (Long) data.get("vocabularyLearned");
+                        
+                        building.setLevel(level != null ? level.intValue() : 1);
+                        building.setCurrentExp(currentExp != null ? currentExp.intValue() : 0);
+                        building.setMaxExp(maxExp != null ? maxExp.intValue() : 100);
+                        building.setCompleted(completed != null && completed);
+                        building.setVocabularyLearned(vocabLearned != null ? vocabLearned.intValue() : 0);
+                        
+                        // Đã có dữ liệu nghĩa là đã unlock
+                        building.setLocked(false);
+                    } else {
+                        // Chưa có dữ liệu
+                        building.setLevel(1);
+                        building.setCurrentExp(0);
+                        building.setMaxExp(100);
+                        building.setCompleted(false);
+                        building.setVocabularyLearned(0);
+                        
+                        // Logic khóa: Mở khóa nếu building trước đó đã completed hoặc đạt level nhất định
+                        // Ở đây đơn giản hóa: Mở khóa theo thứ tự, cái trước mở thì cái sau mới hiện (nhưng bị lock)
+                        // Hoặc logic: Cái trước completed -> Cái sau unlocked
+                        
+                        if (i == 0) {
+                            building.setLocked(false); // House luôn mở
+                        } else {
+                            // Kiểm tra building trước đó
+                            String prevBuildingId = BUILDING_ORDER[i-1];
+                            boolean prevCompleted = false;
+                            
+                            if (buildingProgressMap.containsKey(prevBuildingId)) {
+                                Map<String, Object> prevData = buildingProgressMap.get(prevBuildingId);
+                                Boolean pCompleted = (Boolean) prevData.get("completed");
+                                prevCompleted = pCompleted != null && pCompleted;
+                                
+                                // Hoặc check level > 1
+                                Long pLevel = (Long) prevData.get("level");
+                                if (pLevel != null && pLevel > 1) prevCompleted = true; 
+                            }
+                            
+                            building.setLocked(!prevCompleted);
+                        }
+                    }
+                    
+                    buildings.add(building);
+                }
+                
+                progressBar.setVisibility(View.GONE);
+                adapter.setBuildings(buildings);
+            }
+            
+            @Override
+            public void onError(String error) {
+                progressBar.setVisibility(View.GONE);
+                Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    private void setupBuilding(View buildingView, String name, int iconResId, int iconLockedResId, int requiredLevel, boolean isUnlocked) {
-        if (buildingView == null) return;
-
-        MaterialCardView card = buildingView.findViewById(R.id.building_card);
-        ImageView ivIcon = buildingView.findViewById(R.id.iv_building_icon);
-        ImageView ivLock = buildingView.findViewById(R.id.iv_lock_icon);
-        TextView tvName = buildingView.findViewById(R.id.tv_building_name);
-        TextView tvProgress = buildingView.findViewById(R.id.tv_building_progress);
-
-        tvName.setText(name);
-
-        if (isUnlocked) {
-            // Đã mở khóa
-            card.setCardBackgroundColor(Color.parseColor("#E0E0E0")); // Hoặc màu background mong muốn khi unlock
-            card.setStrokeColor(Color.parseColor("#B0B0B0"));
-            ivIcon.setImageResource(iconResId);
-            ivIcon.setColorFilter(null); // Xóa filter màu nếu có
-            ivLock.setVisibility(View.GONE);
-            tvName.setTextColor(Color.parseColor("#333333"));
-            tvProgress.setVisibility(View.VISIBLE);
-            tvProgress.setText("Level " + requiredLevel); // Hoặc hiển thị %
+    @Override
+    public void onBuildingClick(BuildingProgress building) {
+        // Xử lý khi click vào building
+        if (building.isLocked()) {
+            Toast.makeText(getContext(), "Cần hoàn thành công trình trước đó!", Toast.LENGTH_SHORT).show();
         } else {
-            // Bị khóa
-            card.setCardBackgroundColor(Color.parseColor("#EEEEEE"));
-            card.setStrokeColor(Color.TRANSPARENT);
-            // Dùng icon locked hoặc icon thường nhưng làm mờ
-             if (iconLockedResId != 0) {
-                 ivIcon.setImageResource(iconLockedResId);
-             } else {
-                 ivIcon.setImageResource(iconResId);
-                 ivIcon.setColorFilter(Color.GRAY);
-             }
-            
-            // Nếu muốn hiện ổ khóa đè lên
-            // ivLock.setVisibility(View.VISIBLE);
-            
-            tvName.setTextColor(Color.GRAY);
-            tvProgress.setVisibility(View.INVISIBLE);
+            // Mở chi tiết building hoặc game
+             Toast.makeText(getContext(), "Chọn: " + building.getBuildingName(), Toast.LENGTH_SHORT).show();
+             // TODO: Navigate to InGameActivity or BuildingDetail
         }
     }
 }

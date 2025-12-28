@@ -62,6 +62,7 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.5" />
 
+    <!-- Card 1: School -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardLevel1"
         android:layout_width="0dp"
@@ -102,13 +103,14 @@
                 android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
-                android:progress="25"
+                android:progress="0"
                 android:progressDrawable="@drawable/circular_progress_red" />
 
             <TextView
+                android:id="@+id/tvProgressLevel1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="25%"
+                android:text="0%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#E53935"
                 android:textSize="14sp"
@@ -116,6 +118,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Card 2: Coffee shop -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardLevel2"
         android:layout_width="0dp"
@@ -155,13 +158,14 @@
                 android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
-                android:progress="40"
+                android:progress="0"
                 android:progressDrawable="@drawable/circular_progress_orange" />
 
             <TextView
+                android:id="@+id/tvProgressLevel2"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="40%"
+                android:text="0%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#FB8C00"
                 android:textSize="14sp"
@@ -169,6 +173,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Card 3: Park -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardLevel3"
         android:layout_width="0dp"
@@ -207,13 +212,14 @@
                 android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
-                android:progress="65"
+                android:progress="0"
                 android:progressDrawable="@drawable/circular_progress_green" />
 
             <TextView
+                android:id="@+id/tvProgressLevel3"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="65%"
+                android:text="0%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#43A047"
                 android:textSize="14sp"
@@ -221,6 +227,7 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
+    <!-- Card 4: House -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardLevel4"
         android:layout_width="0dp"
@@ -259,13 +266,14 @@
                 android:layout_marginBottom="4dp"
                 android:indeterminate="false"
                 android:max="100"
-                android:progress="85"
+                android:progress="0"
                 android:progressDrawable="@drawable/circular_progress_blue" />
 
             <TextView
+                android:id="@+id/tvProgressLevel4"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="85%"
+                android:text="0%"
                 android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                 android:textColor="#1E88E5"
                 android:textSize="14sp"

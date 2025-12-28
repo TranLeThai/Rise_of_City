@@ -125,7 +125,7 @@ public class BuildingRoadMapAdapter extends RecyclerView.Adapter<BuildingRoadMap
                 // Locked - màu xám
                 cardBuilding.setCardBackgroundColor(0xFFE0E0E0);
                 cardBuilding.setStrokeColor(0xFFE0E0E0);
-                ivStatusIcon.setImageResource(android.R.drawable.ic_lock_lock);
+                ivStatusIcon.setImageResource(R.drawable.ic_lock); // Sử dụng icon lock của dự án
                 ivStatusIcon.setColorFilter(0xFF9E9E9E);
                 ivStatusIcon.setVisibility(View.VISIBLE);
                 viewGreenDot.setVisibility(View.GONE);
@@ -139,90 +139,65 @@ public class BuildingRoadMapAdapter extends RecyclerView.Adapter<BuildingRoadMap
                 ivBuildingIcon.setColorFilter(0xFFFFFFFF);
             }
             
-            // Icon building (có thể thay đổi theo buildingId)
+            // Icon building
             int iconRes = getBuildingIcon(building.getBuildingId());
             ivBuildingIcon.setImageResource(iconRes);
             
             // Zigzag positioning: trái phải trái phải (chia đều 2 bên)
-            // Position 0, 2, 4... = left (0.25)
-            // Position 1, 3, 5... = right (0.75)
             float horizontalBias;
-            
             boolean isLeft = (position % 2 == 0);
             if (isLeft) {
-                // Left side
                 horizontalBias = 0.25f;
             } else {
-                // Right side
                 horizontalBias = 0.75f;
             }
             
-            // Áp dụng bias cho card
             ConstraintLayout.LayoutParams params = (ConstraintLayout.LayoutParams) cardBuilding.getLayoutParams();
             params.horizontalBias = horizontalBias;
             cardBuilding.setLayoutParams(params);
             
-            // Connector line (ẩn cho item cuối)
+            // Connector line
             if (position == buildings.size() - 1) {
                 viewConnector.setVisibility(View.GONE);
             } else {
                 viewConnector.setVisibility(View.VISIBLE);
                 
-                // Đợi layout xong để tính toán chính xác tọa độ
                 itemView.post(() -> {
-                    if (itemView.getWidth() == 0 || itemView.getHeight() == 0) {
-                        return; // Chưa layout xong
-                    }
+                    if (itemView.getWidth() == 0 || itemView.getHeight() == 0) return;
                     
-                    // Tính toán điểm bắt đầu: TÂM DƯỚI CÙNG của card building hiện tại
                     float cardCenterX = cardBuilding.getX() + cardBuilding.getWidth() / 2f;
                     float cardBottomY = cardBuilding.getY() + cardBuilding.getHeight();
                     
-                    // Chuyển sang relative coordinates (0.0 - 1.0) so với itemView
                     float startXRelative = cardCenterX / itemView.getWidth();
                     float startYRelative = cardBottomY / itemView.getHeight();
                     
-                    // Tính toán điểm kết thúc: TÂM CỦA card building tiếp theo
                     boolean nextIsLeft = ((position + 1) % 2 == 0);
                     float endXRelative = nextIsLeft ? 0.25f : 0.75f;
                     
-                    // Lấy density để convert dp sang pixels
                     float density = itemView.getContext().getResources().getDisplayMetrics().density;
-                    float cardCenterYInPixels = 40f * density; // 40dp = tâm card từ top (80dp / 2)
+                    float cardCenterYInPixels = 40f * density;
                     
                     float itemHeight = itemView.getHeight();
-                    
-                    // Tính toán điểm kết thúc: Tâm của card tiếp theo
-                    // Card tiếp theo nằm ở item tiếp theo, với tâm ở 40dp từ top của item tiếp theo
-                    // Vì item tiếp theo nằm ngay dưới item hiện tại, tâm card tiếp theo
-                    // sẽ ở vị trí: bottom của item hiện tại + 40dp
-                    // Relative với item hiện tại = 1.0 + (40dp / itemHeight)
-                    // Vì đã bật clipChildren="false", line có thể vẽ vượt quá bounds
                     float endYRelative = 1.0f + (cardCenterYInPixels / itemHeight);
                     
-                    // Đảm bảo endYRelative hợp lệ và nằm dưới startY
                     if (endYRelative <= startYRelative) {
-                        // Nếu endY không dưới startY, đặt nó ở dưới startY
                         endYRelative = Math.max(1.0f, startYRelative + 0.1f);
                     }
                     
-                    // Set điểm bắt đầu và kết thúc cho connector line
                     viewConnector.setStartPoint(startXRelative, startYRelative);
                     viewConnector.setEndPoint(endXRelative, endYRelative);
                 });
                 
-                // Màu connector: xanh nếu building tiếp theo available, xám nếu locked
                 if (position + 1 < buildings.size()) {
                     BuildingProgress nextBuilding = buildings.get(position + 1);
                     if (nextBuilding.isLocked()) {
-                        viewConnector.setLineColor(0xFFE0E0E0); // Grey
+                        viewConnector.setLineColor(0xFFE0E0E0);
                     } else {
-                        viewConnector.setLineColor(0xFFB2EBF2); // Light blue
+                        viewConnector.setLineColor(0xFFB2EBF2);
                     }
                 }
             }
             
-            // Click listener
             cardBuilding.setOnClickListener(v -> {
                 if (listener != null && !building.isLocked()) {
                     listener.onBuildingClick(building);
@@ -232,24 +207,15 @@ public class BuildingRoadMapAdapter extends RecyclerView.Adapter<BuildingRoadMap
         
         private int getBuildingIcon(String buildingId) {
             switch (buildingId) {
-                case "house":
-                    return android.R.drawable.ic_menu_myplaces;
-                case "coffee":
-                    return android.R.drawable.ic_menu_call;
-                case "library":
-                    return android.R.drawable.ic_menu_sort_by_size;
-                case "park":
-                    return android.R.drawable.ic_menu_gallery;
-                case "school":
-                    return android.R.drawable.ic_menu_edit;
-                case "bakery":
-                    return android.R.drawable.ic_menu_recent_history;
-                case "farmer":
-                    return android.R.drawable.ic_menu_compass;
-                case "clothers":
-                    return android.R.drawable.ic_menu_view;
-                default:
-                    return android.R.drawable.ic_menu_myplaces;
+                case "house": return R.drawable.vector_house;
+                case "coffee": return R.drawable.vector_coffee;
+                case "library": return R.drawable.vector_library;
+                case "park": return R.drawable.vector_park;
+                case "school": return R.drawable.vector_school;
+                case "bakery": return R.drawable.vector_bakery;
+                case "farm": return R.drawable.vector_farmer; // Farm = Farmer
+                case "clothers": return R.drawable.vector_clothers;
+                default: return R.drawable.ic_house;
             }
         }
     }
@@ -258,4 +224,3 @@ public class BuildingRoadMapAdapter extends RecyclerView.Adapter<BuildingRoadMap
         void onBuildingClick(BuildingProgress building);
     }
 }
-

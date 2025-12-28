@@ -5,12 +5,13 @@ import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
-@Database(entities = {User.class, ChatMessageEntity.class}, version = 3) // Tăng version lên 3
+@Database(entities = {User.class, ChatMessageEntity.class, UserBuilding.class}, version = 4)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
     public abstract UserDao userDao();
-    public abstract ChatDao chatDao(); // Thêm DAO cho chat
+    public abstract ChatDao chatDao(); 
+    public abstract UserBuildingDao userBuildingDao(); // Thêm DAO cho UserBuilding
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {

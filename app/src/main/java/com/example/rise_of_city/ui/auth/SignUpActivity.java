@@ -12,7 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.local.AppDatabase;
 import com.example.rise_of_city.data.local.User;
+import com.example.rise_of_city.data.local.UserBuilding;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -43,7 +46,6 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
-        // QUAN TRỌNG: trim() password để tránh lưu khoảng trắng thừa
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
         String confirmPass = edtConfirmPassword.getText().toString().trim();
@@ -63,15 +65,28 @@ public class SignUpActivity extends AppCompatActivity {
                 newUser.fullName = fullName;
                 newUser.surveyCompleted = false;
 
-                db.userDao().registerUser(newUser);
+                long newUserId = db.userDao().registerUser(newUser);
+
+                // --- TẠO DỮ LIỆU BUILDING MẶC ĐỊNH ---
+                initializeDefaultBuildings((int) newUserId);
 
                 runOnUiThread(() -> {
                     Toast.makeText(this, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
-                    // Quay lại màn hình đăng nhập
                     finish();
                 });
             }
         });
+    }
+
+    private void initializeDefaultBuildings(int userId) {
+        List<UserBuilding> defaultBuildings = new ArrayList<>();
+        String[] buildingIds = {"coffee_shop", "house", "farm", "park", "school", "library"};
+
+        for (String id : buildingIds) {
+            defaultBuildings.add(new UserBuilding(userId, id, 0));
+        }
+
+        db.userBuildingDao().insertAll(defaultBuildings);
     }
 
     private boolean validateInputs(String email, String password, String confirm, String name) {

@@ -8,13 +8,26 @@ public class ChatMessageEntity {
     @PrimaryKey(autoGenerate = true)
     public int id;
 
-    public int userId; // ID của người dùng (liên kết với bảng users)
+    public int senderId; // ID của người gửi
+    public int receiverId; // ID của người nhận
     public String message;
     public String type; // "USER" hoặc "AI"
     public long timestamp;
 
+    // Constructor mới với senderId và receiverId
+    public ChatMessageEntity(int senderId, int receiverId, String message, String type, long timestamp) {
+        this.senderId = senderId;
+        this.receiverId = receiverId;
+        this.message = message;
+        this.type = type;
+        this.timestamp = timestamp;
+    }
+    
+    // Constructor cũ để backward compatibility (sẽ deprecated)
+    @Deprecated
     public ChatMessageEntity(int userId, String message, String type, long timestamp) {
-        this.userId = userId;
+        this.senderId = userId;
+        this.receiverId = userId; // Fallback
         this.message = message;
         this.type = type;
         this.timestamp = timestamp;

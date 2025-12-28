@@ -28,4 +28,8 @@ public class MatchingTextQuestion extends BaseQuestion {
     // Getters
     public List<String> getEnglishWords() { return englishWords; }
     public List<String> getVietnameseWords() { return vietnameseWords; }
+    
+    // Alias methods for compatibility
+    public List<String> getLeftSide() { return englishWords; }
+    public List<String> getRightSide() { return vietnameseWords; }
 }

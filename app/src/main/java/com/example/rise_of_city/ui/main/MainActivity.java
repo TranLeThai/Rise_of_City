@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -15,6 +16,7 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
+import com.example.rise_of_city.data.repository.VocabularyDataImporter;
 import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
 import com.example.rise_of_city.ui.game.ingame.HomeFragment;
 import com.example.rise_of_city.ui.game.roadmap.RoadMapFragment;
@@ -46,6 +48,14 @@ public class MainActivity extends AppCompatActivity {
 
         // --- GIỮ NGUYÊN TOÀN BỘ CODE CŨ CỦA BẠN BÊN DƯỚI ---
         setContentView(R.layout.activity_main);
+        
+        // Import vocabularies if needed (only once)
+        // Force import vocabularies - Reset flag để import lại
+        SharedPreferences prefsForImport = getSharedPreferences("RiseOfCity_Prefs", MODE_PRIVATE);
+        prefsForImport.edit().putBoolean("vocabularies_imported", false).apply();
+        Log.d("MainActivity", "Reset vocabularies_imported flag to force import");
+        
+        importVocabulariesIfNeeded();
 
         bottomNav = findViewById(R.id.bottom_navigation);
 
@@ -237,6 +247,30 @@ public class MainActivity extends AppCompatActivity {
 
         if (fragment != null) {
             navigateToFragment(itemId, fragment);
+        }
+    }
+    
+    /**
+     * Import vocabularies từ JSON files vào Room DB (chỉ import 1 lần)
+     */
+    private void importVocabulariesIfNeeded() {
+        SharedPreferences prefs = getSharedPreferences("RiseOfCity_Prefs", MODE_PRIVATE);
+        boolean vocabulariesImported = prefs.getBoolean("vocabularies_imported", false);
+        
+        Log.d("MainActivity", "Checking vocabularies import status: " + vocabulariesImported);
+        
+        if (!vocabulariesImported) {
+            Log.d("MainActivity", "Starting vocabulary import...");
+            
+            // Chỉ sử dụng VocabularyDataImporter để import 480 từ vựng với hình ảnh đầy đủ
+            VocabularyDataImporter dataImporter = new VocabularyDataImporter(this);
+            dataImporter.importData();
+            
+            // Đánh dấu đã import
+            prefs.edit().putBoolean("vocabularies_imported", true).apply();
+            Log.d("MainActivity", "Vocabulary import completed and marked as imported");
+        } else {
+            Log.d("MainActivity", "Vocabularies already imported, skipping...");
         }
     }
 }

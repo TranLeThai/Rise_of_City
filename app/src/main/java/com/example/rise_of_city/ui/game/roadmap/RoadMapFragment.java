@@ -16,7 +16,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.cardview.widget.CardView;
+import com.google.android.material.card.MaterialCardView; // SỬA LỖI: Đổi import
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.local.AppDatabase;
@@ -67,13 +67,13 @@ public class RoadMapFragment extends Fragment {
         buildingViewIds.put("school", R.id.building_school);
         buildingViewIds.put("library", R.id.building_library);
         buildingViewIds.put("coffee_shop", R.id.building_cafe);
-        // Thêm 2 building còn lại nếu bạn muốn hiển thị 8 cái
         buildingViewIds.put("clothers", R.id.building_clothers);
         buildingViewIds.put("bakery", R.id.building_bakery);
 
+        // SỬA LỖI: Tách các dòng put
         buildingNames.put("house", "Nhà ở");
         buildingNames.put("farm", "Nông trại");
-        buildingNames.put("park", "Công viên
+        buildingNames.put("park", "Công viên");
         buildingNames.put("school", "Trường học");
         buildingNames.put("library", "Thư viện");
         buildingNames.put("coffee_shop", "Quán Cà Phê");
@@ -129,7 +129,7 @@ public class RoadMapFragment extends Fragment {
             if (buildingData == null) continue;
 
             // Ánh xạ các view con
-            CardView cardView = buildingItemView.findViewById(R.id.building_card);
+            MaterialCardView cardView = buildingItemView.findViewById(R.id.building_card); // SỬA LỖI: dùng đúng kiểu MaterialCardView
             ImageView ivIcon = buildingItemView.findViewById(R.id.iv_building_icon);
             ImageView ivLock = buildingItemView.findViewById(R.id.iv_lock_icon);
             TextView tvName = buildingItemView.findViewById(R.id.tv_building_name);

@@ -1,10 +1,12 @@
 package com.example.rise_of_city.ui.game.roadmap;
+
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,91 +57,97 @@ public class RoadMapDialogFragment extends DialogFragment {
         // --- 1. Ánh xạ các thành phần ---
 
         // Các đường nối (Lines)
-        View line1to2 = view.findViewById(R.id.line_1_to_2);
-        View line2to3 = view.findViewById(R.id.line_2_to_3);
-        View line3to4 = view.findViewById(R.id.line_3_to_4);
+        View line1 = view.findViewById(R.id.line_1);
+        View line2 = view.findViewById(R.id.line_2);
+        View line3 = view.findViewById(R.id.line_3);
+        View line4 = view.findViewById(R.id.line_4);
+        View line5 = view.findViewById(R.id.line_5);
+        View line6 = view.findViewById(R.id.line_6);
+        View line7 = view.findViewById(R.id.line_7);
 
-        // Các CardView (Nút tròn)
-        MaterialCardView card1 = view.findViewById(R.id.btnStage1);
-        MaterialCardView card2 = view.findViewById(R.id.btnStage2);
-        MaterialCardView card3 = view.findViewById(R.id.btnStage3);
-        MaterialCardView card4 = view.findViewById(R.id.btnStage4);
-        MaterialCardView card5 = view.findViewById(R.id.btnStage5);
-        MaterialCardView card6 = view.findViewById(R.id.btnStage6);
+        // Các Building (Include Layout)
+        View buildingHouse = view.findViewById(R.id.building_house);
+        View buildingFarm = view.findViewById(R.id.building_farm);
+        View buildingPark = view.findViewById(R.id.building_park);
+        View buildingSchool = view.findViewById(R.id.building_school);
+        View buildingLibrary = view.findViewById(R.id.building_library);
+        View buildingCafe = view.findViewById(R.id.building_cafe);
+        View buildingClothers = view.findViewById(R.id.building_clothers);
+        View buildingBakery = view.findViewById(R.id.building_bakery);
 
-        // Các dấu tick xanh (Checkmarks) - Giả sử bạn đặt ID là check1, check2... trong XML
-        // Ở đây tôi dùng findViewWithTag hoặc logic ẩn hiện dựa trên cha của nó nếu bạn chưa đặt ID
-        // Để đơn giản, tôi sẽ xử lý màu sắc của CardView để thể hiện trạng thái
+        // Cấu hình thông tin từng building
+        setupBuilding(buildingHouse, "House", R.drawable.vector_house, R.drawable.vector_house_lock, 1, true);
+        setupBuilding(buildingFarm, "Farm", R.drawable.vector_farmer, R.drawable.vector_farmer_lock, 2, mCurrentLevel >= 2);
+        setupBuilding(buildingPark, "Park", R.drawable.vector_park, R.drawable.vector_park_lock, 3, mCurrentLevel >= 3);
+        setupBuilding(buildingSchool, "School", R.drawable.vector_school, R.drawable.vector_school_lock, 4, mCurrentLevel >= 4);
+        setupBuilding(buildingLibrary, "Library", R.drawable.vector_library, R.drawable.vector_library_lock, 5, mCurrentLevel >= 5);
+        setupBuilding(buildingCafe, "Cafe", R.drawable.vector_coffee, R.drawable.vector_coffee_lock, 6, mCurrentLevel >= 6);
+        setupBuilding(buildingClothers, "Clothes", R.drawable.vector_clothers, R.drawable.vector_clothers_lock, 7, mCurrentLevel >= 7);
+        setupBuilding(buildingBakery, "Bakery", R.drawable.vector_bakery, R.drawable.vector_bakery_lock, 8, mCurrentLevel >= 8);
 
-        // --- 2. Logic Hiển thị theo Level ---
+        // --- 2. Logic Hiển thị Line theo Level ---
 
-        // Màu sắc định nghĩa
-        int colorUnlocked = Color.parseColor("#3FD0F1"); // Màu xanh sáng
-        int colorLocked = Color.parseColor("#E0E0E0");   // Màu xám
-        int colorStrokeUnlocked = Color.parseColor("#B2EBF2");
+        // Mặc định ẩn hết line nếu chưa đạt level
+        // Line 1 nối House (Lv1) -> Farm (Lv2). Hiện khi >= Lv2
+        line1.setVisibility(mCurrentLevel >= 2 ? View.VISIBLE : View.INVISIBLE);
+        
+        // Line 2 nối Farm (Lv2) -> Park (Lv3). Hiện khi >= Lv3
+        line2.setVisibility(mCurrentLevel >= 3 ? View.VISIBLE : View.INVISIBLE);
 
-        // RESET MẶC ĐỊNH: Ẩn hết các đường nối trước khi tính toán
-        line1to2.setVisibility(View.INVISIBLE);
-        line2to3.setVisibility(View.INVISIBLE);
-        line3to4.setVisibility(View.INVISIBLE);
+        // Line 3 nối Park (Lv3) -> School (Lv4). Hiện khi >= Lv4
+        line3.setVisibility(mCurrentLevel >= 4 ? View.VISIBLE : View.INVISIBLE);
 
-        // --- STAGE 1 (Luôn mở) ---
-        unlockStage(card1, true); // Luôn sáng
+        // Line 4 nối School (Lv4) -> Library (Lv5). Hiện khi >= Lv5
+        line4.setVisibility(mCurrentLevel >= 5 ? View.VISIBLE : View.INVISIBLE);
 
-        // --- STAGE 2 ---
-        if (mCurrentLevel >= 2) {
-            line1to2.setVisibility(View.VISIBLE); // Hiện đường nối
-            unlockStage(card2, true);             // Mở khóa Card 2
-        } else {
-            lockStage(card2);
-        }
+        // Line 5 nối Library (Lv5) -> Cafe (Lv6). Hiện khi >= Lv6
+        line5.setVisibility(mCurrentLevel >= 6 ? View.VISIBLE : View.INVISIBLE);
 
-        // --- STAGE 3 ---
-        if (mCurrentLevel >= 3) {
-            line2to3.setVisibility(View.VISIBLE);
-            unlockStage(card3, true);
-        } else {
-            lockStage(card3);
-        }
+        // Line 6 nối Cafe (Lv6) -> Clothers (Lv7). Hiện khi >= Lv7
+        line6.setVisibility(mCurrentLevel >= 7 ? View.VISIBLE : View.INVISIBLE);
 
-        // --- STAGE 4 (The Park - Special) ---
-        if (mCurrentLevel >= 4) {
-            line3to4.setVisibility(View.VISIBLE);
-            // Stage 4 có thiết kế riêng (nền trắng viền xanh) nên ta xử lý riêng
-            card4.setStrokeColor(colorUnlocked);
-            card4.setCardBackgroundColor(Color.WHITE);
-        } else {
-            // Nếu chưa đến level 4, làm nó xám đi
-            card4.setStrokeColor(colorLocked);
-            card4.setCardBackgroundColor(colorLocked);
-        }
-
-        // --- STAGE 5 & 6 (Ví dụ chưa mở) ---
-        if (mCurrentLevel >= 5) unlockStage(card5, true); else lockStage(card5);
-        if (mCurrentLevel >= 6) unlockStage(card6, true); else lockStage(card6);
+        // Line 7 nối Clothers (Lv7) -> Bakery (Lv8). Hiện khi >= Lv8
+        line7.setVisibility(mCurrentLevel >= 8 ? View.VISIBLE : View.INVISIBLE);
     }
 
-    // Hàm phụ trợ: Mở khóa Stage (Đổi màu xanh)
-    private void unlockStage(MaterialCardView card, boolean isCompleted) {
-        if (card == null) return;
-        card.setCardBackgroundColor(Color.parseColor("#3FD0F1")); // Nền xanh
-        card.setStrokeColor(Color.parseColor("#B2EBF2"));         // Viền nhạt
+    private void setupBuilding(View buildingView, String name, int iconResId, int iconLockedResId, int requiredLevel, boolean isUnlocked) {
+        if (buildingView == null) return;
 
-        // Bạn có thể tìm ImageView bên trong CardView để đổi icon nếu cần
-        // ImageView icon = (ImageView) card.getChildAt(0);
-        // icon.setColorFilter(Color.WHITE);
-    }
+        MaterialCardView card = buildingView.findViewById(R.id.building_card);
+        ImageView ivIcon = buildingView.findViewById(R.id.iv_building_icon);
+        ImageView ivLock = buildingView.findViewById(R.id.iv_lock_icon);
+        TextView tvName = buildingView.findViewById(R.id.tv_building_name);
+        TextView tvProgress = buildingView.findViewById(R.id.tv_building_progress);
 
-    // Hàm phụ trợ: Khóa Stage (Đổi màu xám)
-    private void lockStage(MaterialCardView card) {
-        if (card == null) return;
-        card.setCardBackgroundColor(Color.parseColor("#E0E0E0")); // Nền xám
-        card.setStrokeColor(Color.TRANSPARENT);                   // Không viền
+        tvName.setText(name);
 
-        // Làm mờ icon bên trong
-        if (card.getChildCount() > 0 && card.getChildAt(0) instanceof ImageView) {
-            ImageView icon = (ImageView) card.getChildAt(0);
-            icon.setColorFilter(Color.GRAY); // Icon màu xám
+        if (isUnlocked) {
+            // Đã mở khóa
+            card.setCardBackgroundColor(Color.parseColor("#E0E0E0")); // Hoặc màu background mong muốn khi unlock
+            card.setStrokeColor(Color.parseColor("#B0B0B0"));
+            ivIcon.setImageResource(iconResId);
+            ivIcon.setColorFilter(null); // Xóa filter màu nếu có
+            ivLock.setVisibility(View.GONE);
+            tvName.setTextColor(Color.parseColor("#333333"));
+            tvProgress.setVisibility(View.VISIBLE);
+            tvProgress.setText("Level " + requiredLevel); // Hoặc hiển thị %
+        } else {
+            // Bị khóa
+            card.setCardBackgroundColor(Color.parseColor("#EEEEEE"));
+            card.setStrokeColor(Color.TRANSPARENT);
+            // Dùng icon locked hoặc icon thường nhưng làm mờ
+             if (iconLockedResId != 0) {
+                 ivIcon.setImageResource(iconLockedResId);
+             } else {
+                 ivIcon.setImageResource(iconResId);
+                 ivIcon.setColorFilter(Color.GRAY);
+             }
+            
+            // Nếu muốn hiện ổ khóa đè lên
+            // ivLock.setVisibility(View.VISIBLE);
+            
+            tvName.setTextColor(Color.GRAY);
+            tvProgress.setVisibility(View.INVISIBLE);
         }
     }
 }

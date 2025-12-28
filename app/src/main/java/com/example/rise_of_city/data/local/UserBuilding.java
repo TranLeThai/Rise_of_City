@@ -1,5 +1,6 @@
 package com.example.rise_of_city.data.local;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 
 @Entity(tableName = "user_buildings", primaryKeys = {"userId", "buildingId"})

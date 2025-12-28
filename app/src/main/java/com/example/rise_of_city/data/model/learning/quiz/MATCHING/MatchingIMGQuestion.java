@@ -1,37 +1,46 @@
 package com.example.rise_of_city.data.model.learning.quiz.MATCHING;
 
+import android.content.Context;
 import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
-
+import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Model cho dạng bài MATCHINGIMG (Nối Hình ảnh - Từ vựng).
- * Người chơi sẽ nối hình ảnh ở cột trái với từ tiếng Anh ở cột phải.
- */
 public class MatchingIMGQuestion extends BaseQuestion {
 
-    private List<Integer> imageResIds; // Danh sách ID tài nguyên ảnh (R.drawable...)
-    private List<String> words;        // Danh sách từ tiếng Anh tương ứng
+    @SerializedName("images") // Ánh xạ từ "images" trong JSON
+    private List<String> imageNames;
 
-    /**
-     * Constructor khởi tạo câu hỏi nối hình.
-     * @param imageResIds: Danh sách ID ảnh (Ví dụ: R.drawable.house, R.drawable.tree)
-     * @param words: Danh sách từ đúng theo thứ tự ảnh (Ví dụ: "House", "Tree")
-     */
+    @SerializedName("answers") // Ánh xạ từ "answers" trong JSON
+    private List<String> words;
+
     public MatchingIMGQuestion(String id, String title, int order,
-                               List<Integer> imageResIds,
+                               List<String> imageNames,
                                List<String> words) {
         super(id, title, order);
-        this.imageResIds = imageResIds;
+        this.imageNames = imageNames;
         this.words = words;
     }
 
     @Override
     public QuestionType getType() {
-        return QuestionType.MATCHINGIMG; // Trả về danh tính MATCHINGIMG
+        return QuestionType.MATCHINGIMG;
     }
 
-    // Getters
-    public List<Integer> getImageResIds() { return imageResIds; }
+    public List<String> getImageNames() { return imageNames; }
     public List<String> getWords() { return words; }
+
+    /**
+     * Hàm quan trọng: Chuyển danh sách tên file (String) thành ID (Integer) để dùng cho ImageView
+     */
+    public List<Integer> getImageResIds(Context context) {
+        List<Integer> resIds = new ArrayList<>();
+        for (String name : imageNames) {
+            // Loại bỏ đuôi .jpg nếu có
+            String cleanName = name.contains(".") ? name.substring(0, name.lastIndexOf(".")) : name;
+            int id = context.getResources().getIdentifier(cleanName.trim(), "drawable", context.getPackageName());
+            resIds.add(id);
+        }
+        return resIds;
+    }
 }

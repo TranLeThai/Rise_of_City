@@ -16,7 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.learning.quiz.LISTENING.ListeningQuestion;
-import com.example.rise_of_city.ui.game.ingame.LessonActivity;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
 
 public class ListeningFragment extends Fragment {
 
@@ -43,7 +43,10 @@ public class ListeningFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        question = (ListeningQuestion) getArguments().getSerializable("data");
+
+        if (getArguments() != null) {
+            question = (ListeningQuestion) getArguments().getSerializable("data");
+        }
 
         btnPlayAudio = view.findViewById(R.id.btnPlayAudio);
         tvTranscript = view.findViewById(R.id.tvTranscript);
@@ -52,7 +55,9 @@ public class ListeningFragment extends Fragment {
                 view.findViewById(R.id.btnOpt3), view.findViewById(R.id.btnOpt4)
         };
 
-        setupUI();
+        if (question != null) {
+            setupUI();
+        }
     }
 
     private void setupUI() {
@@ -61,9 +66,11 @@ public class ListeningFragment extends Fragment {
 
         // 2. Hiển thị 4 lựa chọn
         for (int i = 0; i < optionButtons.length; i++) {
-            optionButtons[i].setText(question.getOptions().get(i));
-            final int index = i;
-            optionButtons[i].setOnClickListener(v -> checkAnswer(index));
+            if (i < question.getOptions().size()) {
+                optionButtons[i].setText(question.getOptions().get(i));
+                final int index = i;
+                optionButtons[i].setOnClickListener(v -> checkAnswer(index));
+            }
         }
     }
 
@@ -72,25 +79,30 @@ public class ListeningFragment extends Fragment {
             mediaPlayer.release();
         }
 
-        // Lấy Resource ID từ tên file trong raw (ví dụ: "report_01")
-        int resId = getResources().getIdentifier(question.getAudioPath(), "raw", getContext().getPackageName());
+        // Lấy Resource ID từ tên file trong raw
+        int resId = requireContext().getResources().getIdentifier(
+                question.getAudioPath(), "raw", requireContext().getPackageName());
+
         if (resId != 0) {
-            mediaPlayer = MediaPlayer.create(getContext(), resId);
-            mediaPlayer.start();
+            mediaPlayer = MediaPlayer.create(requireContext(), resId);
+            if (mediaPlayer != null) {
+                mediaPlayer.start();
+            }
         }
     }
 
     private void checkAnswer(int selectedIndex) {
         LessonActivity activity = (LessonActivity) getActivity();
-        if (activity == null) return;
+        if (activity == null || question == null) return;
 
         if (selectedIndex == question.getCorrectAnswerIndex()) {
             optionButtons[selectedIndex].setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_correct));
 
             // Hiện Transcript sau khi trả lời đúng
             tvTranscript.setVisibility(View.VISIBLE);
-            tvTranscript.setText("Nội dung: " + question.getTranscript());
+            tvTranscript.setText("Nội dung: " + question.getFulltranscript());
 
+            // Delay 1.5s để người chơi kịp nghe/đọc transcript
             new android.os.Handler().postDelayed(activity::handleCorrectAnswer, 1500);
         } else {
             optionButtons[selectedIndex].setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red_wrong));

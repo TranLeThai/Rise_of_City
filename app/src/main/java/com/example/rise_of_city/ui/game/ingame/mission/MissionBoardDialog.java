@@ -35,7 +35,7 @@ public class MissionBoardDialog extends DialogFragment {
 
         // Thiết lập Adapter (Bạn cần tạo MissionAdapter)
         MissionAdapter adapter = new MissionAdapter(missions, mission -> {
-            // Xử lý khi bấm vào làm nhiệm vụ (Mở com.example.rise_of_city.ui.game.ingame.LessonActivity)
+            // Xử lý khi bấm vào làm nhiệm vụ (Mở com.example.rise_of_city.ui.lesson.LessonActivity)
             dismiss();
         });
         rv.setAdapter(adapter);

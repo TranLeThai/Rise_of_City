@@ -78,16 +78,4 @@ dependencies {
     // Glide for image loading
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor(libs.room.compiler)
-
-    implementation("org.apache.poi:poi:4.1.2")
-    implementation("org.apache.poi:poi-ooxml:4.1.2") {
-        exclude(group = "org.apache.xmlgraphics", module = "batik-all")
-        exclude(group = "xml-apis", module = "xml-apis")
-    }
-
-    // Thư viện hỗ trợ tránh lỗi nén log4j trên Android
-    implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
-    implementation("javax.xml.stream:stax-api:1.0-2")
-
-    implementation("com.google.ai.client.generativeai:generativeai:0.9.0") // Hoặc version mới hơn
 }

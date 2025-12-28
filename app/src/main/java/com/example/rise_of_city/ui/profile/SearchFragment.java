@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.user.SearchTopic;
 import com.example.rise_of_city.data.model.user.SearchUser;
-import com.example.rise_of_city.ui.lesson.topic.TopicDetailActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -591,14 +590,6 @@ public class SearchFragment extends Fragment {
                     android.content.Intent intent = new android.content.Intent(v.getContext(), 
                         com.example.rise_of_city.ui.profile.UserProfileActivity.class);
                     intent.putExtra("userId", user.getUid());
-                    v.getContext().startActivity(intent);
-                } else if (currentTab.equals("topics") && items.get(position) instanceof SearchTopic) {
-                    SearchTopic topic = (SearchTopic) items.get(position);
-                    // Navigate to topic detail
-                    android.content.Intent intent = new android.content.Intent(v.getContext(), 
-                        TopicDetailActivity.class);
-                    intent.putExtra("topicId", topic.getId());
-                    intent.putExtra("topic", topic);
                     v.getContext().startActivity(intent);
                 }
             });

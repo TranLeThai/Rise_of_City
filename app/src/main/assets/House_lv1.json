@@ -1,0 +1,92 @@
+[
+  {
+    "type": "LECTURE",
+    "id": "L_005",
+    "title": "My Home",
+    "order": 77,
+    "contentEnglish": "My house has a living room, a kitchen, and a bedroom. There is a sofa near the window, and a table in the bathroom where the family eats together every day.",
+    "contentVietnamese": "Ngôi nhà của tôi có phòng khách, nhà bếp và phòng ngủ. Có một chiếc ghế sofa gần cửa sổ, và một chiếc bàn trong phòng khách nơi gia đình ăn cùng nhau mỗi ngày.",
+    "wrongWordList": [
+      {
+        "originalWrongWord": "bathroom",
+        "options": ["living room", "bedroom", "kitchen"],
+        "correctAnswer": "living room"
+      },
+      {
+        "originalWrongWord": "table",
+        "options": ["bed", "sofa", "chair"],
+        "correctAnswer": "sofa"
+      }
+    ]
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_009",
+    "title": "Nhà ở",
+    "order": 78,
+    "content": "kitchen"
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "S_009",
+    "title": "Nhà ở",
+    "order": 80,
+    "content": "The family sits on the sofa in the living room."
+  },
+  {
+    "type": "MATCHINGTEXT",
+    "id": "M_009",
+    "title": "Nội thất gia đình",
+    "order": 82,
+    "leftSide": ["bed", "table", "chair", "sofa"],
+    "rightSide": ["giường", "bàn", "ghế", "ghế sofa"]
+  },
+  {
+    "type": "MATCHINGIMG",
+    "id": "MI_009",
+    "title": "Các phòng trong nhà",
+    "order": 84,
+    "images": ["kitchen.jpg", "bathroom.jpg", "bedroom.jpg"],
+    "answers": ["kitchen", "bathroom", "bedroom"]
+  },
+  {
+    "type": "LISTENING",
+    "id": "L_009",
+    "title": "Nhà ở",
+    "order": 86,
+    "audioPath": "home_ls_01.mp3",
+    "options": ["door", "window", "wall", "roof"],
+    "correctAnswerIndex": 1,
+    "transcript": "Please open the ___ to get fresh air."
+  },
+  {
+    "type": "INPUT",
+    "id": "I_009",
+    "title": "Nhà ở",
+    "order": 88,
+    "question": "The family eats dinner at the ____.",
+    "correctAnswer": "table",
+    "hint": "Used for meals"
+  },
+  {
+    "type": "DECISION",
+    "id": "TF_009",
+    "title": "Nhà ở",
+    "order": 90,
+    "imagePath": "living_room.jpg",
+    "statement": "This bathroom has a sofa for sleeping.",
+    "answer": false,
+    "explanation": "Bathrooms are for washing, not for sleeping. Sofas are placed in bedrooms or living rooms."
+  },
+  {
+    "type": "CHOICE",
+    "subType": "GRAMMAR",
+    "id": "C_017",
+    "title": "Grammar Check",
+    "order": 92,
+    "question": "There ____ a bed in the bedroom.",
+    "options": ["is", "are", "be", "have"],
+    "correctAnswerIndex": 0,
+    "explanation": "Danh từ số ít → dùng is."
+  }
+]

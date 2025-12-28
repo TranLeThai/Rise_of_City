@@ -1,0 +1,92 @@
+[
+  {
+    "type": "LECTURE",
+    "id": "L_101",
+    "title": "My School",
+    "order": 1,
+    "contentEnglish": "This is my school. There is a big playground in front of the building. Students play football and run here every day. Inside, there are many classrooms with desks and a blackboard.",
+    "contentVietnamese": "Đây là trường học của tôi. Có một sân chơi lớn phía trước tòa nhà. Học sinh chơi bóng đá và chạy nhảy ở đây mỗi ngày. Bên trong có nhiều lớp học với bàn ghế và bảng đen.",
+    "wrongWordList": [
+      {
+        "originalWrongWord": "blackboard",
+        "options": ["computer", "window", "door"],
+        "correctAnswer": "window"
+      },
+      {
+        "originalWrongWord": "playground",
+        "options": ["classroom", "library", "canteen"],
+        "correctAnswer": "classroom"
+      }
+    ]
+  },
+  {
+    "type": "WORDORDERING",
+    "id": "WO_101",
+    "title": "Từ vựng trường học",
+    "order": 2,
+    "content": "classroom"
+  },
+  {
+    "type": "SENTENCEORDERING",
+    "id": "SO_101",
+    "title": "Câu về trường học",
+    "order": 3,
+    "content": "Students study in the classroom every morning."
+  },
+  {
+    "type": "MATCHINGTEXT",
+    "id": "MT_101",
+    "title": "Từ vựng nội thất trường học",
+    "order": 4,
+    "leftSide": ["desk", "chair", "blackboard", "teacher"],
+    "rightSide": ["bàn học", "ghế", "bảng đen", "giáo viên"]
+  },
+  {
+    "type": "MATCHINGIMG",
+    "id": "MI_101",
+    "title": "Các khu vực trong trường",
+    "order": 5,
+    "images": ["playground.jpg", "classroom.jpg", "library_school.jpg"],
+    "answers": ["playground", "classroom", "library"]
+  },
+  {
+    "type": "LISTENING",
+    "id": "LS_101",
+    "title": "Nghe về giờ học",
+    "order": 6,
+    "audioPath": "school_ls_01.mp3",
+    "options": ["bell", "book", "pen", "bag"],
+    "correctAnswerIndex": 0,
+    "transcript": "When the ___ rings, students go to class."
+  },
+  {
+    "type": "INPUT",
+    "id": "I_101",
+    "title": "Điền từ",
+    "order": 7,
+    "question": "The teacher writes on the ____.",
+    "correctAnswer": "blackboard",
+    "hint": "Used for writing lessons"
+  },
+  {
+    "type": "DECISION",
+    "id": "TF_101",
+    "title": "Đúng hay Sai",
+    "order": 8,
+    "imagePath": "school_playground.jpg",
+    "statement": "This is a kitchen where students cook food.",
+    "answer": false,
+    "explanation": "This is a playground, not a kitchen. Students play sports here."
+  },
+  {
+    "type": "CHOICE",
+    "subType": "GRAMMAR",
+    "id": "C_101",
+    "title": "Ngữ pháp",
+    "order": 9,
+    "question": "There ____ many students in the school.",
+    "options": ["is", "are", "be", "has"],
+    "correctAnswerIndex": 1,
+    "explanation": "Danh từ số nhiều 'students' → dùng 'are'."
+  }
+]

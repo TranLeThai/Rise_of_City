@@ -2,21 +2,31 @@ package com.example.rise_of_city.data.repository;
 
 import android.content.Context;
 import com.example.rise_of_city.data.model.game.Building;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * GameRepository - Lưu trữ dữ liệu TĨNH (static) của các công trình trong game.
+ *
+ * Chỉ chứa:
+ * - Tên công trình
+ * - requiredLessonName (tên file JSON bài học để mở khóa hoặc nâng cấp)
+ * - hasMission mặc định (nếu muốn gán sẵn mission cho một số building)
+ *
+ * KHÔNG chứa:
+ * - level, currentExp, maxExp, isLocked → Những thứ này lấy từ Room Database (UserBuilding)
+ */
 public class GameRepository {
 
     private static GameRepository instance;
 
-    // Dùng Map để tìm kiếm nhanh bằng ID (VD: "school", "library")
     private Map<String, Building> buildingMap;
-    // Dùng List nếu cần hiển thị danh sách (VD: RoadMap)
     private List<Building> buildingList;
 
-    // Singleton Pattern
+    // Singleton
     public static GameRepository getInstance(Context context) {
         if (instance == null) {
             instance = new GameRepository(context);
@@ -25,43 +35,86 @@ public class GameRepository {
     }
 
     private GameRepository(Context context) {
-        // Khởi tạo dữ liệu khi Repository được tạo ra
-        initMockData();
+        initStaticData();
     }
 
-    private void initMockData() {
+    private void initStaticData() {
         buildingMap = new HashMap<>();
         buildingList = new ArrayList<>();
 
-        // Thêm dữ liệu giả lập (Khớp với các ID trong InGameActivity)
-        // Buildings unlocked (không bị khóa) - để test fragment Unlock
-        addBuilding(new Building("house", "Nhà Của Tôi", 1, 100, 100, true, false, null));
-        addBuilding(new Building("library", "Thư Viện", 5, 50, 100, false, false, null)); // Unlocked để test
-        addBuilding(new Building("school", "Trường học", 3, 75, 150, true, false, null)); // Unlocked để test
-        
-        // Buildings locked (bị khóa - cần hoàn thành bài học)
-        addBuilding(new Building("park", "Công viên", 0, 0, 100, false, true, "Thì tương lai đơn"));
-        addBuilding(new Building("farmer", "Nông trại", 0, 0, 200, true, true, "Thì hiện tại tiếp diễn"));
-        addBuilding(new Building("coffee", "Tiệm Cafe", 0, 0, 120, true, true, "Thì quá khứ tiếp diễn"));
-        addBuilding(new Building("clothers", "Shop Quần Áo", 0, 0, 180, false, true, "Thì tương lai tiếp diễn"));
-        addBuilding(new Building("bakery", "Tiệm Bánh", 0, 0, 130, true, true, "Thì hiện tại hoàn thành"));
+        // ===================================================================
+        // THÔNG TIN TĨNH CỦA TỪNG CÔNG TRÌNH
+        // ===================================================================
+
+        // Nhà Cửa - Đã mở khóa từ đầu (thường là building đầu tiên)
+        addBuilding(new Building(
+                "house",
+                "Nhà Của Tôi",
+                0, 0, 100,           // level, exp, maxExp sẽ được override từ Room
+                false,               // hasMission mặc định (có thể có mission random sau)
+                false,               // isLocked sẽ được tính từ Room
+                "House_lv1"          // Tên file JSON bài học để nâng cấp hoặc ôn lại
+        ));
+
+        // Trường học
+        addBuilding(new Building("school", "Trường Học",
+                0, 0, 100, false, true, "School_lv1"));
+
+        // Thư viện
+        addBuilding(new Building("library", "Thư Viện",
+                0, 0, 100, false, true, "Library_lv1"));
+
+        // Công viên
+        addBuilding(new Building("park", "Công Viên",
+                0, 0, 100, false, true, "Park_lv1"));
+
+        // Nông trại
+        addBuilding(new Building("farmer", "Nông Trại",
+                0, 0, 100, true, true, "Farmer_lv1"));
+
+        // Tiệm Cafe
+        addBuilding(new Building("coffee", "Tiệm Cafe",
+                0, 0, 100, true, true, "Coffee_lv1"));
+
+        // Shop Quần Áo
+        addBuilding(new Building("clothers", "Shop Quần Áo",
+                0, 0, 100, false, true, "Clothes_lv1"));
+
+        // Tiệm Bánh
+        addBuilding(new Building("bakery", "Tiệm Bánh",
+                0, 0, 100, true, true, "Bakery_lv1"));
     }
 
-    // Hàm phụ trợ để thêm vào cả Map và List
     private void addBuilding(Building b) {
         buildingMap.put(b.getId(), b);
         buildingList.add(b);
     }
 
-    // --- CÁC HÀM CUNG CẤP DỮ LIỆU CHO VIEWMODEL ---
+    // ================================================
+    // CÁC HÀM CUNG CẤP DỮ LIỆU CHO VIEWMODEL
+    // ================================================
 
-    // 1. Lấy thông tin 1 tòa nhà cụ thể
+    /**
+     * Lấy thông tin tĩnh của một công trình theo ID.
+     * ViewModel sẽ dùng cái này để lấy tên + requiredLessonName,
+     * rồi kết hợp với dữ liệu từ Room để tạo Building hoàn chỉnh.
+     */
     public Building getBuildingById(String id) {
         return buildingMap.get(id);
     }
 
-    // 2. Lấy danh sách toàn bộ (Dùng cho RoadMap sau này)
+    /**
+     * Lấy danh sách tất cả công trình (dùng cho RoadMap, danh sách building sau này)
+     */
     public List<Building> getAllBuildings() {
-        return buildingList;
+        return new ArrayList<>(buildingList); // trả về copy để tránh modify ngoài ý muốn
+    }
+
+    /**
+     * (Tùy chọn) Lấy requiredLessonName trực tiếp nếu chỉ cần tên bài học
+     */
+    public String getRequiredLessonName(String buildingId) {
+        Building b = buildingMap.get(buildingId);
+        return b != null ? b.getRequiredLessonName() : null;
     }
 }

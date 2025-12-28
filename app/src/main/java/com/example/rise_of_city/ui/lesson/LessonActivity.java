@@ -44,10 +44,13 @@ public class LessonActivity extends AppCompatActivity {
 
     // Game Logic State
     private int currentHearts = 3;
-    private int currentQuestionIndex = 0; // Thay cho currentProgress cứng
-    private List<BaseQuestion> questionList; // Danh sách câu hỏi từ Excel
+    private int currentQuestionIndex = 0;
+    private List<BaseQuestion> questionList;
     private CountDownTimer countDownTimer;
-    private final long TIME_LIMIT = 20000;
+    private final long TIME_LIMIT = 20000; // 20 giây mỗi câu
+
+    // Tên file JSON (ví dụ: House_lv1.json, School_lv1.json, ...)
+    private String lessonFileName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,16 +59,27 @@ public class LessonActivity extends AppCompatActivity {
 
         initViews();
 
-        // 1. Khởi tạo ExcelReader và đọc dữ liệu
-        JsonReader excelReader = new JsonReader(this);
-        questionList = excelReader.readLessonFromJson("House_lv1");
+        // LẤY TÊN BÀI HỌC TỪ INTENT (key: "lessonName")
+        String lessonName = getIntent().getStringExtra("lessonName");
+
+        // Fallback nếu không có (ví dụ test trực tiếp activity)
+        if (lessonName == null || lessonName.isEmpty()) {
+            lessonName = "House_lv1"; // bài mặc định
+        }
+
+        // LUÔN THÊM ĐUÔI .json ĐỂ ĐẢM BẢO LOAD ĐÚNG FILE TRONG ASSETS
+        lessonFileName = lessonName + ".json";
+
+        // Load dữ liệu bài học
+        JsonReader jsonReader = new JsonReader(this);
+        questionList = jsonReader.readLessonFromJson(lessonFileName);
 
         if (questionList != null && !questionList.isEmpty()) {
             setupGame();
             displayQuestion(currentQuestionIndex);
         } else {
-            Toast.makeText(this, "Không thể tải dữ liệu bài học!", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(this, "Không thể tải dữ liệu bài học: " + lessonFileName, Toast.LENGTH_LONG).show();
+            finish(); // Thoát activity nếu lỗi
         }
     }
 
@@ -73,30 +87,26 @@ public class LessonActivity extends AppCompatActivity {
         tvTimer = findViewById(R.id.tvTimer);
         lessonProgressBar = findViewById(R.id.lessonProgressBar);
         btnSettings = findViewById(R.id.btnSettings);
+
         ivHearts = new ImageView[]{
                 findViewById(R.id.ivHeart1),
                 findViewById(R.id.ivHeart2),
                 findViewById(R.id.ivHeart3)
         };
 
-        btnSettings.setOnClickListener(v -> {
-            Toast.makeText(this, "Mở bảng cài đặt thành phố...", Toast.LENGTH_SHORT).show();
-        });
+        btnSettings.setOnClickListener(v ->
+                Toast.makeText(this, "Mở bảng cài đặt thành phố...", Toast.LENGTH_SHORT).show());
     }
 
     private void setupGame() {
-        // Tiến độ tối đa dựa trên tổng số câu hỏi trong file Excel
         lessonProgressBar.setMax(questionList.size());
-        lessonProgressBar.setProgress(currentQuestionIndex + 1);
+        lessonProgressBar.setProgress(1);
         startCountdown();
     }
 
-    /**
-     * Logic điều hướng Fragment dựa trên QuestionType từ ExcelReader
-     */
     private void displayQuestion(int index) {
         if (index >= questionList.size()) {
-            Toast.makeText(this, "Thành phố đã hoàn thành công trình!", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Hoàn thành bài học! Công trình đã sẵn sàng nâng cấp.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
@@ -104,48 +114,36 @@ public class LessonActivity extends AppCompatActivity {
         BaseQuestion question = questionList.get(index);
         Fragment fragment = null;
 
-        // Ép kiểu (Cast) BaseQuestion sang đúng lớp con dựa trên QuestionType từ Excel
         switch (question.getType()) {
             case LECTURE:
                 fragment = LectureFragment.newInstance((LectureQuestion) question);
                 break;
-
             case CHOICE:
                 fragment = ChoiceFragment.newInstance((ChoiceQuestion) question);
                 break;
-
             case MATCHINGTEXT:
                 fragment = MatchingTextFragment.newInstance((MatchingTextQuestion) question);
                 break;
-
             case MATCHINGIMG:
                 fragment = MatchingIMGFragment.newInstance((MatchingIMGQuestion) question);
                 break;
-
             case INPUT:
-                // Trong ExcelReader, type INPUT được map với WritingQuestion
                 fragment = WritingFragment.newInstance((WritingQuestion) question);
                 break;
-
             case DECISION:
-                // Trong ExcelReader, type DECISION được map với TrueFalseQuestion
                 fragment = TrueFalseFragment.newInstance((TrueFalseQuestion) question);
                 break;
-
             case SENTENCEORDERING:
                 fragment = OrderingFragment.newInstance((SentenceOrderQuestion) question);
                 break;
-
             case WORDORDERING:
                 fragment = OrderingFragment.newInstance((WordOrderQuestion) question);
                 break;
-
             case LISTENING:
                 fragment = ListeningFragment.newInstance((ListeningQuestion) question);
                 break;
-
             default:
-                Toast.makeText(this, "Loại câu hỏi không xác định!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Loại câu hỏi không hỗ trợ!", Toast.LENGTH_SHORT).show();
                 break;
         }
 
@@ -157,12 +155,15 @@ public class LessonActivity extends AppCompatActivity {
     }
 
     public void startCountdown() {
-        if (countDownTimer != null) countDownTimer.cancel();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
         countDownTimer = new CountDownTimer(TIME_LIMIT, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
                 tvTimer.setText(String.valueOf(millisUntilFinished / 1000));
             }
+
             @Override
             public void onFinish() {
                 handleWrongAnswer();
@@ -172,20 +173,21 @@ public class LessonActivity extends AppCompatActivity {
 
     public void handleCorrectAnswer() {
         currentQuestionIndex++;
-        Toast.makeText(this, "Hợp đồng hợp lệ!", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Đúng rồi!", Toast.LENGTH_SHORT).show();
         displayQuestion(currentQuestionIndex);
     }
 
     public void handleWrongAnswer() {
         if (currentHearts > 0) {
             currentHearts--;
-            ivHearts[currentHearts].setImageResource(R.drawable.ic_heart_empty);
+            ivHearts[currentHearts].setImageResource(R.drawable.ic_heart_empty); // cần có icon này
 
             if (currentHearts == 0) {
-                Toast.makeText(this, "Thành phố đình trệ!", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Hết tim! Bài học thất bại.", Toast.LENGTH_LONG).show();
                 finish();
             } else {
-                currentQuestionIndex++; // Vẫn qua câu tiếp theo
+                currentQuestionIndex++;
+                Toast.makeText(this, "Sai rồi! Tiếp tục nào.", Toast.LENGTH_SHORT).show();
                 displayQuestion(currentQuestionIndex);
             }
         }
@@ -200,6 +202,8 @@ public class LessonActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null) countDownTimer.cancel();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
     }
 }

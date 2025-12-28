@@ -1,10 +1,8 @@
-// InGameActivity.java
 package com.example.rise_of_city.ui.game.ingame;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.view.Window;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.ScrollView;
@@ -33,16 +31,18 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     private GameViewModel viewModel;
     private GoldRepository goldRepo;
+
     private TextView tvCoinCount;
     private ScrollView vScroll;
     private HorizontalScrollView hScroll;
     private View layoutMenu;
     private View fragmentContainer;
 
-    private ImageView btnMenuRed, btnMissionList; // Đã khai báo
+    // Đã khai báo và sẽ ánh xạ đúng
+    private ImageView btnMenuRed;
+    private ImageView btnMissionList;
 
     private long backPressedTime;
-    private Toast mToast;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +64,7 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         loadGold();
         handleIntentBuildingId();
 
+        // Cuộn đến giữa bản đồ sau khi layout xong
         if (vScroll != null && hScroll != null) {
             vScroll.post(this::scrollToCenter);
         }
@@ -76,9 +77,11 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         layoutMenu = findViewById(R.id.layout_building_menu);
         fragmentContainer = findViewById(R.id.fragment_unlock_container);
 
-        // --- BỔ SUNG: Ánh xạ nút Menu Đỏ để tránh NullPointerException ---
-        btnMissionList = findViewById(R.id.mission);
+        // ÁNH XẠ ĐÚNG CÁC NÚT TRÊN TOP BAR
+        btnMenuRed = findViewById(R.id.btn_menu);        // <-- Thay ID thực tế nếu khác
+        btnMissionList = findViewById(R.id.mission);         // Đã có ID này
 
+        // Click nền bản đồ để đóng menu chi tiết
         View bgMap = findViewById(R.id.img_map_background);
         if (bgMap != null) {
             bgMap.setOnClickListener(v -> viewModel.closeMenu());
@@ -88,30 +91,30 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
     private void setupTopBarEvents() {
         if (btnMenuRed != null) {
             btnMenuRed.setOnClickListener(v -> {
-                if (layoutMenu != null) layoutMenu.setVisibility(View.VISIBLE);
+                if (layoutMenu != null) {
+                    layoutMenu.setVisibility(View.VISIBLE);
+                }
             });
         }
 
         if (btnMissionList != null) {
-            btnMissionList.setOnClickListener(v -> {
-                showMissionBoard();
-            });
+            btnMissionList.setOnClickListener(v -> showMissionBoard());
         }
     }
 
     private void showMissionBoard() {
-        // Lấy danh sách nhiệm vụ từ ViewModel
         viewModel.getActiveMissions().observe(this, missions -> {
             if (missions == null || missions.isEmpty()) {
-                Toast.makeText(this, "Hiện tại không có sự cố nào!", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, "Hiện tại không có nhiệm vụ nào!", Toast.LENGTH_SHORT).show();
             } else {
-                // Mở Dialog hiển thị danh sách
                 MissionBoardDialog dialog = MissionBoardDialog.newInstance(missions);
                 dialog.show(getSupportFragmentManager(), "MissionBoard");
             }
         });
     }
+
     private void setupObservers() {
+        // Quan sát công trình được chọn
         viewModel.getSelectedBuilding().observe(this, building -> {
             if (building != null) {
                 if (building.isLocked()) {
@@ -120,37 +123,57 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
                 } else {
                     showBuildingDetail(building);
                 }
-                if (layoutMenu != null) layoutMenu.setVisibility(View.GONE);
+                // Đóng menu chọn building nếu đang mở
+                if (layoutMenu != null) {
+                    layoutMenu.setVisibility(View.GONE);
+                }
             } else {
                 hideBuildingDetail();
             }
         });
 
+        // Quan sát trạng thái khóa/mở của tất cả công trình để cập nhật hình ảnh (nếu cần)
         viewModel.getBuildingsLockStatus().observe(this, this::updateBuildingImages);
+
+        // Tải trạng thái khóa lần đầu
         viewModel.loadAllBuildingsLockStatus();
     }
 
     private void showBuildingDetail(Building building) {
-        if (fragmentContainer != null) {
-            fragmentContainer.setVisibility(View.VISIBLE);
-            BuildingDetailFragment detailFragment = BuildingDetailFragment.newInstance(building);
+        if (fragmentContainer == null) return;
 
-            // Đã có thể gọi vì đã thêm vào BuildingDetailFragment
-            detailFragment.setOnUpgradeClickListener(b -> viewModel.loadBuildingFromFirebase(b.getId()));
+        fragmentContainer.setVisibility(View.VISIBLE);
 
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_unlock_container, detailFragment)
-                    .commit();
-        }
+        BuildingDetailFragment detailFragment = BuildingDetailFragment.newInstance(building);
+
+        // Nếu BuildingDetailFragment có nút upgrade → reload lại thông tin building sau khi upgrade
+        // (vì giờ dùng Room, không còn loadFromFirebase nữa → dùng loadBuildingFromLocal)
+        detailFragment.setOnUpgradeClickListener(b -> {
+            // Sau khi upgrade thành công ở đâu đó (nếu có), chỉ cần reload building này
+            viewModel.loadBuildingById(b.getId());
+        });
+
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_unlock_container, detailFragment)
+                .commit();
     }
 
     private void hideBuildingDetail() {
-        if (fragmentContainer != null) fragmentContainer.setVisibility(View.GONE);
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.GONE);
+        }
     }
 
     private void setupBuildingEvents() {
-        int[] ids = {R.id.school, R.id.library, R.id.park, R.id.farmer, R.id.coffee, R.id.clothers, R.id.bakery, R.id.house};
-        String[] tags = {"school", "library", "park", "farmer", "coffee", "clothers", "bakery", "house"};
+        int[] ids = {
+                R.id.school, R.id.library, R.id.park, R.id.farmer,
+                R.id.coffee, R.id.clothers, R.id.bakery, R.id.house
+        };
+        String[] tags = {
+                "school", "library", "park", "farmer",
+                "coffee", "clothers", "bakery", "house"
+        };
+
         for (int i = 0; i < ids.length; i++) {
             View v = findViewById(ids[i]);
             if (v != null) {
@@ -161,27 +184,38 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
     }
 
     private void showLockAreaDialog(Building building) {
-        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(building.getRequiredLessonName(), building);
+        LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(
+                building.getRequiredLessonName(), building);
+
         dialog.setOnLearnNowClickListener(() -> {
             Intent intent = new Intent(this, LessonActivity.class);
             intent.putExtra("lessonName", building.getRequiredLessonName());
             intent.putExtra("mode", "STUDY_NEW");
             startActivity(intent);
         });
+
         dialog.setOnUnlockWithGoldClickListener(b -> {
+            // Gọi unlock từ ViewModel (dùng Room)
             viewModel.unlockBuilding(b.getId());
+
+            // Cập nhật lại số vàng hiển thị
             loadGold();
+
+            // Optional: Thông báo thành công
+            Toast.makeText(this, "Đã mở khóa " + b.getName() + "!", Toast.LENGTH_SHORT).show();
         });
+
         dialog.show(getSupportFragmentManager(), "LockAreaDialog");
     }
 
     private void hideSystemUI() {
-        Window window = getWindow();
-        WindowCompat.setDecorFitsSystemWindows(window, false);
-        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(window, window.getDecorView());
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
+        WindowInsetsControllerCompat controller = new WindowInsetsControllerCompat(
+                getWindow(), getWindow().getDecorView());
         if (controller != null) {
             controller.hide(WindowInsetsCompat.Type.systemBars());
-            controller.setSystemBarsBehavior(WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
+            controller.setSystemBarsBehavior(
+                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE);
         }
     }
 
@@ -189,11 +223,14 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
+                // Nếu đang mở chi tiết building → đóng nó trước
                 if (fragmentContainer != null && fragmentContainer.getVisibility() == View.VISIBLE) {
                     hideBuildingDetail();
                     viewModel.closeMenu();
                     return;
                 }
+
+                // Double back to exit
                 if (backPressedTime + 2000 > System.currentTimeMillis()) {
                     finish();
                 } else {
@@ -206,7 +243,9 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
 
     private void loadGold() {
         goldRepo.getCurrentGold(gold -> {
-            if (tvCoinCount != null) tvCoinCount.setText(String.valueOf(gold));
+            if (tvCoinCount != null) {
+                tvCoinCount.setText(String.valueOf(gold));
+            }
         });
     }
 
@@ -215,15 +254,15 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         if (vScroll != null && hScroll != null && bgMap != null) {
             int vCenter = (bgMap.getHeight() - vScroll.getHeight()) / 2;
             int hCenter = (bgMap.getWidth() - hScroll.getWidth()) / 2;
-            vScroll.scrollTo(0, vCenter);
-            hScroll.scrollTo(hCenter, 0);
+            vScroll.scrollTo(0, Math.max(vCenter, 0));
+            hScroll.scrollTo(Math.max(hCenter, 0), 0);
         }
     }
 
     @Override
     public void onClick(View v) {
         String buildingId = (String) v.getTag();
-        if (buildingId != null && viewModel != null) {
+        if (buildingId != null) {
             viewModel.onBuildingClicked(buildingId);
         }
     }
@@ -232,11 +271,15 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("building_id")) {
             String buildingId = intent.getStringExtra("building_id");
-            if (viewModel != null && buildingId != null) {
+            if (buildingId != null) {
                 viewModel.loadBuildingById(buildingId);
             }
         }
     }
 
-    private void updateBuildingImages(Map<String, Boolean> status) { }
+    // Có thể dùng để đổi hình ảnh building khi đã mở khóa (nếu bạn có 2 hình khác nhau)
+    private void updateBuildingImages(Map<String, Boolean> status) {
+        // Ví dụ: thay đổi alpha hoặc hình ảnh nếu đã unlock
+        // Hiện tại để trống hoặc thêm logic nếu cần
+    }
 }

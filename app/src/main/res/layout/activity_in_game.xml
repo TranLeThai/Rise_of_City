@@ -36,7 +36,8 @@
                     android:scaleType="fitStart"
                     android:src="@drawable/bg_map1"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"/>
 
                 <ImageView
                     android:id="@+id/school"
@@ -151,6 +152,16 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </HorizontalScrollView>
     </ScrollView>
+
+    <ImageView
+        android:id="@+id/btn_menu"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        app:srcCompat="@drawable/icon_menu"
+        tools:layout_editor_absoluteX="658dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        tools:layout_editor_absoluteY="16dp" />
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"

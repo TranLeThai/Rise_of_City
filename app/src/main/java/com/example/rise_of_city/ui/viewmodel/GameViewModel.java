@@ -8,30 +8,35 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.rise_of_city.data.local.AppDatabase;
+import com.example.rise_of_city.data.local.UserBuilding;
+import com.example.rise_of_city.data.local.UserBuildingDao;
 import com.example.rise_of_city.data.model.game.Building;
 import com.example.rise_of_city.data.model.game.Mission;
 import com.example.rise_of_city.data.repository.GameRepository;
-import com.example.rise_of_city.data.repository.BuildingProgressRepository;
 import com.example.rise_of_city.data.repository.GoldRepository;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Arrays;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class GameViewModel extends ViewModel {
 
     private GameRepository repository;
-    private BuildingProgressRepository progressRepository;
     private GoldRepository goldRepo;
+
+    // Room Database
+    private AppDatabase database;
+    private UserBuildingDao buildingDao;
+    private int currentUserId = 1; // TODO: Thay bằng userId thực từ login (SharedPreferences hoặc ViewModel khác)
 
     private MutableLiveData<Building> selectedBuilding = new MutableLiveData<>();
     private MutableLiveData<Map<String, Boolean>> buildingsLockStatus = new MutableLiveData<>();
 
-    // --- NEW: LiveData cho hệ thống nhiệm vụ ---
+    // Hệ thống nhiệm vụ
     private MutableLiveData<List<Mission>> activeMissions = new MutableLiveData<>(new ArrayList<>());
     private Handler missionHandler = new Handler(Looper.getMainLooper());
     private Runnable missionCheckRunnable;
@@ -40,22 +45,24 @@ public class GameViewModel extends ViewModel {
         if (repository == null) {
             repository = GameRepository.getInstance(context);
         }
-        if (progressRepository == null) {
-            progressRepository = BuildingProgressRepository.getInstance();
-        }
         if (goldRepo == null) {
             goldRepo = GoldRepository.getInstance();
         }
 
-        // Bắt đầu hệ thống nhiệm vụ tự động
+        // Khởi tạo Room Database
+        database = AppDatabase.getInstance(context);
+        buildingDao = database.userBuildingDao();
+
+        // Bắt đầu hệ thống nhiệm vụ
         startMissionSystem();
     }
 
+    // Getter
     public LiveData<Building> getSelectedBuilding() { return selectedBuilding; }
     public LiveData<Map<String, Boolean>> getBuildingsLockStatus() { return buildingsLockStatus; }
     public LiveData<List<Mission>> getActiveMissions() { return activeMissions; }
 
-    // --- LOGIC NHIỆM VỤ MỚI ---
+    // ==================== HỆ THỐNG NHIỆM VỤ ====================
 
     private void startMissionSystem() {
         if (missionCheckRunnable != null) return;
@@ -65,8 +72,7 @@ public class GameViewModel extends ViewModel {
             public void run() {
                 checkAndGenerateMissions();
                 checkMissionExpiration();
-                // Kiểm tra mỗi 5 phút (300,000ms)
-                missionHandler.postDelayed(this, 300000);
+                missionHandler.postDelayed(this, 300000); // 5 phút
             }
         };
         missionHandler.post(missionCheckRunnable);
@@ -78,36 +84,32 @@ public class GameViewModel extends ViewModel {
 
         List<String> unlockedIds = new ArrayList<>();
         for (Map.Entry<String, Boolean> entry : status.entrySet()) {
-            if (!entry.getValue()) { // Nếu value là false nghĩa là isLocked = false -> đã mở khóa
+            if (!entry.getValue()) { // false = đã mở khóa
                 unlockedIds.add(entry.getKey());
             }
         }
 
-        // Tỉ lệ 30% xuất hiện nhiệm vụ random nếu đã có ít nhất 1 nhà mở khóa
-        if (!unlockedIds.isEmpty() && new Random().nextFloat() < 0.3) {
+        if (!unlockedIds.isEmpty() && new Random().nextFloat() < 0.3f) {
             String randomBuildingId = unlockedIds.get(new Random().nextInt(unlockedIds.size()));
             String missionTitle = getMissionTitleForBuilding(randomBuildingId);
 
             Mission newMission = new Mission(missionTitle, randomBuildingId, Mission.Type.RANDOM);
-            List<Mission> currentMissions = activeMissions.getValue();
-            if (currentMissions != null) {
-                currentMissions.add(newMission);
-                activeMissions.setValue(currentMissions);
-            }
+            List<Mission> current = new ArrayList<>(activeMissions.getValue());
+            current.add(newMission);
+            activeMissions.postValue(current);
         }
     }
 
     private void checkMissionExpiration() {
-        List<Mission> currentMissions = activeMissions.getValue();
-        if (currentMissions == null || currentMissions.isEmpty()) return;
+        List<Mission> current = activeMissions.getValue();
+        if (current == null || current.isEmpty()) return;
 
-        long currentTime = System.currentTimeMillis();
+        long now = System.currentTimeMillis();
         List<Mission> toRemove = new ArrayList<>();
         boolean penaltyApplied = false;
 
-        for (Mission mission : currentMissions) {
-            if (!mission.isCompleted && (currentTime - mission.startTime) > mission.durationMs) {
-                // QUÁ 12 TIẾNG -> PHẠT
+        for (Mission mission : current) {
+            if (!mission.isCompleted && (now - mission.startTime) > mission.durationMs) {
                 applyPenalty(mission.goldPenalty);
                 toRemove.add(mission);
                 penaltyApplied = true;
@@ -115,8 +117,8 @@ public class GameViewModel extends ViewModel {
         }
 
         if (penaltyApplied) {
-            currentMissions.removeAll(toRemove);
-            activeMissions.setValue(currentMissions);
+            current.removeAll(toRemove);
+            activeMissions.postValue(new ArrayList<>(current));
         }
     }
 
@@ -124,9 +126,7 @@ public class GameViewModel extends ViewModel {
         if (goldRepo != null) {
             goldRepo.addGold(-penalty, new GoldRepository.OnGoldUpdatedListener() {
                 @Override
-                public void onGoldUpdated(int newGold) {
-                    // Cập nhật UI tiền tệ nếu cần
-                }
+                public void onGoldUpdated(int newGold) {}
                 @Override
                 public void onError(String error) {}
             });
@@ -151,78 +151,68 @@ public class GameViewModel extends ViewModel {
         for (Mission m : current) {
             if (m.id.equals(missionId)) {
                 m.isCompleted = true;
-                // Cộng thưởng vàng qua GoldRepo...
+                // Có thể cộng thưởng vàng ở đây nếu cần
                 break;
             }
         }
-        activeMissions.setValue(current);
+        activeMissions.postValue(new ArrayList<>(current));
     }
 
-    // --- GIỮ NGUYÊN CÁC CHỨC NĂNG CŨ ---
+    // ==================== DỮ LIỆU CÔNG TRÌNH (ROOM) ====================
 
     public void loadBuildingById(String buildingId) {
-        loadBuildingFromFirebase(buildingId);
+        loadBuildingFromLocal(buildingId);
     }
 
     public void onBuildingClicked(String buildingId) {
-        loadBuildingFromFirebase(buildingId);
+        loadBuildingFromLocal(buildingId);
     }
 
-    public void loadBuildingFromFirebase(String buildingId) {
-        if (progressRepository == null || buildingId == null || buildingId.isEmpty()) {
+    private void loadBuildingFromLocal(String buildingId) {
+        if (buildingDao == null || buildingId == null || buildingId.isEmpty()) {
             fallbackToMockData(buildingId);
             return;
         }
 
-        progressRepository.getBuildingInfo(buildingId, new BuildingProgressRepository.OnBuildingInfoLoadedListener() {
-            @Override
-            public void onBuildingInfoLoaded(Map<String, Object> buildingInfo) {
-                progressRepository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
-                    @Override
-                    public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
-                        boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-
-                        progressRepository.getBuildingProgress(buildingId, new BuildingProgressRepository.OnProgressLoadedListener() {
-                            @Override
-                            public void onProgressLoaded(int level, int currentExp, int maxExp) {
-                                String buildingName = (String) buildingInfo.get("name");
-                                if (buildingName == null) buildingName = buildingId;
-
-                                boolean isLocked = !isUnlocked;
-                                boolean hasMission = false; // Mặc định false, logic nhiệm vụ giờ quản lý tập trung
-
-                                // Kiểm tra xem công trình này có đang có nhiệm vụ trong list Active không
-                                List<Mission> missions = activeMissions.getValue();
-                                if (missions != null) {
-                                    for (Mission m : missions) {
-                                        if (m.buildingId.equals(buildingId)) {
-                                            hasMission = true;
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                String requiredLessonName = (String) buildingInfo.get("requiredLessonName");
-
-                                Building building = new Building(
-                                        buildingId, buildingName, level, currentExp, maxExp,
-                                        hasMission, isLocked, requiredLessonName
-                                );
-
-                                selectedBuilding.setValue(building);
-                            }
-
-                            @Override
-                            public void onError(String error) { fallbackToMockData(buildingId); }
-                        });
-                    }
-                    @Override
-                    public void onError(String error) { fallbackToMockData(buildingId); }
-                });
+        new Thread(() -> {
+            Building mock = repository.getBuildingById(buildingId);
+            if (mock == null) {
+                postToMain(() -> fallbackToMockData(buildingId));
+                return;
             }
-            @Override
-            public void onError(String error) { fallbackToMockData(buildingId); }
-        });
+
+            UserBuilding userBuilding = buildingDao.getBuilding(currentUserId, buildingId);
+            boolean isLocked = userBuilding == null;
+            int level = userBuilding != null ? userBuilding.level : 0;
+
+            // TODO: Nếu muốn lưu exp, thêm field vào UserBuilding
+            int currentExp = 0;
+            int maxExp = 100 * (level + 1);
+
+            boolean hasMission = false;
+            List<Mission> missions = activeMissions.getValue();
+            if (missions != null) {
+                for (Mission m : missions) {
+                    if (m.buildingId.equals(buildingId) && !m.isCompleted) {
+                        hasMission = true;
+                        break;
+                    }
+                }
+            }
+
+            Building building = new Building(
+                    buildingId,
+                    mock.getName(),
+                    level,
+                    currentExp,
+                    maxExp,
+                    hasMission,
+                    isLocked,
+                    mock.getRequiredLessonName()
+            );
+
+            postToMain(() -> selectedBuilding.setValue(building));
+        }).start();
     }
 
     private void fallbackToMockData(String buildingId) {
@@ -234,65 +224,59 @@ public class GameViewModel extends ViewModel {
         }
     }
 
-    public void closeMenu() { selectedBuilding.setValue(null); }
+    public void closeMenu() {
+        selectedBuilding.setValue(null);
+    }
 
     public void loadAllBuildingsLockStatus() {
-        if (progressRepository == null) return;
+        if (buildingDao == null) return;
 
         final List<String> allBuildingIds = Arrays.asList(
                 "house", "school", "library", "park", "farmer",
                 "coffee", "clothers", "bakery"
         );
 
-        progressRepository.getAllBuildingProgress(new BuildingProgressRepository.OnAllBuildingsLoadedListener() {
-            @Override
-            public void onBuildingsLoaded(Map<String, Map<String, Object>> buildingProgressMap) {
-                final Map<String, Boolean> lockStatusMap = new HashMap<>();
-                final AtomicInteger loadedCount = new AtomicInteger(0);
+        new Thread(() -> {
+            List<UserBuilding> owned = buildingDao.getBuildingsForUser(currentUserId);
+            Map<String, Boolean> lockMap = new HashMap<>();
 
-                for (String buildingId : allBuildingIds) {
-                    progressRepository.getBuildingInfo(buildingId, new BuildingProgressRepository.OnBuildingInfoLoadedListener() {
-                        @Override
-                        public void onBuildingInfoLoaded(Map<String, Object> buildingInfo) {
-                            boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-                            lockStatusMap.put(buildingId, !isUnlocked);
-
-                            if (loadedCount.incrementAndGet() == allBuildingIds.size()) {
-                                buildingsLockStatus.setValue(lockStatusMap);
-                            }
-                        }
-                        @Override
-                        public void onError(String error) {
-                            boolean isUnlocked = buildingProgressMap.containsKey(buildingId);
-                            lockStatusMap.put(buildingId, !isUnlocked);
-                            if (loadedCount.incrementAndGet() == allBuildingIds.size()) {
-                                buildingsLockStatus.setValue(lockStatusMap);
-                            }
-                        }
-                    });
+            for (String id : allBuildingIds) {
+                boolean locked = true;
+                for (UserBuilding ub : owned) {
+                    if (ub.buildingId.equals(id)) {
+                        locked = false;
+                        break;
+                    }
                 }
+                lockMap.put(id, locked);
             }
-            @Override
-            public void onError(String error) {
-                Map<String, Boolean> defaultMap = new HashMap<>();
-                for (String buildingId : allBuildingIds) defaultMap.put(buildingId, true);
-                buildingsLockStatus.setValue(defaultMap);
-            }
-        });
+
+            postToMain(() -> buildingsLockStatus.setValue(lockMap));
+        }).start();
     }
 
     public void unlockBuilding(String buildingId) {
-        if (progressRepository == null) return;
-        progressRepository.unlockBuilding(buildingId, new BuildingProgressRepository.OnProgressUpdatedListener() {
-            @Override
-            public void onProgressUpdated(long level, int currentExp, int maxExp) {
-                loadAllBuildingsLockStatus();
-                loadBuildingFromFirebase(buildingId);
+        if (buildingDao == null) return;
+
+        new Thread(() -> {
+            UserBuilding existing = buildingDao.getBuilding(currentUserId, buildingId);
+            if (existing == null) {
+                UserBuilding newBuilding = new UserBuilding(currentUserId, buildingId, 1); // level 1 khi mới unlock
+                buildingDao.insertOrUpdate(newBuilding); // cần method này trong DAO
             }
-            @Override
-            public void onError(String error) {}
-        });
+
+            postToMain(() -> {
+                loadAllBuildingsLockStatus();
+                loadBuildingFromLocal(buildingId);
+            });
+        }).start();
     }
+
+    private void postToMain(Runnable runnable) {
+        new Handler(Looper.getMainLooper()).post(runnable);
+    }
+
+    // ==================== CLEANUP ====================
 
     @Override
     protected void onCleared() {

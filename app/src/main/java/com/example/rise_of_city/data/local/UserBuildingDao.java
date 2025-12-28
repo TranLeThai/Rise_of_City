@@ -22,4 +22,7 @@ public interface UserBuildingDao {
 
     @Query("SELECT * FROM user_buildings WHERE userId = :userId AND buildingId = :buildingId LIMIT 1")
     UserBuilding getBuilding(int userId, String buildingId);
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    void insertOrUpdate(UserBuilding building);
 }

@@ -3,4 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="cyan_light">#FF3FD0F1</color>
+    <color name="green_correct">#4CAF50</color>
+    <color name="red_wrong">#F44336</color>
+    <color name="choice_normal">#FF5252</color>
 </resources>

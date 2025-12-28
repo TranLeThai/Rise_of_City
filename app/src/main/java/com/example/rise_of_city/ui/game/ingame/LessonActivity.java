@@ -2,6 +2,8 @@ package com.example.rise_of_city.ui.game.ingame;
 
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -10,120 +12,120 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.Question;
-// Đảm bảo chỉ sử dụng Type từ LessonQuestion
-import com.example.rise_of_city.ui.quiz_fragment.GuessFragment;
-import com.example.rise_of_city.ui.quiz_fragment.GuessImageFragment;
-import com.example.rise_of_city.ui.quiz_fragment.ImageMatchFragment;
-import com.example.rise_of_city.ui.quiz_fragment.LectureFragment;
-import com.example.rise_of_city.ui.quiz_fragment.WordMatchFragment;
+import com.example.rise_of_city.ui.quiz_fragment.TEXT_INTERACT.LectureFragment;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Random;
 
 public class LessonActivity extends AppCompatActivity {
-    private List<Question> questionList = new ArrayList<>();
-    private int currentIndex = 0;
-    private CountDownTimer countDownTimer;
+
+    // UI Components
     private TextView tvTimer;
     private ProgressBar lessonProgressBar;
+    private ImageView[] ivHearts;
+    private ImageButton btnSettings;
+
+    // Game Logic State
+    private int currentHearts = 3;
+    private int currentProgress = 1;
+    private final int MAX_PROGRESS = 10;
+    private CountDownTimer countDownTimer;
+    private final long TIME_LIMIT = 20000; // 20 giây
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lesson);
 
+        initViews();
+        setupGame();
+
+        // Chạy thử Fragment Lecture đầu tiên
+        loadFragment(new LectureFragment());
+    }
+
+    private void initViews() {
         tvTimer = findViewById(R.id.tvTimer);
         lessonProgressBar = findViewById(R.id.lessonProgressBar);
+        btnSettings = findViewById(R.id.btnSettings);
 
-        setupQuestionList();
-        displayQuestion(currentIndex);
+        ivHearts = new ImageView[]{
+                findViewById(R.id.ivHeart1),
+                findViewById(R.id.ivHeart2),
+                findViewById(R.id.ivHeart3)
+        };
+
+        btnSettings.setOnClickListener(v -> {
+            Toast.makeText(this, "Mở bảng cài đặt thành phố...", Toast.LENGTH_SHORT).show();
+            // Logic mở Dialog Settings có thể thêm ở đây
+        });
     }
 
-    private void setupQuestionList() {
-        // 1. Lấy danh sách các loại câu hỏi dành riêng cho bài học (LECTURE, WORD_MATCH,...)
-        Type[] types = Type.values();
-        Random random = new Random();
-
-        // 2. Tạo 10 câu hỏi ngẫu nhiên bằng cách sử dụng đúng Enum Type của bài học
-        for (int i = 1; i <= 10; i++) {
-            Type randomType = types[random.nextInt(types.length)];
-            // Quan trọng: Đối tượng Question phải nhận kiểu dữ liệu là Type
-            questionList.add(new Question(i, randomType, "Nội dung bài học " + i));
-        }
-
-        // Cập nhật độ dài tối đa cho ProgressBar
-        if (lessonProgressBar != null) {
-            lessonProgressBar.setMax(questionList.size());
-        }
+    private void setupGame() {
+        lessonProgressBar.setMax(MAX_PROGRESS);
+        lessonProgressBar.setProgress(currentProgress);
+        startCountdown();
     }
 
-    public void displayQuestion(int index) {
-        if (index >= questionList.size()) {
-            Toast.makeText(this, "Chúc mừng Thị trưởng đã hoàn thành bài học!", Toast.LENGTH_LONG).show();
-            finish();
-            return;
-        }
+    /**
+     * Bắt đầu đếm ngược 20 giây cho mỗi câu hỏi
+     */
+    public void startCountdown() {
+        if (countDownTimer != null) countDownTimer.cancel();
 
-        Question question = questionList.get(index);
-        Fragment fragment = null;
-
-        // 3. Sử dụng switch-case dựa trên enum Type của bài học
-        switch (question.getType()) {
-            case LECTURE:
-                fragment = new LectureFragment();
-                break;
-            case WORD_MATCH:
-                fragment = new WordMatchFragment();
-                break;
-            case IMAGE_MATCH:
-                fragment = new ImageMatchFragment();
-                break;
-            case GUESS:
-                fragment = new GuessFragment();
-                break;
-            case GUESS_IMAGE:
-                fragment = new GuessImageFragment();
-                break;
-        }
-
-        if (fragment != null) {
-            getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .commit();
-        }
-
-        updateUI(index);
-        startTimer();
-    }
-
-    private void startTimer() {
-        if (countDownTimer != null) {
-            countDownTimer.cancel();
-        }
-        countDownTimer = new CountDownTimer(15000, 1000) {
+        countDownTimer = new CountDownTimer(TIME_LIMIT, 1000) {
             @Override
             public void onTick(long millisUntilFinished) {
-                tvTimer.setText(String.format("00:%02d", millisUntilFinished / 1000));
+                tvTimer.setText(String.valueOf(millisUntilFinished / 1000));
             }
 
             @Override
             public void onFinish() {
-                nextQuestion();
+                handleWrongAnswer(); // Hết giờ tính là một câu sai
+                Toast.makeText(LessonActivity.this, "Hết thời gian thanh tra!", Toast.LENGTH_SHORT).show();
             }
         }.start();
     }
 
-    public void nextQuestion() {
-        currentIndex++;
-        displayQuestion(currentIndex);
+    /**
+     * Xử lý khi Thị trưởng trả lời đúng
+     */
+    public void handleCorrectAnswer() {
+        if (currentProgress < MAX_PROGRESS) {
+            currentProgress++;
+            lessonProgressBar.setProgress(currentProgress);
+            Toast.makeText(this, "Hợp đồng hợp lệ! +1 Tiến độ", Toast.LENGTH_SHORT).show();
+
+            // Tải câu hỏi tiếp theo (Ở đây là load lại fragment để test)
+            loadFragment(new LectureFragment());
+            startCountdown();
+        } else {
+            Toast.makeText(this, "Chúc mừng Thị trưởng đã hoàn thành bài học!", Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
-    private void updateUI(int index) {
-        if (lessonProgressBar != null) {
-            lessonProgressBar.setProgress(index + 1);
+    /**
+     * Xử lý khi trả lời sai hoặc hết giờ
+     */
+    public void handleWrongAnswer() {
+        if (currentHearts > 0) {
+            currentHearts--;
+            ivHearts[currentHearts].setImageResource(R.drawable.ic_heart_empty); // Đổi sang icon tim rỗng
+
+            if (currentHearts == 0) {
+                Toast.makeText(this, "Thành phố đình trệ! Bạn đã hết lượt.", Toast.LENGTH_LONG).show();
+                finish(); // Kết thúc màn chơi
+            } else {
+                // Chuyển câu tiếp theo dù sai để tránh kẹt
+                loadFragment(new LectureFragment());
+                startCountdown();
+            }
         }
+    }
+
+    private void loadFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragment_container, fragment)
+                .commit();
     }
 
     @Override

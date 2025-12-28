@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/ivBackground"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@drawable/bg_lecture" />
+
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cardTop"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        app:cardBackgroundColor="#FFF9C4"
+        app:cardCornerRadius="20dp"
+        app:cardElevation="8dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.85">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvContent"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Lắng nghe báo cáo và chọn đáp án đúng:"
+                    android:textColor="#333333"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+                <ImageButton
+                    android:id="@+id/btnPlayAudio"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginStart="16dp"
+                    android:background="@drawable/bg_bubble_user"
+                    android:elevation="4dp"
+                    android:padding="12dp"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/ic_play_arrow" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvTranscript"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="#E8F5E9"
+                android:padding="10dp"
+                android:textColor="#2E7D32"
+                android:textSize="16sp"
+                android:textStyle="italic"
+                android:visibility="gone" />
+        </LinearLayout>
+    </androidx.cardview.widget.CardView>
+
+    <androidx.gridlayout.widget.GridLayout
+        android:id="@+id/glOptions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        app:columnCount="2"
+        app:layout_constraintEnd_toEndOf="@id/cardTop"
+        app:layout_constraintStart_toStartOf="@id/cardTop"
+        app:layout_constraintTop_toBottomOf="@id/cardTop">
+
+        <Button
+            android:id="@+id/btnOpt1"
+            style="@style/GameChoiceButton"
+            android:layout_width="0dp"
+            android:layout_margin="6dp"
+            app:layout_columnWeight="1" />
+
+        <Button
+            android:id="@+id/btnOpt2"
+            style="@style/GameChoiceButton"
+            android:layout_width="0dp"
+            android:layout_margin="6dp"
+            app:layout_columnWeight="1" />
+
+        <Button
+            android:id="@+id/btnOpt3"
+            style="@style/GameChoiceButton"
+            android:layout_width="0dp"
+            android:layout_margin="6dp"
+            app:layout_columnWeight="1" />
+
+        <Button
+            android:id="@+id/btnOpt4"
+            style="@style/GameChoiceButton"
+            android:layout_width="0dp"
+            android:layout_margin="6dp"
+            app:layout_columnWeight="1" />
+    </androidx.gridlayout.widget.GridLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

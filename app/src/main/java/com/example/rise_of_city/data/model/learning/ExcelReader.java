@@ -18,6 +18,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class ExcelReader {
@@ -123,9 +124,9 @@ public class ExcelReader {
     private ChoiceQuestion parseChoice(Row row, String id, String title, int order) {
         ChoiceQuestion.ChoiceType subType = ChoiceQuestion.ChoiceType.valueOf(getCellString(row, 4));
         String content = getCellString(row, 5);
-        List<String> options = Arrays.asList(getCellString(row, 6), getCellString(row, 7), getCellString(row, 8), getCellString(row, 9));
-        int correctIdx = (int) row.getCell(10).getNumericCellValue();
-        String exp = getCellString(row, 11);
+        List<String> options = Arrays.asList(getCellString(row, 6).split("\\s*/\\s*"));
+        int correctIdx = (int) row.getCell(7).getNumericCellValue();
+        String exp = getCellString(row, 8);
 
         return new ChoiceQuestion(id, title, order, subType, content, options, correctIdx, exp);
     }
@@ -136,8 +137,8 @@ public class ExcelReader {
     }
 
     private MatchingTextQuestion parseMatchingText(Row row, String id, String title, int order) {
-        List<String> en = Arrays.asList(getCellString(row, 4), getCellString(row, 5), getCellString(row, 6), getCellString(row, 7));
-        List<String> vi = Arrays.asList(getCellString(row, 8), getCellString(row, 9), getCellString(row, 10), getCellString(row, 11));
+        List<String> en = Arrays.asList(getCellString(row, 4).split("\\s*/\\s*"));
+        List<String> vi = Arrays.asList(getCellString(row, 5).split("\\s*/\\s*"));
         return new MatchingTextQuestion(id, title, order, en, vi);
     }
 
@@ -170,17 +171,22 @@ public class ExcelReader {
     private TrueFalseQuestion parseDecision(Row row, String id, String title, int order) {
         String image = getCellString(row, 4);
         String en = getCellString(row, 5);
-        String vi = getCellString(row, 6);
-        String correctStr = getCellString(row, 7);
+        String correctStr = getCellString(row, 6);
         boolean isTrue = "TRUE".equalsIgnoreCase(correctStr);
-        String exp = getCellString(row, 8);
-        return new TrueFalseQuestion(id, title, order, image, en, vi, isTrue, exp);
+        String exp = getCellString(row, 7);
+        return new TrueFalseQuestion(id, title, order, image, en, isTrue, exp);
     }
 
     private SentenceOrderQuestion parseSentenceOrdering(Row row, String id, String title, int order) {
-        String scrambledStr = getCellString(row, 4);
-        List<String> scrambled = Arrays.asList(scrambledStr.split("\\s*/\\s*"));
-        String correct = getCellString(row, 5);
+
+        // cột F: câu đúng hoàn chỉnh
+        String correct = getCellString(row, 4).trim();
+
+        // Tách thành các từ theo khoảng trắng
+        List<String> scrambled = new ArrayList<>(Arrays.asList(correct.split("\\s+")));
+
+        // Xáo trộn danh sách từ
+        Collections.shuffle(scrambled);
         return new SentenceOrderQuestion(id, title, order, scrambled, correct);
     }
 
@@ -219,16 +225,16 @@ public class ExcelReader {
         // 1. Lấy dữ liệu theo các cột trong hình ảnh mới
         String audioPath = getCellString(row, 4);   // Cột E (4): Audio_Path
         String optionsRaw = getCellString(row, 5);  // Cột F (5): Options_List
-        String content = getCellString(row, 6);     // Cột G (6): Question_Content
+        String content = getCellString(row, 7);     // Cột H (7): Question_Content
 
         // Đọc Index đáp án đúng ban đầu
         int originalCorrectIdx = 0;
         try {
-            Cell correctCell = row.getCell(7);      // Cột H (7): Correct_Index
+            Cell correctCell = row.getCell(6);      // Cột G (6): Correct_Index
             if (correctCell.getCellType() == CellType.NUMERIC) {
                 originalCorrectIdx = (int) correctCell.getNumericCellValue();
             } else {
-                originalCorrectIdx = Integer.parseInt(getCellString(row, 7));
+                originalCorrectIdx = Integer.parseInt(getCellString(row, 6));
             }
         } catch (Exception e) { originalCorrectIdx = 0; }
 

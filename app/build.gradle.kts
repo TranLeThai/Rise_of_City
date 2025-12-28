@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.rise_of_city"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -79,8 +79,13 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     annotationProcessor(libs.room.compiler)
 
-    implementation("com.github.centic9:poi-on-android:5.2.3.0")
-    implementation("org.apache.poi:poi-ooxml:5.2.3")
-    // Hỗ trợ đọc các định dạng nén (xlsx)
+    implementation("org.apache.poi:poi:4.1.2")
+    implementation("org.apache.poi:poi-ooxml:4.1.2") {
+        exclude(group = "org.apache.xmlgraphics", module = "batik-all")
+        exclude(group = "xml-apis", module = "xml-apis")
+    }
+
+    // Thư viện hỗ trợ tránh lỗi nén log4j trên Android
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
+    implementation("javax.xml.stream:stax-api:1.0-2")
 }

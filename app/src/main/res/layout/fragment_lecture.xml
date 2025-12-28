@@ -4,99 +4,103 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FCE4EC">
+    android:background="@drawable/bg_lecture">
 
-    <LinearLayout
-        android:id="@+id/headerLayout"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_marginTop="8dp"
+        android:fontFamily="serif"
+        android:text="Thanh tra hợp đồng"
+        android:background="@drawable/bg_bubble_user"
+        android:textColorLink="#AF4726"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🕒 00:15"
-            android:textColor="#333333" />
+    <FrameLayout
+        android:id="@+id/contractArea"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/layoutOptions"
+        app:layout_constraintHorizontal_weight="7"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvTitle">
 
-        <TextView
-            android:layout_width="0dp"
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Thanh tra hợp đồng"
-            android:textAlignment="center"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            android:fontFamily="serif" />
+            app:cardBackgroundColor="#FFF9C4"
+            app:cardCornerRadius="30dp"
+            app:cardElevation="4dp">
+
+            <TextView
+                android:id="@+id/tvContentEnglish"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:lineSpacingExtra="6dp"
+                android:padding="24dp"
+                android:text="Dear Mayor, The bakery project is ready... [flower]"
+                android:textSize="18sp" />
+        </androidx.cardview.widget.CardView>
 
         <ImageButton
             android:id="@+id/btnTranslate"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@android:drawable/ic_menu_sort_alphabetically" />
-    </LinearLayout>
-
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardDocument"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        app:cardCornerRadius="16dp"
-        app:cardElevation="6dp"
-        app:cardBackgroundColor="#FEF9E7"
-        app:layout_constraintWidth_percent="0.85"
-        app:layout_constraintHeight_percent="0.6"
-        app:layout_constraintTop_toBottomOf="@id/headerLayout"
-        app:layout_constraintBottom_toTopOf="@+id/bottomNav"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <TextView
-            android:id="@+id/tvContent"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:padding="24dp"
-            android:textSize="18sp"
-            android:lineSpacingExtra="10dp"
-            android:textColor="#333333" />
-    </androidx.cardview.widget.CardView>
+            android:layout_width="54dp"
+            android:layout_height="54dp"
+            android:layout_gravity="top|end"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:background="@drawable/ic_translate"
+            android:elevation="6dp" />
+    </FrameLayout>
 
     <LinearLayout
         android:id="@+id/layoutOptions"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_option_menu"
-        android:padding="8dp"
-        android:elevation="10dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/cardDocument"
-        app:layout_constraintStart_toStartOf="@id/cardDocument"
-        app:layout_constraintEnd_toEndOf="@id/cardDocument"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginEnd="16dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="@id/contractArea"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_weight="3"
+        app:layout_constraintStart_toEndOf="@id/contractArea"
+        app:layout_constraintTop_toTopOf="@id/contractArea">
 
-    <LinearLayout
-        android:id="@+id/bottomNav"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp"
-        app:layout_constraintBottom_toBottomOf="parent">
+        <Button
+            android:id="@+id/btnOpt1"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#FF5252"
+            android:text="Flour"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF" />
 
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_media_previous"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+        <Button
+            android:id="@+id/btnOpt2"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="12dp"
+            android:backgroundTint="#FF5252"
+            android:text="Flower"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF" />
 
-        <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
-
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@android:drawable/ic_media_next"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+        <Button
+            android:id="@+id/btnOpt3"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:backgroundTint="#FF5252"
+            android:text="Floor"
+            android:textAllCaps="false"
+            android:textColor="#FFFFFF" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

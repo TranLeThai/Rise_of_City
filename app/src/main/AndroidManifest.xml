@@ -14,27 +14,14 @@
         android:theme="@style/Theme.Rise_of_City">
 
         <activity
-            android:name=".ui.auth.LoginActivity"
+            android:name=".ui.game.ingame.LessonActivity"
             android:exported="true"
-            android:screenOrientation="portrait">
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.auth.SignUpActivity" android:screenOrientation="portrait" />
-        <activity android:name=".ui.main.MainActivity" android:screenOrientation="portrait" />
-
-        <activity
-            android:name=".ui.game.ingame.InGameActivity"
-            android:screenOrientation="landscape" />
-
-        <activity android:name=".ui.assessment.KnowledgeSurveyActivity" />
-
-        <activity android:name=".ui.game.ingame.LessonActivity" android:screenOrientation="portrait" />
-
-        <activity android:name=".ui.quiz_fragment.VocabularyQuizActivity" />
 
     </application>
 </manifest>

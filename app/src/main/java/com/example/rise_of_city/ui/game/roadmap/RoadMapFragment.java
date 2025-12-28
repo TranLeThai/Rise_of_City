@@ -19,14 +19,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.game.BuildingProgress;
 import com.example.rise_of_city.ui.game.ingame.InGameActivity;
-import com.example.rise_of_city.ui.viewmodel.RoadMapViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class RoadMapFragment extends Fragment {
 
-    private RoadMapViewModel viewModel;
     private BuildingRoadMapAdapter adapter;
     private RecyclerView rvBuildings;
     private ProgressBar pbLoading;
@@ -42,8 +40,6 @@ public class RoadMapFragment extends Fragment {
 
         initViews(view);
         setupRecyclerView();
-        setupViewModel();
-        observeData();
 
         return view;
     }
@@ -68,48 +64,6 @@ public class RoadMapFragment extends Fragment {
 
         rvBuildings.setLayoutManager(new LinearLayoutManager(getContext()));
         rvBuildings.setAdapter(adapter);
-    }
-
-    private void setupViewModel() {
-        viewModel = new ViewModelProvider(this).get(RoadMapViewModel.class);
-        viewModel.loadBuildingProgress();
-    }
-
-    private void observeData() {
-        // Observe buildings list
-        viewModel.getBuildings().observe(getViewLifecycleOwner(), buildings -> {
-            if (buildings != null && !buildings.isEmpty()) {
-                adapter.setBuildings(buildings);
-                rvBuildings.setVisibility(View.VISIBLE);
-                pbLoading.setVisibility(View.GONE);
-                tvEmpty.setVisibility(View.GONE);
-                
-                // Update header với tổng số building completed
-                updateHeader(buildings);
-            } else {
-                rvBuildings.setVisibility(View.GONE);
-                pbLoading.setVisibility(View.GONE);
-                tvEmpty.setVisibility(View.VISIBLE);
-            }
-        });
-
-        // Observe total completed buildings
-        viewModel.getTotalCompletedBuildings().observe(getViewLifecycleOwner(), completedCount -> {
-            if (completedCount != null) {
-                // Update header progress
-                List<BuildingProgress> buildings = viewModel.getBuildings().getValue();
-                if (buildings != null) {
-                    updateHeader(buildings);
-                }
-            }
-        });
-
-        // Observe error
-        viewModel.getErrorMessage().observe(getViewLifecycleOwner(), error -> {
-            if (error != null && !error.isEmpty()) {
-                Toast.makeText(getContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     private void updateHeader(List<BuildingProgress> buildings) {

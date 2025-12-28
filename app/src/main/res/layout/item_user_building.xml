@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="8dp">
+
+    <!-- Building Icon -->
+    <ImageView
+        android:id="@+id/iv_building_icon"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/house_icon"
+        android:background="@drawable/circle_background"
+        android:padding="12dp"
+        android:contentDescription="Building icon" />
+
+    <!-- Building Name -->
+    <TextView
+        android:id="@+id/tv_building_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Nhà Ở"
+        android:textSize="12sp"
+        android:textColor="#000000"
+        android:textStyle="bold"
+        android:layout_marginTop="8dp"
+        android:maxLines="1"
+        android:ellipsize="end" />
+
+    <!-- Building Level -->
+    <TextView
+        android:id="@+id/tv_building_level"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Lv 1"
+        android:textSize="11sp"
+        android:textColor="#666666"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>
+

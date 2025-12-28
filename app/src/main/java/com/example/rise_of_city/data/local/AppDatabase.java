@@ -6,7 +6,7 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 
 // Chắc chắn version là 4 và có UserBuilding.class
-@Database(entities = {User.class, ChatMessageEntity.class, UserBuilding.class, SurveyAnswer.class}, version = 5, exportSchema = false)
+@Database(entities = {User.class, ChatMessageEntity.class, UserBuilding.class, SurveyAnswer.class, Friend.class, Vocabulary.class}, version = 8, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
     private static AppDatabase instance;
 
@@ -14,6 +14,8 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract ChatDao chatDao(); 
     public abstract UserBuildingDao userBuildingDao(); // Đảm bảo phương thức này tồn tại
     public abstract SurveyAnswerDao surveyAnswerDao();
+    public abstract FriendDao friendDao();
+    public abstract VocabularyDao vocabularyDao();
 
     public static synchronized AppDatabase getInstance(Context context) {
         if (instance == null) {

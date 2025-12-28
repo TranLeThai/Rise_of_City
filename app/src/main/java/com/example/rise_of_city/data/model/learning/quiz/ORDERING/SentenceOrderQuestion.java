@@ -1,7 +1,11 @@
 package com.example.rise_of_city.data.model.learning.quiz.ORDERING;
 
 import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
+import com.google.gson.annotations.SerializedName;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -10,8 +14,11 @@ import java.util.List;
  */
 public class SentenceOrderQuestion extends BaseQuestion {
 
-    private List<String> words;      // Danh sách các từ bị xáo trộn
-    private String correctSentence;  // Câu hoàn chỉnh đúng
+    @SerializedName("content") // Lấy chuỗi "The family sits..." từ JSON
+    private String correctSentence;
+
+    // Biến này không có trong JSON, chúng ta sẽ tự tạo ra nó
+    private List<String> words;
 
     public SentenceOrderQuestion(String id, String title, int order,
                                  List<String> words, String correctSentence) {
@@ -22,9 +29,24 @@ public class SentenceOrderQuestion extends BaseQuestion {
 
     @Override
     public QuestionType getType() {
-        return QuestionType.SENTENCEORDERING; // Thuộc nhóm sắp xếp
+        return QuestionType.SENTENCEORDERING;
     }
 
-    public List<String> getWords() { return words; }
-    public String getCorrectSentence() { return correctSentence; }
+    // --- ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT ---
+    public List<String> getWords() {
+        // Nếu words chưa có (do JSON không có), ta tự cắt từ correctSentence ra
+        if ((words == null || words.isEmpty()) && correctSentence != null) {
+            // Tách câu thành mảng các từ dựa trên khoảng trắng
+            String[] splitWords = correctSentence.split("\\s+");
+            words = new ArrayList<>(Arrays.asList(splitWords));
+
+            // Xáo trộn để người chơi sắp xếp
+            Collections.shuffle(words);
+        }
+        return words;
+    }
+
+    public String getCorrectSentence() {
+        return correctSentence;
+    }
 }

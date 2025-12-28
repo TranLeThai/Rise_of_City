@@ -15,7 +15,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.learning.quiz.DECISION.TrueFalseQuestion;
-import com.example.rise_of_city.ui.game.ingame.LessonActivity;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
 
 public class TrueFalseFragment extends Fragment {
 
@@ -42,22 +42,26 @@ public class TrueFalseFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        question = (TrueFalseQuestion) getArguments().getSerializable("data");
+        if (getArguments() != null) {
+            question = (TrueFalseQuestion) getArguments().getSerializable("data");
+        }
 
         ivQuestionImage = view.findViewById(R.id.ivQuestionImage);
         tvDescription = view.findViewById(R.id.tvDescription);
         btnTrue = view.findViewById(R.id.btnTrue);
         btnFalse = view.findViewById(R.id.btnFalse);
 
-        setupUI();
+        if (question != null) {
+            setupUI();
+        }
     }
 
     private void setupUI() {
         tvDescription.setText(question.getDescriptionEnglish());
 
         // Lấy Resource ID từ tên file ảnh trong drawable
-        int imageResId = getContext().getResources().getIdentifier(
-                question.getImagePath(), "drawable", getContext().getPackageName());
+        int imageResId = requireContext().getResources().getIdentifier(
+                question.getImagePath(), "drawable", requireContext().getPackageName());
 
         if (imageResId != 0) {
             ivQuestionImage.setImageResource(imageResId);
@@ -69,18 +73,18 @@ public class TrueFalseFragment extends Fragment {
 
     private void checkAnswer(boolean userChoice) {
         LessonActivity activity = (LessonActivity) getActivity();
-        if (activity == null) return;
+        if (activity == null || question == null) return;
+
+        Button selectedButton = userChoice ? btnTrue : btnFalse;
 
         if (userChoice == question.isCorrect()) {
             // Đúng: Đổi màu nút được chọn sang xanh lá
-            Button selected = userChoice ? btnTrue : btnFalse;
-            selected.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_correct));
-
+            selectedButton.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.green_correct));
+            // Delay 500ms để người chơi kịp thấy phản hồi trước khi sang câu tiếp theo
             new android.os.Handler().postDelayed(activity::handleCorrectAnswer, 500);
         } else {
-            // Sai: Đổi màu nút sang đỏ và trừ mạng
-            Button selected = userChoice ? btnTrue : btnFalse;
-            selected.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red_wrong));
+            // Sai: Đổi màu nút sang đỏ và trừ mạng qua LessonActivity
+            selectedButton.setBackgroundTintList(ContextCompat.getColorStateList(requireContext(), R.color.red_wrong));
             activity.handleWrongAnswer();
         }
     }

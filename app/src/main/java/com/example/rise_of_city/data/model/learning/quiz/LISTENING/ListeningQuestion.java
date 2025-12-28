@@ -1,6 +1,7 @@
 package com.example.rise_of_city.data.model.learning.quiz.LISTENING;
 
 import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -10,11 +11,12 @@ import java.util.List;
  */
 public class ListeningQuestion extends BaseQuestion {
 
-    private String audioPath;        // Tên file âm thanh trong thư mục raw/assets
+    private String audioPath;
+    @SerializedName("transcript")// Tên file âm thanh trong thư mục raw/assets
     private String content;          // Nội dung đề của đoạn âm thanh
     private List<String> options;    // 4 lựa chọn (có thể là văn bản hoặc tên file ảnh)
     private int correctAnswerIndex;  // Vị trí đáp án đúng (0-3)
-    private String transcript;       // Nội dung văn bản của đoạn âm thanh (để hiển thị sau khi trả lời)
+    private String fulltranscript;       // Nội dung văn bản của đoạn âm thanh (để hiển thị sau khi trả lời)
 
     public ListeningQuestion(String id, String title, int order,
                              String audioPath, String content, List<String> options,
@@ -24,7 +26,7 @@ public class ListeningQuestion extends BaseQuestion {
         this.content = content; // Thêm dòng này
         this.options = options;
         this.correctAnswerIndex = correctAnswerIndex;
-        this.transcript = transcript;
+        this.fulltranscript = transcript;
     }
 
     @Override
@@ -38,6 +40,6 @@ public class ListeningQuestion extends BaseQuestion {
     public String getContent() { return content;}
     public List<String> getOptions() { return options; }
     public int getCorrectAnswerIndex() { return correctAnswerIndex; }
-    public String getTranscript() { return transcript; }
+    public String getFulltranscript() { return fulltranscript; }
 
 }

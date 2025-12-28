@@ -12,7 +12,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.learning.quiz.CHOICE.ChoiceQuestion;
-import com.example.rise_of_city.ui.game.ingame.LessonActivity;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
 
 public class ChoiceFragment extends Fragment {
 
@@ -20,34 +20,38 @@ public class ChoiceFragment extends Fragment {
     private ImageView ivBackground;
     private TextView tvQuestionContent;
     private Button[] optionButtons;
+    private static final String ARG_CHOICE_QUESTION = "choice_question_data";
+    private ChoiceQuestion mQuestion;
 
     public static ChoiceFragment newInstance(ChoiceQuestion question) {
         ChoiceFragment fragment = new ChoiceFragment();
         Bundle args = new Bundle();
-        args.putSerializable("data", question);
+        // Truyền đối tượng câu hỏi (phải implement Serializable)
+        args.putSerializable(ARG_CHOICE_QUESTION, question);
         fragment.setArguments(args);
         return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            // Nhận lại dữ liệu câu hỏi khi Fragment được khởi tạo
+            mQuestion = (ChoiceQuestion) getArguments().getSerializable(ARG_CHOICE_QUESTION);
+        }
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_choice, container, false);
-    }
+        View view = inflater.inflate(R.layout.fragment_choice, container, false);
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        question = (ChoiceQuestion) getArguments().getSerializable("data");
+        // Kiểm tra nếu dữ liệu đã sẵn sàng thì hiển thị lên UI
+        if (mQuestion != null) {
+            setupUI();
+        }
 
-        ivBackground = view.findViewById(R.id.ivBackground);
-        tvQuestionContent = view.findViewById(R.id.tvQuestionContent);
-        optionButtons = new Button[]{
-                view.findViewById(R.id.btnOpt1), view.findViewById(R.id.btnOpt2),
-                view.findViewById(R.id.btnOpt3), view.findViewById(R.id.btnOpt4)
-        };
-
-        setupUI();
+        return view;
     }
 
     private void setupUI() {

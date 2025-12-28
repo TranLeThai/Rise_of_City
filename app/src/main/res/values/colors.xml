@@ -6,4 +6,5 @@
     <color name="green_correct">#4CAF50</color>
     <color name="red_wrong">#F44336</color>
     <color name="choice_normal">#FF5252</color>
+    <color name="blue_selected">#802196F3</color>
 </resources>

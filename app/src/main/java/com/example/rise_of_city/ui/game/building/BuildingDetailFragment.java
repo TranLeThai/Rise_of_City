@@ -16,7 +16,7 @@ import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.model.game.Building;
-import com.example.rise_of_city.ui.game.ingame.LessonActivity;  // Import LessonActivity
+import com.example.rise_of_city.ui.lesson.LessonActivity;  // Import LessonActivity
 
 public class BuildingDetailFragment extends Fragment {
 

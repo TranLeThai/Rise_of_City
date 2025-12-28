@@ -1,6 +1,7 @@
 package com.example.rise_of_city.data.model.learning.quiz.INPUT;
 
 import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
+import com.google.gson.annotations.SerializedName;
 
 /**
  * Model cho bài tập Viết (Writing/Fill in the blank).
@@ -8,6 +9,7 @@ import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
  */
 public class WritingQuestion extends BaseQuestion {
 
+    @SerializedName("question")
     private String sentence;      // Câu hỏi hoặc câu có chỗ trống (Ví dụ: "I ___ to school.")
     private String correctAnswer; // Đáp án đúng duy nhất
     private String hint;          // Gợi ý cho người chơi khi gặp khó khăn

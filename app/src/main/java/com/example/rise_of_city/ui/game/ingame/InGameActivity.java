@@ -24,6 +24,7 @@ import com.example.rise_of_city.data.repository.GoldRepository;
 import com.example.rise_of_city.ui.game.building.BuildingDetailFragment;
 import com.example.rise_of_city.ui.dialog.LockAreaDialogFragment;
 import com.example.rise_of_city.ui.game.ingame.mission.MissionBoardDialog;
+import com.example.rise_of_city.ui.lesson.LessonActivity;
 import com.example.rise_of_city.ui.viewmodel.GameViewModel;
 
 import java.util.Map;

@@ -1,6 +1,7 @@
 package com.example.rise_of_city.data.model.learning.quiz.CHOICE;
 
 import com.example.rise_of_city.data.model.learning.quiz.BaseQuestion;
+import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
@@ -17,8 +18,9 @@ public class ChoiceQuestion extends BaseQuestion {
         SYNONYM,        // Từ đồng nghĩa
         ANTONYM         // Từ trái nghĩa
     }
-
-    private ChoiceType subType;      // Loại trắc nghiệm cụ thể
+    @SerializedName("subType")
+    private ChoiceType subType;
+    @SerializedName("question")// Loại trắc nghiệm cụ thể
     private String questionContent;  // Nội dung câu hỏi hoặc câu chứa chỗ trống
     private List<String> options;    // Danh sách 4 lựa chọn
     private int correctAnswerIndex;  // Vị trí đáp án đúng (0-3)

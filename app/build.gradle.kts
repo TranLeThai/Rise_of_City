@@ -88,4 +88,6 @@ dependencies {
     // Thư viện hỗ trợ tránh lỗi nén log4j trên Android
     implementation("com.fasterxml.jackson.core:jackson-databind:2.15.2")
     implementation("javax.xml.stream:stax-api:1.0-2")
+
+    implementation("com.google.ai.client.generativeai:generativeai:0.9.0") // Hoặc version mới hơn
 }

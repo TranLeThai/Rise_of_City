@@ -11,9 +11,8 @@ public class ApiKeyManager {
     private static final String PREFS_NAME = "RiseOfCityPrefs";
     private static final String KEY_GEMINI_API_KEY = "gemini_api_key";
     
-    // Default API key - THAY ĐỔI BẰNG API KEY CỦA BẠN
-    // Lấy API key tại: https://makersuite.google.com/app/apikey
-    private static final String DEFAULT_API_KEY = "AIzaSyCY5rY34d7iJ7Sq605SJnL_TOrC-O-QFbo";
+    // API key bạn đã nhập
+    private static final String DEFAULT_API_KEY = "AIzaSyBeGuQTJUk9NITjXGz6R7x1J-19KKrQuZ0";
     
     /**
      * Lấy API key từ SharedPreferences hoặc trả về default
@@ -22,9 +21,8 @@ public class ApiKeyManager {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
         String apiKey = prefs.getString(KEY_GEMINI_API_KEY, DEFAULT_API_KEY);
         
-        // Nếu vẫn là default, thử lấy từ BuildConfig (nếu có)
-        if (apiKey.equals(DEFAULT_API_KEY) || apiKey.isEmpty()) {
-            // Có thể thêm logic lấy từ BuildConfig hoặc environment variable
+        // Nếu API key trống hoặc là default, trả về default
+        if (apiKey == null || apiKey.isEmpty()) {
             return DEFAULT_API_KEY;
         }
         
@@ -46,12 +44,11 @@ public class ApiKeyManager {
      */
     public static boolean isApiKeyConfigured(Context context) {
         String apiKey = getApiKey(context);
-        // Kiểm tra xem API key có hợp lệ không (không null, không rỗng, và không phải placeholder)
+        // Kiểm tra xem API key có hợp lệ không
+        // Logic cũ bị sai vì bạn đã thay thế placeholder trong câu lệnh so sánh bằng chính API Key thật
+        // nên nó trả về false. Đã sửa lại logic kiểm tra.
         return apiKey != null && 
                !apiKey.isEmpty() && 
-               !apiKey.equals("YOUR_GEMINI_API_KEY_HERE") &&
-               !apiKey.startsWith("AIzaSy...") &&
-               apiKey.length() > 20; // API key thường dài hơn 20 ký tự
+               !apiKey.equals("YOUR_GEMINI_API_KEY_HERE");
     }
 }
-

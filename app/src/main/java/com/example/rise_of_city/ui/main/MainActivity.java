@@ -17,7 +17,6 @@ import androidx.fragment.app.Fragment;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
 import com.example.rise_of_city.ui.game.ingame.HomeFragment;
-import com.example.rise_of_city.ui.game.ingame.ChatAiFragment;
 import com.example.rise_of_city.ui.game.roadmap.RoadMapFragment;
 import com.example.rise_of_city.ui.profile.SearchFragment;
 import com.example.rise_of_city.ui.profile.ProfileFragment;
@@ -121,8 +120,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout navExplore = findViewById(R.id.nav_item_explore);
         navExplore.setOnClickListener(v -> navigateToFragment(R.id.nav_item_explore, new RoadMapFragment()));
 
-        LinearLayout navChat = findViewById(R.id.nav_item_chat);
-        navChat.setOnClickListener(v -> navigateToFragment(R.id.nav_item_chat, new ChatAiFragment()));
 
         LinearLayout navProfile = findViewById(R.id.nav_item_profile);
         navProfile.setOnClickListener(v -> navigateToFragment(R.id.nav_item_profile, new ProfileFragment()));
@@ -206,8 +203,6 @@ public class MainActivity extends AppCompatActivity {
                 fragment = new SearchFragment();
             } else if (previousSelectedItemId == R.id.nav_item_explore) {
                 fragment = new RoadMapFragment();
-            } else if (previousSelectedItemId == R.id.nav_item_chat) {
-                fragment = new ChatAiFragment();
             } else if (previousSelectedItemId == R.id.nav_item_profile) {
                 fragment = new ProfileFragment();
             }
@@ -235,9 +230,6 @@ public class MainActivity extends AppCompatActivity {
         } else if (itemId == R.id.nav_item_explore || itemId == R.id.nav_explore) {
             fragment = new RoadMapFragment();
             itemId = R.id.nav_item_explore;
-        } else if (itemId == R.id.nav_item_chat || itemId == R.id.nav_chat) {
-            fragment = new ChatAiFragment();
-            itemId = R.id.nav_item_chat;
         } else if (itemId == R.id.nav_item_profile || itemId == R.id.nav_profile) {
             fragment = new ProfileFragment();
             itemId = R.id.nav_item_profile;

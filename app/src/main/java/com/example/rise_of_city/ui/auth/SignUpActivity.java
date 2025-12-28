@@ -43,6 +43,7 @@ public class SignUpActivity extends AppCompatActivity {
     }
 
     private void registerUser() {
+        // QUAN TRỌNG: trim() password để tránh lưu khoảng trắng thừa
         String email = edtEmail.getText().toString().trim();
         String password = edtPassword.getText().toString().trim();
         String confirmPass = edtConfirmPassword.getText().toString().trim();

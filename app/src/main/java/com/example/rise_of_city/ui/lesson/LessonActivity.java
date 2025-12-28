@@ -56,6 +56,9 @@ public class LessonActivity extends AppCompatActivity {
     private AppDatabase database;
     private GoldRepository goldRepository;
 
+    private static final int MAX_FREE_ATTEMPTS = 3;
+    private static final int RETRY_COST = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,20 +71,13 @@ public class LessonActivity extends AppCompatActivity {
 
         currentLessonName = getIntent().getStringExtra("lessonName");
         if (currentLessonName == null || currentLessonName.isEmpty()) {
-            currentLessonName = "House_lv1";
-        }
-        String lessonFileName = currentLessonName + ".json";
-
-        JsonReader jsonReader = new JsonReader(this);
-        questionList = jsonReader.readLessonFromJson(lessonFileName);
-
-        if (questionList != null && !questionList.isEmpty()) {
-            lessonProgressBar.setMax(questionList.size());
-            displayQuestion(0);
-        } else {
-            Toast.makeText(this, "Không thể tải bài học: " + lessonFileName, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Không có bài học được chọn", Toast.LENGTH_SHORT).show();
             finish();
+            return;
         }
+
+        // Kiểm tra lượt chơi trước khi load bài học
+        checkDailyAttemptsAndProceed();
     }
 
     private void initViews() {
@@ -94,6 +90,83 @@ public class LessonActivity extends AppCompatActivity {
                 findViewById(R.id.ivHeart2),
                 findViewById(R.id.ivHeart3)
         };
+    }
+
+    /**
+     * Kiểm tra lượt chơi hôm nay trước khi load bài học
+     */
+    private void checkDailyAttemptsAndProceed() {
+        new Thread(() -> {
+            int userId = 1;
+            long today = System.currentTimeMillis() / (1000L * 3600 * 24);
+
+            UserLessonProgress progress = database.userLessonProgressDao()
+                    .getProgress(userId, currentLessonName);
+
+            if (progress == null || progress.lastAttemptDate != today) {
+                if (progress == null) {
+                    progress = new UserLessonProgress();
+                    progress.userId = userId;
+                    progress.lessonName = currentLessonName;
+                }
+                progress.attemptsToday = 0;
+                progress.lastAttemptDate = today;
+                progress.completed = false;
+                database.userLessonProgressDao().insertOrUpdate(progress);
+            }
+
+            if (progress.completed) {
+                runOnUiThread(this::loadLessonAndStart);
+                return;
+            }
+
+            if (progress.attemptsToday >= MAX_FREE_ATTEMPTS) {
+                final UserLessonProgress finalProgress = progress; // Fix cảnh báo Lint
+                runOnUiThread(() -> showOutOfAttemptsDialog(finalProgress));
+                return;
+            }
+
+            runOnUiThread(this::loadLessonAndStart);
+        }).start();
+    }
+
+    private void showOutOfAttemptsDialog(UserLessonProgress progress) {
+        new AlertDialog.Builder(this)
+                .setTitle("Hết lượt thử miễn phí")
+                .setMessage("Bạn đã dùng hết " + MAX_FREE_ATTEMPTS + " lần thử miễn phí hôm nay cho bài học này.\n\nTrả " + RETRY_COST + " vàng để thử lại ngay?")
+                .setPositiveButton("Trả vàng", (d, w) -> {
+                    goldRepository.addGold(this, -RETRY_COST, new GoldRepository.OnGoldUpdatedListener() {
+                        @Override
+                        public void onGoldUpdated(int newGold) {
+                            progress.attemptsToday = 0;
+                            database.userLessonProgressDao().insertOrUpdate(progress);
+                            loadLessonAndStart();
+                        }
+
+                        @Override
+                        public void onError(String error) {
+                            Toast.makeText(LessonActivity.this, error, Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+                    });
+                })
+                .setNegativeButton("Thoát", (d, w) -> finish())
+                .setCancelable(false)
+                .show();
+    }
+
+    private void loadLessonAndStart() {
+        String lessonFileName = currentLessonName + ".json";
+        JsonReader jsonReader = new JsonReader(this);
+        questionList = jsonReader.readLessonFromJson(lessonFileName);
+
+        if (questionList != null && !questionList.isEmpty()) {
+            lessonProgressBar.setMax(questionList.size());
+            displayQuestion(0);
+        } else {
+            Toast.makeText(this, "Không thể tải bài học: " + lessonFileName, Toast.LENGTH_LONG).show();
+            finish();
+        }
     }
 
     private void displayQuestion(int index) {
@@ -115,7 +188,9 @@ public class LessonActivity extends AppCompatActivity {
             case SENTENCEORDERING: fragment = OrderingFragment.newInstance((SentenceOrderQuestion) question); break;
             case WORDORDERING: fragment = OrderingFragment.newInstance((WordOrderQuestion) question); break;
             case LISTENING: fragment = ListeningFragment.newInstance((ListeningQuestion) question); break;
-            default: Toast.makeText(this, "Loại câu hỏi không hỗ trợ!", Toast.LENGTH_SHORT).show(); break;
+            default:
+                Toast.makeText(this, "Loại câu hỏi không hỗ trợ!", Toast.LENGTH_SHORT).show();
+                break;
         }
 
         if (fragment != null) {
@@ -130,10 +205,13 @@ public class LessonActivity extends AppCompatActivity {
     public void startCountdown() {
         if (countDownTimer != null) countDownTimer.cancel();
         countDownTimer = new CountDownTimer(TIME_LIMIT, 1000) {
-            @Override public void onTick(long millisUntilFinished) {
+            @Override
+            public void onTick(long millisUntilFinished) {
                 tvTimer.setText(String.valueOf(millisUntilFinished / 1000));
             }
-            @Override public void onFinish() {
+
+            @Override
+            public void onFinish() {
                 handleWrongAnswer();
             }
         }.start();
@@ -149,6 +227,7 @@ public class LessonActivity extends AppCompatActivity {
         if (currentHearts > 0) {
             currentHearts--;
             ivHearts[currentHearts].setImageResource(R.drawable.ic_heart_empty);
+
             if (currentHearts == 0) {
                 markLessonCompleted(false);
             } else {
@@ -160,10 +239,12 @@ public class LessonActivity extends AppCompatActivity {
 
     private void markLessonCompleted(boolean success) {
         new Thread(() -> {
-            int userId = 1; // TODO: lấy từ login
+            int userId = 1;
             long today = System.currentTimeMillis() / (1000L * 3600 * 24);
 
-            UserLessonProgress progress = database.userLessonProgressDao().getProgress(userId, currentLessonName);
+            UserLessonProgress progress = database.userLessonProgressDao()
+                    .getProgress(userId, currentLessonName);
+
             if (progress == null) {
                 progress = new UserLessonProgress();
                 progress.userId = userId;
@@ -181,59 +262,68 @@ public class LessonActivity extends AppCompatActivity {
 
             if (success) {
                 progress.completed = true;
-                goldRepository.addGold(this, 50, null); // thưởng hoàn thành
+                goldRepository.addGold(this, 50, null);
             }
 
             database.userLessonProgressDao().insertOrUpdate(progress);
 
-            UserLessonProgress finalProgress = progress;
+            // === SỬA Ở ĐÂY: Tạo các biến final để dùng trong lambda ===
+            final UserLessonProgress finalProgress = progress;
+            final boolean finalSuccess = success;
+            final String finalLessonName = currentLessonName;
+
             runOnUiThread(() -> {
                 Intent result = new Intent();
-                result.putExtra("completed_lesson", currentLessonName);
-                result.putExtra("success", success);
+                result.putExtra("completed_lesson", finalLessonName);
+                result.putExtra("success", finalSuccess);
                 setResult(RESULT_OK, result);
 
-                if (success) {
-                    Toast.makeText(this, "Hoàn thành bài học! Công trình được nâng cấp.", Toast.LENGTH_LONG).show();
+                if (finalSuccess) {
+                    Toast.makeText(LessonActivity.this, "Hoàn thành bài học! Công trình được nâng cấp.", Toast.LENGTH_LONG).show();
+                    finish();
                 } else {
-                    if (finalProgress.attemptsToday <= 3) {
-                        Toast.makeText(this, "Thất bại! Còn " + (3 - finalProgress.attemptsToday + 1) + " lần miễn phí hôm nay.", Toast.LENGTH_LONG).show();
+                    if (finalProgress.attemptsToday <= MAX_FREE_ATTEMPTS) {
+                        Toast.makeText(LessonActivity.this,
+                                "Thất bại! Còn " + (MAX_FREE_ATTEMPTS - finalProgress.attemptsToday + 1) + " lần miễn phí hôm nay.",
+                                Toast.LENGTH_LONG).show();
+                        finish();
                     } else {
-                        showPayToRetryDialog();
-                        return;
+                        // Hiển thị dialog trả vàng khi hết lượt
+                        new AlertDialog.Builder(LessonActivity.this)
+                                .setTitle("Hết lượt thử miễn phí")
+                                .setMessage("Bạn đã dùng hết " + MAX_FREE_ATTEMPTS + " lần miễn phí hôm nay.\n\nTrả " + RETRY_COST + " vàng để thử lại ngay?")
+                                .setPositiveButton("Trả vàng", (d, w) -> {
+                                    goldRepository.addGold(LessonActivity.this, -RETRY_COST, new GoldRepository.OnGoldUpdatedListener() {
+                                        @Override
+                                        public void onGoldUpdated(int newGold) {
+                                            finalProgress.attemptsToday = 0;
+                                            database.userLessonProgressDao().insertOrUpdate(finalProgress);
+                                            currentQuestionIndex = 0;
+                                            currentHearts = 3;
+                                            for (ImageView h : ivHearts) h.setImageResource(R.drawable.ic_heart_filled);
+                                            displayQuestion(0);
+                                        }
+
+                                        @Override
+                                        public void onError(String error) {
+                                            Toast.makeText(LessonActivity.this, error, Toast.LENGTH_SHORT).show();
+                                        }
+                                    });
+                                })
+                                .setNegativeButton("Thoát", (d, w) -> finish())
+                                .setCancelable(false)
+                                .show();
                     }
                 }
-                finish();
             });
         }).start();
-    }
-
-    private void showPayToRetryDialog() {
-        new AlertDialog.Builder(this)
-                .setTitle("Hết lượt miễn phí")
-                .setMessage("Trả 100 vàng để thử lại ngay?")
-                .setPositiveButton("Trả vàng", (d, w) -> {
-                    goldRepository.addGold(this, -100, new GoldRepository.OnGoldUpdatedListener() {
-                        @Override public void onGoldUpdated(int newGold) {
-                            currentQuestionIndex = 0;
-                            currentHearts = 3;
-                            for (ImageView h : ivHearts) h.setImageResource(R.drawable.ic_heart_filled);
-                            displayQuestion(0);
-                        }
-                        @Override public void onError(String error) {
-                            Toast.makeText(LessonActivity.this, error, Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                    });
-                })
-                .setNegativeButton("Thoát", (d, w) -> finish())
-                .setCancelable(false)
-                .show();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (countDownTimer != null) countDownTimer.cancel();
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+        }
     }
 }

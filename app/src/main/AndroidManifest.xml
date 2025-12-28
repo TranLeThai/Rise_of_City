@@ -13,15 +13,32 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Rise_of_City">
 
+        <!-- Màn hình đăng nhập là launcher để test luồng từ đầu -->
         <activity
-            android:name=".ui.game.ingame.LessonActivity"
+            android:name=".ui.auth.LoginActivity"
             android:exported="true"
-            android:screenOrientation="landscape">
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity android:name=".ui.auth.SignUpActivity" />
+        
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
+        <activity
+            android:name=".ui.game.ingame.LessonActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
+            
+        <activity android:name=".ui.assessment.KnowledgeSurveyActivity" />
+        <activity android:name=".ui.profile.EditProfileActivity" />
+        <activity android:name=".ui.settings.SettingsActivity" />
 
     </application>
 </manifest>

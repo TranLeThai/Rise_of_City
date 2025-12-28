@@ -11,7 +11,13 @@ public class User {
     public String fullName;
     public String email;
     public String password;
+    public String phone;
+    public String address;
     public boolean surveyCompleted = false;
     public int gold = 0;
     public int xp = 0;
+    
+    // Thêm các trường cho tính năng điểm danh (Streak)
+    public long lastLoginTime = 0; // Thời gian đăng nhập gần nhất (timestamp)
+    public int streakDays = 0;     // Số ngày liên tiếp
 }

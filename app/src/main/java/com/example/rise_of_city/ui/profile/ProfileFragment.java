@@ -1,8 +1,10 @@
 package com.example.rise_of_city.ui.profile;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,276 +15,172 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
 import com.example.rise_of_city.R;
-import com.example.rise_of_city.data.model.user.Badge;
+import com.example.rise_of_city.data.local.AppDatabase;
+import com.example.rise_of_city.data.local.User;
 import com.example.rise_of_city.data.repository.UserStatsRepository;
 import com.example.rise_of_city.ui.auth.LoginActivity;
-import com.example.rise_of_city.ui.dialog.BadgeUnlockDialogFragment;
 import com.example.rise_of_city.ui.main.MainActivity;
 import com.example.rise_of_city.ui.profile.status.LevelStatusFragment;
-import com.example.rise_of_city.utils.BadgeManager;
-// import com.google.firebase.auth.FirebaseAuth;
-// import com.google.firebase.auth.FirebaseUser;
-// import com.google.firebase.firestore.DocumentSnapshot;
-// import com.google.firebase.firestore.FirebaseFirestore;
-// import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import java.util.Calendar;
 
 public class ProfileFragment extends Fragment {
 
-    // private FirebaseAuth mAuth;
-    // private FirebaseFirestore db;
     private UserStatsRepository statsRepository;
     private TextView tvUserName;
     private TextView tvLogout;
     private TextView tvStreak, tvTotalXP, tvBuildings;
     private View statsCard;
+    private AppDatabase appDatabase;
+
+    // Constants consistent with LoginActivity and SignUpActivity
+    private static final String PREF_NAME = "RiseOfCity_Prefs";
+    private static final String KEY_USER_ID = "logged_user_id";
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
 
-        // mAuth = FirebaseAuth.getInstance();
         statsRepository = UserStatsRepository.getInstance();
+        appDatabase = AppDatabase.getInstance(requireContext());
 
-        // Tìm các view
         tvUserName = view.findViewById(R.id.tvUserName);
         tvLogout = view.findViewById(R.id.tvLogout);
         tvStreak = view.findViewById(R.id.tvStreak);
         tvTotalXP = view.findViewById(R.id.tvTotalXP);
         tvBuildings = view.findViewById(R.id.tvBuildings);
         statsCard = view.findViewById(R.id.statsCard);
-        
-        // db = FirebaseFirestore.getInstance();
 
-        // Nút back - quay lại fragment trước đó
         view.findViewById(R.id.btnBack).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                MainActivity mainActivity = (MainActivity) getActivity();
-                // Quay lại fragment trước đó (mặc định là Home)
-                int previousId = mainActivity.getPreviousSelectedItemId();
-                if (previousId == R.id.nav_item_profile || previousId == R.id.nav_profile) {
-                    // Nếu trước đó là profile, quay về Home
-                    previousId = R.id.nav_item_home;
-                }
-                mainActivity.setSelectedNavItem(previousId);
+            if (getActivity() != null) {
+                getActivity().onBackPressed();
             }
         });
 
-        // Nút settings
         view.findViewById(R.id.btnSettings).setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), com.example.rise_of_city.ui.settings.SettingsActivity.class);
             startActivity(intent);
         });
 
-        // Menu: Chỉnh sửa hồ sơ
         view.findViewById(R.id.cardEditProfile).setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), com.example.rise_of_city.ui.profile.EditProfileActivity.class);
             startActivity(intent);
         });
 
-        // Menu: Bộ sưu tập Huy hiệu
-        view.findViewById(R.id.cardBadges).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new BadgeCollectionFragment())
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
-
-        // Menu: Mức độ hoàn thành
         view.findViewById(R.id.cardLevelStatus).setOnClickListener(v -> {
-            if (getActivity() instanceof MainActivity) {
-                MainActivity mainActivity = (MainActivity) getActivity();
-                // Navigate đến LevelStatusFragment
-                getParentFragmentManager().beginTransaction()
-                        .replace(R.id.fragment_container, new LevelStatusFragment())
-                        .addToBackStack(null)
-                        .commit();
-            }
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new LevelStatusFragment())
+                    .addToBackStack(null)
+                    .commit();
         });
 
-        // Nút đăng xuất
-        tvLogout.setOnClickListener(v -> {
-            logout();
-        });
+        tvLogout.setOnClickListener(v -> logout());
 
-        // Load thông tin người dùng
         loadUserInfo();
-        loadUserStatistics();
-        checkForNewBadges();
 
         return view;
     }
-    
+
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh statistics khi quay lại từ màn hình khác (ví dụ: sau khi thu hoạch/nâng cấp)
-        // loadUserStatistics();
-    }
-    
-    private void checkForNewBadges() {
-        /*
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) return;
-        
-        db.collection("user_profiles")
-                .document(user.getUid())
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        BadgeManager.getInstance().checkAndUnlockBadges(
-                            getContext(),
-                            documentSnapshot,
-                            badges -> {
-                                // Show unlock dialog for each newly unlocked badge
-                                if (!badges.isEmpty() && getActivity() != null) {
-                                    for (Badge badge : badges) {
-                                        BadgeUnlockDialogFragment dialog = 
-                                            BadgeUnlockDialogFragment.newInstance(badge);
-                                        dialog.show(getParentFragmentManager(), "BadgeUnlockDialog");
-                                    }
-                                }
-                            }
-                        );
-                    }
-                });
-        */
-    }
-    
-    private void loadUserStatistics() {
-        /*
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user == null) return;
-        
-        // Tính streak từ learning_logs
-        statsRepository.calculateStreak(streak -> {
-            tvStreak.setText(streak + " Ngày");
-        });
-        
-        // Tính total XP từ buildings
-        statsRepository.calculateTotalXP(totalXP -> {
-            tvTotalXP.setText(String.valueOf(totalXP));
-        });
-        
-        // Load buildings count (unlocked buildings - không locked)
-        // Buildings được lưu ở subcollection: users/{userId}/buildings
-        // Đếm tất cả buildings đã unlock (có trong collection = đã unlock)
-        db.collection("users")
-                .document(user.getUid())
-                .collection("buildings")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int unlockedBuildings = 0;
-                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
-                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                            // Kiểm tra nếu building không bị locked
-                            // Nếu có trong collection và không có field "locked" hoặc locked = false thì tính là unlocked
-                            Boolean isLocked = doc.getBoolean("locked");
-                            if (isLocked == null || !isLocked) {
-                                unlockedBuildings++;
-                            }
-                        }
-                    }
-                    tvBuildings.setText(String.valueOf(unlockedBuildings));
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("ProfileFragment", "Error loading buildings: ", e);
-                    tvBuildings.setText("0");
-                });
-        */
+        loadUserInfo();
     }
 
     private void loadUserInfo() {
-        /*
-        FirebaseUser user = mAuth.getCurrentUser();
-        if (user != null) {
-            // Ưu tiên hiển thị tên từ Firestore (nếu có)
-            loadUserNameFromFirestore(user.getUid(), user);
+        if (getActivity() == null) return;
+
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        int userId = prefs.getInt(KEY_USER_ID, -1);
+
+        if (userId != -1) {
+            new GetUserTask().execute(userId);
         } else {
-            navigateToLogin();
+            tvUserName.setText("Chưa đăng nhập");
+            tvStreak.setText("0 Ngày");
         }
-        */
-        tvUserName.setText("User (Offline)");
     }
 
-    private void loadUserNameFromFirestore(/* String uid, FirebaseUser user */) {
-        /*
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
+    private class GetUserTask extends AsyncTask<Integer, Void, User> {
+        @Override
+        protected User doInBackground(Integer... userIds) {
+            if (appDatabase == null || appDatabase.userDao() == null) return null;
+            
+            User user = appDatabase.userDao().getUserById(userIds[0]);
+            
+            if (user != null) {
+                // --- Xử lý Logic Streak (Chuỗi đăng nhập) ---
+                long currentTime = System.currentTimeMillis();
+                Calendar now = Calendar.getInstance();
+                now.setTimeInMillis(currentTime);
 
-        db.collection("user_profiles")
-                .document(uid)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null) {
-                        DocumentSnapshot document = task.getResult();
-                        if (document.exists()) {
-                            // Ưu tiên 1: Lấy tên từ Firestore
-                            String name = document.getString("name");
-                            if (name != null && !name.isEmpty()) {
-                                tvUserName.setText(name);
-                                return;
-                            }
-                        }
+                Calendar last = Calendar.getInstance();
+                if (user.lastLoginTime > 0) {
+                    last.setTimeInMillis(user.lastLoginTime);
+                }
 
-                        // Ưu tiên 2: Lấy displayName từ Firebase Auth
-                        String displayName = user.getDisplayName();
-                        if (displayName != null && !displayName.isEmpty()) {
-                            tvUserName.setText(displayName);
-                            return;
-                        }
+                boolean updated = false;
 
-                        // Ưu tiên 3: Lấy từ email
-                        String email = user.getEmail();
-                        if (email != null) {
-                            String nameFromEmail = email.substring(0, email.indexOf("@"));
-                            tvUserName.setText(nameFromEmail);
-                        }
-                    } else {
-                        // Nếu không lấy được từ Firestore, dùng thông tin từ Auth
-                        String displayName = user.getDisplayName();
-                        if (displayName != null && !displayName.isEmpty()) {
-                            tvUserName.setText(displayName);
+                if (user.lastLoginTime == 0) {
+                    // Lần đầu đăng nhập
+                    user.streakDays = 1;
+                    user.lastLoginTime = currentTime;
+                    updated = true;
+                } else {
+                    // Kiểm tra xem có phải cùng ngày không
+                    boolean isSameDay = now.get(Calendar.YEAR) == last.get(Calendar.YEAR) &&
+                                        now.get(Calendar.DAY_OF_YEAR) == last.get(Calendar.DAY_OF_YEAR);
+
+                    if (!isSameDay) {
+                        // Nếu không phải hôm nay, kiểm tra xem có phải hôm qua không
+                        Calendar yesterday = (Calendar) now.clone();
+                        yesterday.add(Calendar.DAY_OF_YEAR, -1);
+
+                        boolean isYesterday = yesterday.get(Calendar.YEAR) == last.get(Calendar.YEAR) &&
+                                              yesterday.get(Calendar.DAY_OF_YEAR) == last.get(Calendar.DAY_OF_YEAR);
+
+                        if (isYesterday) {
+                            // Đăng nhập liên tiếp
+                            user.streakDays++;
                         } else {
-                            String email = user.getEmail();
-                            if (email != null) {
-                                String name = email.substring(0, email.indexOf("@"));
-                                tvUserName.setText(name);
-                            }
+                            // Đứt chuỗi (đăng nhập sau hơn 1 ngày)
+                            user.streakDays = 1;
                         }
+                        
+                        // Cập nhật thời gian đăng nhập mới
+                        user.lastLoginTime = currentTime;
+                        updated = true;
                     }
-                })
-                .addOnFailureListener(e -> {
-                    Log.e("ProfileFragment", "Error loading user name: ", e);
-                    // Fallback: dùng email
-                    String email = user.getEmail();
-                    if (email != null) {
-                        String name = email.substring(0, email.indexOf("@"));
-                        tvUserName.setText(name);
-                    }
-                });
-        */
+                }
+
+                if (updated) {
+                    appDatabase.userDao().updateUser(user);
+                }
+            }
+            return user;
+        }
+
+        @Override
+        protected void onPostExecute(User user) {
+            if (tvUserName != null && user != null) {
+                tvUserName.setText("Xin chào " + (user.fullName != null ? user.fullName : "Thị trưởng"));
+                if (tvStreak != null) {
+                    tvStreak.setText(user.streakDays + " Ngày");
+                }
+            }
+        }
     }
 
     private void logout() {
-        /*
-        if (mAuth != null) {
-            mAuth.signOut();
-            Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
-            navigateToLogin();
-        }
-        */
-         Toast.makeText(getContext(), "Offline Mode: Cannot logout", Toast.LENGTH_SHORT).show();
-         navigateToLogin();
-    }
+        if (getActivity() == null) return;
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
+        prefs.edit().clear().apply();
 
-    private void navigateToLogin() {
+        Toast.makeText(getContext(), "Đã đăng xuất", Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(getActivity(), LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
-        if (getActivity() != null) {
-            getActivity().finish();
-        }
+        getActivity().finish();
     }
 }

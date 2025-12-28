@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.rise_of_city.R;
 import com.example.rise_of_city.data.local.AppDatabase;
 import com.example.rise_of_city.data.local.User;
-import com.example.rise_of_city.ui.assessment.KnowledgeSurveyActivity;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -65,20 +64,9 @@ public class SignUpActivity extends AppCompatActivity {
 
                 db.userDao().registerUser(newUser);
 
-                // Lấy lại User vừa tạo để có ID auto-increment
-                User createdUser = db.userDao().getUserByEmail(email);
-
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Đăng ký thành công!", Toast.LENGTH_SHORT).show();
-
-                    // LƯU ID VÀ FLAG VÀO PREFS TRƯỚC KHI SANG SURVEY
-                    getSharedPreferences("RiseOfCity_Prefs", MODE_PRIVATE)
-                            .edit()
-                            .putInt("logged_user_id", createdUser.id)
-                            .putBoolean("is_survey_completed", false)
-                            .apply();
-
-                    startActivity(new Intent(SignUpActivity.this, KnowledgeSurveyActivity.class));
+                    Toast.makeText(this, "Đăng ký thành công! Vui lòng đăng nhập.", Toast.LENGTH_SHORT).show();
+                    // Quay lại màn hình đăng nhập
                     finish();
                 });
             }

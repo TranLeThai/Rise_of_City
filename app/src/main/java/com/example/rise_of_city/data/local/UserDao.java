@@ -8,7 +8,7 @@ import androidx.room.Update;
 @Dao
 public interface UserDao {
     @Insert
-    void registerUser(User user);
+    long registerUser(User user);
 
     @Query("SELECT * FROM users WHERE email = :email AND password = :password LIMIT 1")
     User login(String email, String password);
@@ -16,7 +16,6 @@ public interface UserDao {
     @Query("SELECT * FROM users WHERE email = :email LIMIT 1")
     User getUserByEmail(String email);
 
-    // THÊM 2 HÀM NÀY:
     @Query("SELECT * FROM users WHERE id = :userId LIMIT 1")
     User getUserById(int userId);
 

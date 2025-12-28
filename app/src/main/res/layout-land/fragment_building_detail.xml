@@ -1,172 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F8F9FA"
+    android:background="#F5F7FA"
+    android:fillViewport="true"
     tools:ignore="MissingDefaultResource">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
+        <!-- CARD THÔNG TIN CÔNG TRÌNH -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:cardCornerRadius="12dp"
-            app:cardElevation="4dp">
+            app:cardCornerRadius="16dp"
+            app:cardElevation="8dp"
+            app:cardBackgroundColor="@android:color/white"
+            android:layout_marginBottom="24dp">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
+
                 <ImageView
                     android:id="@+id/iv_building"
                     android:layout_width="match_parent"
-                    android:layout_height="180dp"
+                    android:layout_height="200dp"
                     android:scaleType="centerCrop"
-                    android:src="@drawable/vector_bakery" />
+                    android:src="@drawable/vector_bakery"
+                    app:cardCornerRadius="16dp" />
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:padding="16dp"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
                     <TextView
                         android:id="@+id/tv_building_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="22sp"
-                        android:textStyle="bold" />
+                        android:text="Tiệm Bánh"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="#1A1A1A" />
+
                     <TextView
                         android:id="@+id/tv_level"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textColor="#6200EE" />
+                        android:layout_marginTop="6dp"
+                        android:text="Cấp độ 1"
+                        android:textSize="16sp"
+                        android:textColor="#6200EE"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- SECTION: NHIỆM VỤ VẬN HÀNH -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:text="📋 BẢNG NHIỆM VỤ VẬN HÀNH"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp" />
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardBackgroundColor="#FFF3E0"
-            app:cardCornerRadius="12dp">
+            android:layout_marginBottom="24dp"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="4dp"
+            app:cardBackgroundColor="#FFF8E1">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="18dp">
 
+                <!-- Có nhiệm vụ -->
                 <LinearLayout
                     android:id="@+id/layoutActiveMission"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+
                     <TextView
                         android:id="@+id/tvMissionTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="⚠️ SỰ CỐ KHẨN CẤP"
-                        android:textColor="#E65100"
-                        android:textStyle="bold" />
+                        android:textSize="17sp"
+                        android:textStyle="bold"
+                        android:textColor="#D32F2F" />
+
                     <TextView
                         android:id="@+id/tvMissionDesc"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="Ôn lại bài để giải quyết sự cố!" />
+                        android:layout_marginTop="8dp"
+                        android:text="Ôn lại bài để giải quyết sự cố!"
+                        android:textSize="15sp"
+                        android:textColor="#5D4037" />
+
                     <Button
                         android:id="@+id/btnDoMission"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:text="XỬ LÝ NGAY" />
+                        android:layout_height="48dp"
+                        android:layout_marginTop="16dp"
+                        android:text="XỬ LÝ NGAY"
+                        android:textStyle="bold"
+                        android:backgroundTint="#7B1FA2"
+                        app:cornerRadius="12dp" />
                 </LinearLayout>
 
+                <!-- Không có nhiệm vụ -->
                 <TextView
                     android:id="@+id/tvNoMission"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:text="Mọi thứ đang vận hành ổn định."
+                    android:textSize="15sp"
+                    android:textColor="#666666"
                     android:visibility="gone" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
+        <!-- SECTION: ĐIỀU KIỆN NÂNG CẤP -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
             android:text="🏗️ ĐIỀU KIỆN NÂNG CẤP"
-            android:textStyle="bold" />
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#333333"
+            android:layout_marginBottom="12dp" />
 
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            app:cardCornerRadius="12dp">
+            app:cardCornerRadius="14dp"
+            app:cardElevation="6dp"
+            app:cardBackgroundColor="@android:color/white">
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="16dp"
-                android:orientation="vertical">
+                android:orientation="vertical"
+                android:padding="18dp">
 
+                <!-- Trạng thái bài học -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="center_vertical"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="20dp">
+
                     <ImageView
                         android:id="@+id/imgLessonStatus"
-                        android:layout_width="24dp"
-                        android:layout_height="24dp"
-                        android:src="@android:drawable/ic_delete" />
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:src="@drawable/ic_cross_red" />
+
                     <TextView
                         android:id="@+id/tvStudyRequirement"
-                        android:layout_width="wrap_content"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:text="Chưa hoàn thành bài học nâng cấp" />
+                        android:layout_weight="1"
+                        android:layout_marginStart="12dp"
+                        android:text="Chưa hoàn thành bài học nâng cấp"
+                        android:textSize="16sp"
+                        android:textColor="#424242" />
                 </LinearLayout>
 
+                <!-- Nút hành động -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
                     <Button
                         android:id="@+id/btnStudy"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
-                        android:text="HỌC BÀI" />
+                        android:layout_marginEnd="8dp"
+                        android:text="HỌC BÀI"
+                        android:textStyle="bold"
+                        android:backgroundTint="#512DA8"
+                        app:cornerRadius="12dp" />
+
                     <Button
                         android:id="@+id/btnReview"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
-                        android:layout_marginEnd="4dp"
+                        android:layout_marginEnd="8dp"
                         android:text="ÔN BÀI"
-                        android:backgroundTint="#FF9800" />
+                        android:textStyle="bold"
+                        android:backgroundTint="#FF9800"
+                        app:cornerRadius="12dp" />
+
                     <Button
                         android:id="@+id/btnUpgrade"
                         android:layout_width="0dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="52dp"
                         android:layout_weight="1"
-                        android:layout_marginStart="4dp"
-                        android:text="NÂNG CẤP" />
+                        android:text="NÂNG CẤP"
+                        android:textStyle="bold"
+                        android:backgroundTint="#388E3C"
+                        app:cornerRadius="12dp" />
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
+
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

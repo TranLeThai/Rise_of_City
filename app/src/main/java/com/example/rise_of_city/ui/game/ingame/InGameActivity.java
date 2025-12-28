@@ -10,6 +10,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -44,6 +46,23 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
     private ImageView btnMissionList;
 
     private long backPressedTime;
+
+    private final ActivityResultLauncher<Intent> lessonResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String completedLesson = result.getData().getStringExtra("completed_lesson");
+                    boolean success = result.getData().getBooleanExtra("success", false);
+                    if (completedLesson != null && success) {
+                        // Tự động nâng cấp building tương ứng
+                        String buildingId = mapLessonToBuilding(completedLesson);
+                        if (buildingId != null) {
+                            viewModel.upgradeBuildingAfterLesson(buildingId);
+                            Toast.makeText(this, "Công trình đã được nâng cấp!", Toast.LENGTH_LONG).show();
+                        }
+                    }
+                }
+            });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,6 +213,15 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
         }
     }
 
+    private String mapLessonToBuilding(String lessonName) {
+        // Ví dụ: House_lv1 → house, School_lv2 → school
+        if (lessonName.contains("House")) return "house";
+        if (lessonName.contains("School")) return "school";
+        if (lessonName.contains("Library")) return "library";
+        if (lessonName.contains("Bakery")) return "bakery";
+        // thêm các cái khác...
+        return null;
+    }
     private void showLockAreaDialog(Building building) {
         LockAreaDialogFragment dialog = LockAreaDialogFragment.newInstance(
                 building.getRequiredLessonName(), building);
@@ -202,7 +230,7 @@ public class InGameActivity extends AppCompatActivity implements View.OnClickLis
             Intent intent = new Intent(this, LessonActivity.class);
             intent.putExtra("lessonName", building.getRequiredLessonName());
             intent.putExtra("mode", "STUDY_NEW");
-            startActivity(intent);
+            lessonResultLauncher.launch(intent); // dùng launcher
         });
 
         dialog.setOnUnlockWithGoldClickListener(b -> {

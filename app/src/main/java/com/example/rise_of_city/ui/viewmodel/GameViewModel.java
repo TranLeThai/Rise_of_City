@@ -13,6 +13,7 @@ import com.example.rise_of_city.data.local.UserBuilding;
 import com.example.rise_of_city.data.local.UserBuildingDao;
 import com.example.rise_of_city.data.model.game.Building;
 import com.example.rise_of_city.data.model.game.Mission;
+import com.example.rise_of_city.data.repository.BuildingQuestGenerator;
 import com.example.rise_of_city.data.repository.GameRepository;
 import com.example.rise_of_city.data.repository.GoldRepository;
 
@@ -31,8 +32,8 @@ public class GameViewModel extends ViewModel {
     // Room Database
     private AppDatabase database;
     private UserBuildingDao buildingDao;
-    private int currentUserId = 1; // TODO: Thay bằng userId thực từ login (SharedPreferences hoặc ViewModel khác)
-    private Context appContext; // Lưu Application context để sử dụng trong quest generator
+    private int currentUserId = 1; // TODO: Lấy từ login thực tế
+    private Context appContext;
 
     private MutableLiveData<Building> selectedBuilding = new MutableLiveData<>();
     private MutableLiveData<Map<String, Boolean>> buildingsLockStatus = new MutableLiveData<>();
@@ -50,17 +51,12 @@ public class GameViewModel extends ViewModel {
             goldRepo = GoldRepository.getInstance();
         }
 
-        // Lưu Application context (safe để giữ trong ViewModel)
         appContext = context.getApplicationContext();
 
-        // Khởi tạo Room Database
         database = AppDatabase.getInstance(context);
         buildingDao = database.userBuildingDao();
 
-        // Bắt đầu hệ thống nhiệm vụ
         startMissionSystem();
-        
-        // Tạo quest ngay khi login (mỗi lần mở app)
         generateInitialQuestsOnLogin();
     }
 
@@ -74,113 +70,76 @@ public class GameViewModel extends ViewModel {
     private void startMissionSystem() {
         if (missionCheckRunnable != null) return;
 
-        missionCheckRunnable = new Runnable() {
-            @Override
-            public void run() {
-                checkAndGenerateMissions();
-                checkMissionExpiration();
-                // Random delay 10-15 phút (600000-900000 ms)
-                long delay = 600000 + (long)(Math.random() * 300000);
-                missionHandler.postDelayed(this, delay);
-            }
+        missionCheckRunnable = () -> {
+            checkAndGenerateMissions();
+            checkMissionExpiration();
+            long delay = 600000 + (long)(Math.random() * 300000); // 10-15 phút
+            missionHandler.postDelayed(missionCheckRunnable, delay);
         };
         missionHandler.post(missionCheckRunnable);
     }
-    
-    /**
-     * Tạo quest ban đầu mỗi lần login
-     * Sẽ tạo 2-3 quest đa dạng cho các building khác nhau
-     */
+
     private void generateInitialQuestsOnLogin() {
         if (appContext == null) return;
-        
-        // Kiểm tra xem đã tạo quest cho session này chưa
+
         android.content.SharedPreferences prefs = appContext.getSharedPreferences("RiseOfCity_Prefs", Context.MODE_PRIVATE);
         long lastLoginTime = prefs.getLong("last_quest_generation_time", 0);
         long currentTime = System.currentTimeMillis();
-        
-        // Nếu đã tạo quest trong vòng 5 phút qua thì không tạo nữa (tránh spam)
-        // NOTE: Đổi thành 3600000 (1 giờ) khi release production
-        if (currentTime - lastLoginTime < 300000) { // 5 phút cho testing
-            return;
-        }
-        
-        // Lưu thời gian tạo quest
+
+        if (currentTime - lastLoginTime < 300000) return; // 5 phút test
+
         prefs.edit().putLong("last_quest_generation_time", currentTime).apply();
-        
-        // Load danh sách building đã unlock
+
         new Thread(() -> {
-            if (buildingDao == null) return;
-            
             List<UserBuilding> ownedBuildings = buildingDao.getBuildingsForUser(currentUserId);
-            List<String> allBuildingIds = Arrays.asList(
-                "house", "school", "library", "park", "farmer",
-                "coffee", "clothers", "bakery"
-            );
-            
-            // Tạo danh sách building có thể tạo quest
+            List<String> allBuildingIds = Arrays.asList("house", "school", "library", "park", "farmer", "coffee", "clothers", "bakery");
+
             List<String> availableForQuest = new ArrayList<>();
-            
-            // Thêm các building đã unlock
             for (UserBuilding ub : ownedBuildings) {
                 availableForQuest.add(ub.buildingId);
             }
-            
-            // Thêm một số building bị lock (để tạo quest học bài mở khóa)
+
+            // Thêm một số building bị khóa để tạo quest học bài
             for (String id : allBuildingIds) {
-                boolean isOwned = false;
-                for (UserBuilding ub : ownedBuildings) {
-                    if (ub.buildingId.equals(id)) {
-                        isOwned = true;
-                        break;
-                    }
-                }
+                boolean isOwned = ownedBuildings.stream().anyMatch(ub -> ub.buildingId.equals(id));
                 if (!isOwned && availableForQuest.size() < 6) {
                     availableForQuest.add(id);
                 }
             }
-            
-            // Tạo 2-3 quest ngẫu nhiên
-            int numQuests = 2 + new Random().nextInt(2); // 2 hoặc 3 quest
+
+            int numQuests = 2 + new Random().nextInt(2);
             List<Mission> newMissions = new ArrayList<>();
-            
+
+            BuildingQuestGenerator generator = new BuildingQuestGenerator(appContext);
+
             for (int i = 0; i < Math.min(numQuests, availableForQuest.size()); i++) {
-                // Chọn ngẫu nhiên một building (không trùng)
                 String buildingId = availableForQuest.remove(new Random().nextInt(availableForQuest.size()));
-                
-                // Load building info
-                Building mockBuilding = repository != null ? repository.getBuildingById(buildingId) : null;
+                Building mockBuilding = repository.getBuildingById(buildingId);
                 if (mockBuilding == null) continue;
-                
+
                 UserBuilding userBuilding = buildingDao.getBuilding(currentUserId, buildingId);
                 boolean isLocked = userBuilding == null;
                 int level = userBuilding != null ? userBuilding.level : 0;
-                
+
                 Building actualBuilding = new Building(
-                    buildingId,
-                    mockBuilding.getName(),
-                    level,
-                    0,
-                    100 * (level + 1),
-                    false,
-                    isLocked,
-                    mockBuilding.getRequiredLessonName()
+                        buildingId,
+                        mockBuilding.getName(),
+                        level,
+                        0,
+                        100 * (level + 1),
+                        false,
+                        isLocked,
+                        mockBuilding.getRequiredLessonName()
                 );
-                
-                // Generate quest với type đa dạng
-                com.example.rise_of_city.data.repository.BuildingQuestGenerator questGenerator = 
-                    new com.example.rise_of_city.data.repository.BuildingQuestGenerator(appContext);
-                Mission mission = questGenerator.generateSmartQuest(buildingId, actualBuilding, null);
-                
-                if (mission != null) {
-                    newMissions.add(mission);
-                }
-            }
-            
-            // Cập nhật danh sách quest
-            if (!newMissions.isEmpty()) {
-                postToMain(() -> {
-                    activeMissions.setValue(newMissions);
+
+                generator.generateMissionsForBuilding(buildingId, actualBuilding, mission -> {
+                    if (mission != null) {
+                        postToMain(() -> {
+                            List<Mission> current = new ArrayList<>(activeMissions.getValue() != null ? activeMissions.getValue() : new ArrayList<>());
+                            current.add(mission);
+                            activeMissions.postValue(current);
+                        });
+                    }
                 });
             }
         }).start();
@@ -188,7 +147,7 @@ public class GameViewModel extends ViewModel {
 
     private void checkAndGenerateMissions() {
         Map<String, Boolean> status = buildingsLockStatus.getValue();
-        if (status == null || repository == null) return;
+        if (status == null || repository == null || appContext == null) return;
 
         List<String> unlockedIds = new ArrayList<>();
         for (Map.Entry<String, Boolean> entry : status.entrySet()) {
@@ -199,43 +158,36 @@ public class GameViewModel extends ViewModel {
 
         if (!unlockedIds.isEmpty() && new Random().nextFloat() < 0.3f) {
             String randomBuildingId = unlockedIds.get(new Random().nextInt(unlockedIds.size()));
-            Building building = repository.getBuildingById(randomBuildingId);
-            
-            if (building != null) {
-                // Load building info from Room database
-                new Thread(() -> {
-                    UserBuilding userBuilding = buildingDao != null ? buildingDao.getBuilding(currentUserId, randomBuildingId) : null;
-                    boolean isLocked = userBuilding == null;
-                    int level = userBuilding != null ? userBuilding.level : 0;
-                    
-                    // Create building with actual data
-                    Building actualBuilding = new Building(
+            Building mockBuilding = repository.getBuildingById(randomBuildingId);
+            if (mockBuilding == null) return;
+
+            new Thread(() -> {
+                UserBuilding userBuilding = buildingDao.getBuilding(currentUserId, randomBuildingId);
+                boolean isLocked = userBuilding == null;
+                int level = userBuilding != null ? userBuilding.level : 0;
+
+                Building actualBuilding = new Building(
                         randomBuildingId,
-                        building.getName(),
+                        mockBuilding.getName(),
                         level,
                         0,
                         100 * (level + 1),
                         false,
                         isLocked,
-                        building.getRequiredLessonName()
-                    );
-                    
-                    // Generate smart quest
-                    if (appContext != null) {
-                        com.example.rise_of_city.data.repository.BuildingQuestGenerator questGenerator = 
-                            new com.example.rise_of_city.data.repository.BuildingQuestGenerator(appContext);
-                        Mission newMission = questGenerator.generateSmartQuest(randomBuildingId, actualBuilding, null);
-                        
-                        if (newMission != null) {
-                            postToMain(() -> {
-                                List<Mission> current = new ArrayList<>(activeMissions.getValue() != null ? activeMissions.getValue() : new ArrayList<>());
-                                current.add(newMission);
-                                activeMissions.postValue(current);
-                            });
-                        }
+                        mockBuilding.getRequiredLessonName()
+                );
+
+                BuildingQuestGenerator generator = new BuildingQuestGenerator(appContext);
+                generator.generateMissionsForBuilding(randomBuildingId, actualBuilding, mission -> {
+                    if (mission != null) {
+                        postToMain(() -> {
+                            List<Mission> current = new ArrayList<>(activeMissions.getValue() != null ? activeMissions.getValue() : new ArrayList<>());
+                            current.add(mission);
+                            activeMissions.postValue(current);
+                        });
                     }
-                }).start();
-            }
+                });
+            }).start();
         }
     }
 
@@ -245,17 +197,15 @@ public class GameViewModel extends ViewModel {
 
         long now = System.currentTimeMillis();
         List<Mission> toRemove = new ArrayList<>();
-        boolean penaltyApplied = false;
 
         for (Mission mission : current) {
             if (!mission.isCompleted && (now - mission.startTime) > mission.durationMs) {
                 applyPenalty(mission.goldPenalty);
                 toRemove.add(mission);
-                penaltyApplied = true;
             }
         }
 
-        if (penaltyApplied) {
+        if (!toRemove.isEmpty()) {
             current.removeAll(toRemove);
             activeMissions.postValue(new ArrayList<>(current));
         }
@@ -263,23 +213,7 @@ public class GameViewModel extends ViewModel {
 
     private void applyPenalty(int penalty) {
         if (goldRepo != null && appContext != null && penalty > 0) {
-            goldRepo.spendGold(appContext, penalty, new GoldRepository.OnGoldUpdatedListener() {
-                @Override
-                public void onGoldUpdated(int newGold) {}
-                @Override
-                public void onError(String error) {}
-            });
-        }
-    }
-
-    private String getMissionTitleForBuilding(String id) {
-        switch (id) {
-            case "house": return "Sắp xếp nhà cửa";
-            case "bakery": return "Nướng bánh mì nóng";
-            case "coffee": return "Pha cà phê sáng";
-            case "library": return "Sắp xếp sách";
-            case "school": return "Soạn giáo án";
-            default: return "Kiểm tra công trình " + id;
+            goldRepo.addGold(appContext, -penalty, null);
         }
     }
 
@@ -287,26 +221,19 @@ public class GameViewModel extends ViewModel {
         List<Mission> current = activeMissions.getValue();
         if (current == null) return;
 
+        List<Mission> updated = new ArrayList<>();
         for (Mission m : current) {
             if (m.id.equals(missionId)) {
                 m.isCompleted = true;
-                // Remove completed mission from list (hoặc có thể giữ lại nhưng mark là completed)
-                // Ở đây ta sẽ remove để không hiển thị nữa
-                break;
             }
-        }
-        
-        // Remove completed missions
-        List<Mission> updatedList = new ArrayList<>();
-        for (Mission m : current) {
             if (!m.isCompleted) {
-                updatedList.add(m);
+                updated.add(m);
             }
         }
-        activeMissions.postValue(updatedList);
+        activeMissions.postValue(updated);
     }
 
-    // ==================== DỮ LIỆU CÔNG TRÌNH (ROOM) ====================
+    // ==================== DỮ LIỆU CÔNG TRÌNH ====================
 
     public void loadBuildingById(String buildingId) {
         loadBuildingFromLocal(buildingId);
@@ -317,7 +244,7 @@ public class GameViewModel extends ViewModel {
     }
 
     private void loadBuildingFromLocal(String buildingId) {
-        if (buildingDao == null || buildingId == null || buildingId.isEmpty()) {
+        if (buildingDao == null) {
             fallbackToMockData(buildingId);
             return;
         }
@@ -333,7 +260,6 @@ public class GameViewModel extends ViewModel {
             boolean isLocked = userBuilding == null;
             int level = userBuilding != null ? userBuilding.level : 0;
 
-            // TODO: Nếu muốn lưu exp, thêm field vào UserBuilding
             int currentExp = 0;
             int maxExp = 100 * (level + 1);
 
@@ -364,11 +290,9 @@ public class GameViewModel extends ViewModel {
     }
 
     private void fallbackToMockData(String buildingId) {
-        if (repository != null) {
-            Building building = repository.getBuildingById(buildingId);
-            if (building != null) {
-                selectedBuilding.setValue(building);
-            }
+        Building building = repository.getBuildingById(buildingId);
+        if (building != null) {
+            selectedBuilding.setValue(building);
         }
     }
 
@@ -379,27 +303,16 @@ public class GameViewModel extends ViewModel {
     public void loadAllBuildingsLockStatus() {
         if (buildingDao == null) return;
 
-        final List<String> allBuildingIds = Arrays.asList(
-                "house", "school", "library", "park", "farmer",
-                "coffee", "clothers", "bakery"
-        );
+        final List<String> allIds = Arrays.asList("house", "school", "library", "park", "farmer", "coffee", "clothers", "bakery");
 
         new Thread(() -> {
             List<UserBuilding> owned = buildingDao.getBuildingsForUser(currentUserId);
-            Map<String, Boolean> lockMap = new HashMap<>();
-
-            for (String id : allBuildingIds) {
-                boolean locked = true;
-                for (UserBuilding ub : owned) {
-                    if (ub.buildingId.equals(id)) {
-                        locked = false;
-                        break;
-                    }
-                }
-                lockMap.put(id, locked);
+            Map<String, Boolean> map = new HashMap<>();
+            for (String id : allIds) {
+                boolean locked = !owned.stream().anyMatch(ub -> ub.buildingId.equals(id));
+                map.put(id, locked);
             }
-
-            postToMain(() -> buildingsLockStatus.setValue(lockMap));
+            postToMain(() -> buildingsLockStatus.setValue(map));
         }).start();
     }
 
@@ -409,8 +322,8 @@ public class GameViewModel extends ViewModel {
         new Thread(() -> {
             UserBuilding existing = buildingDao.getBuilding(currentUserId, buildingId);
             if (existing == null) {
-                UserBuilding newBuilding = new UserBuilding(currentUserId, buildingId, 1); // level 1 khi mới unlock
-                buildingDao.insertOrUpdate(newBuilding); // cần method này trong DAO
+                UserBuilding newBuilding = new UserBuilding(currentUserId, buildingId, 1);
+                buildingDao.insertOrUpdate(newBuilding);
             }
 
             postToMain(() -> {
@@ -419,44 +332,32 @@ public class GameViewModel extends ViewModel {
             });
         }).start();
     }
-    
-    /**
-     * Unlock building với cost vàng (50 vàng)
-     * @param buildingId ID của building cần unlock
-     * @param callback Callback để thông báo kết quả
-     */
+
+    // Giữ nguyên để test
     public void unlockBuildingWithGold(String buildingId, UnlockCallback callback) {
-        if (buildingDao == null || goldRepo == null) {
-            if (callback != null) callback.onError("Database or gold repository not initialized");
+        if (buildingDao == null || goldRepo == null || appContext == null) {
+            if (callback != null) callback.onError("Hệ thống chưa sẵn sàng");
             return;
         }
-        
-        final int UNLOCK_COST = 50; // Cost mở khóa = 50 vàng
-        
-        if (appContext == null) {
-            if (callback != null) callback.onError("Context not initialized");
-            return;
-        }
-        
-        // Kiểm tra vàng trước
-        goldRepo.checkCanUnlockBuilding(appContext, UNLOCK_COST, (canUnlock, currentGold, message) -> {
-            if (!canUnlock) {
+
+        final int UNLOCK_COST = 50;
+
+        goldRepo.hasEnoughGold(appContext, UNLOCK_COST, (enough, currentGold, message) -> {
+            if (!enough) {
                 if (callback != null) callback.onError(message);
                 return;
             }
-            
-            // Trừ vàng
-            goldRepo.spendGold(appContext, UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
+
+            goldRepo.addGold(appContext, -UNLOCK_COST, new GoldRepository.OnGoldUpdatedListener() {
                 @Override
                 public void onGoldUpdated(int newGold) {
-                    // Unlock building
                     new Thread(() -> {
                         UserBuilding existing = buildingDao.getBuilding(currentUserId, buildingId);
                         if (existing == null) {
                             UserBuilding newBuilding = new UserBuilding(currentUserId, buildingId, 1);
                             buildingDao.insertOrUpdate(newBuilding);
                         }
-                        
+
                         postToMain(() -> {
                             loadAllBuildingsLockStatus();
                             loadBuildingFromLocal(buildingId);
@@ -464,7 +365,7 @@ public class GameViewModel extends ViewModel {
                         });
                     }).start();
                 }
-                
+
                 @Override
                 public void onError(String error) {
                     if (callback != null) callback.onError(error);
@@ -472,7 +373,24 @@ public class GameViewModel extends ViewModel {
             });
         });
     }
-    
+
+    public void upgradeBuildingAfterLesson(String buildingId) {
+        new Thread(() -> {
+            UserBuilding ub = buildingDao.getBuilding(currentUserId, buildingId);
+            if (ub == null) {
+                ub = new UserBuilding(currentUserId, buildingId, 1);
+            } else if (ub.level < 4) {
+                ub.level++;
+            }
+            buildingDao.insertOrUpdate(ub);
+
+            postToMain(() -> {
+                loadAllBuildingsLockStatus();
+                loadBuildingFromLocal(buildingId);
+            });
+        }).start();
+    }
+
     public interface UnlockCallback {
         void onSuccess(int newGold);
         void onError(String error);
@@ -481,8 +399,6 @@ public class GameViewModel extends ViewModel {
     private void postToMain(Runnable runnable) {
         new Handler(Looper.getMainLooper()).post(runnable);
     }
-
-    // ==================== CLEANUP ====================
 
     @Override
     protected void onCleared() {

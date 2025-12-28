@@ -9,170 +9,113 @@ import com.example.rise_of_city.data.local.UserBuildingDao;
 import com.example.rise_of_city.data.model.game.Building;
 import com.example.rise_of_city.data.model.game.Mission;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Generator để tạo quest/mission hợp lý dựa trên thông tin building
+ * Generator tạo mission thông minh dựa trên trạng thái building
+ * - Daily mission: ôn bài, làm quiz kiếm vàng (luôn có)
+ * - Emergency mission: sự cố khẩn cấp (có thời hạn, phạt nếu quá hạn)
  */
 public class BuildingQuestGenerator {
     private static final String TAG = "BuildingQuestGenerator";
-    
+
     private AppDatabase database;
     private UserBuildingDao buildingDao;
-    private BuildingUpgradeManager upgradeManager;
-    private ExecutorService executorService;
-    private int userId;
-    
-    public enum QuestType {
-        QUIZ_FOR_GOLD  // Nhiệm vụ làm quiz để kiếm vàng
-    }
-    
+    private ExecutorService executor;
+    private int currentUserId = 1; // TODO: lấy từ login thực tế (SharedPreferences hoặc ViewModel)
+
     public BuildingQuestGenerator(Context context) {
         database = AppDatabase.getInstance(context.getApplicationContext());
         buildingDao = database.userBuildingDao();
-        upgradeManager = BuildingUpgradeManager.getInstance(context);
-        executorService = Executors.newSingleThreadExecutor();
-        
-        android.content.SharedPreferences prefs = context.getApplicationContext()
-                .getSharedPreferences("RiseOfCity_Prefs", Context.MODE_PRIVATE);
-        userId = prefs.getInt("logged_user_id", -1);
+        executor = Executors.newSingleThreadExecutor();
     }
-    
+
     /**
-     * Tạo quest đơn giản: làm quiz từ building để kiếm vàng
-     * Chỉ tạo quest cho building đã unlock
+     * Tạo mission phù hợp cho building
+     * - Nếu building đã unlock: tạo Daily mission (kiếm vàng)
+     * - Random tạo Emergency mission (sự cố khẩn cấp) với xác suất thấp
      */
-    public Mission generateSmartQuest(String buildingId, Building building, QuestType preferredType) {
-        if (building == null) {
-            Log.w(TAG, "Building is null, cannot generate quest");
-            return null;
-        }
-        
-        // Nếu building bị khóa, không tạo quest
-        if (building.isLocked()) {
-            Log.d(TAG, "Building " + buildingId + " is locked, skip quest generation");
-            return null;
-        }
-        
-        // Tạo quest làm quiz để kiếm vàng
-        return createQuizForGoldQuest(building);
+    public void generateMissionsForBuilding(String buildingId, Building staticBuilding, OnMissionGeneratedListener listener) {
+        executor.execute(() -> {
+            try {
+                UserBuilding userBuilding = buildingDao.getBuilding(currentUserId, buildingId);
+
+                // Nếu building chưa unlock → không tạo mission nào
+                if (userBuilding == null) {
+                    listener.onGenerated(null);
+                    return;
+                }
+
+                Mission mission = null;
+
+                // 30% cơ hội tạo Emergency mission (sự cố khẩn cấp)
+                if (Math.random() < 0.3) {
+                    mission = createEmergencyMission(staticBuilding);
+                } else {
+                    // Ngược lại tạo Daily mission thông thường
+                    mission = createDailyMission(staticBuilding);
+                }
+
+                listener.onGenerated(mission);
+
+            } catch (Exception e) {
+                Log.e(TAG, "Error generating mission for " + buildingId, e);
+                listener.onGenerated(null);
+            }
+        });
     }
-    
+
     /**
-     * Tạo quest làm quiz để kiếm vàng
+     * Tạo Daily mission (luôn có, không phạt, thưởng vàng)
      */
-    private Mission createQuizForGoldQuest(Building building) {
-        // Tạo tiêu đề đa dạng dựa trên building
-        String[] questTitles = getQuestTitlesForBuilding(building.getId(), building.getName());
-        String title = questTitles[(int)(Math.random() * questTitles.length)];
-        
-        Mission mission = new Mission(title, building.getId(), Mission.Type.RANDOM);
-        
-        // Phần thưởng vàng ngẫu nhiên từ 80-150
-        mission.goldReward = 80 + (int)(Math.random() * 71);
-        
-        // Không có penalty (hoặc penalty nhỏ)
-        mission.goldPenalty = 0;
-        
-        // Thời gian 24 giờ
-        mission.durationMs = 24 * 60 * 60 * 1000;
-        
+    private Mission createDailyMission(Building building) {
+        String[] titles = getDailyQuestTitles(building.getId(), building.getName());
+        String title = titles[(int) (Math.random() * titles.length)];
+
+        Mission mission = new Mission(title, building.getId(), Mission.Type.DAILY);
+        mission.goldReward = 80 + (int) (Math.random() * 71); // 80-150 vàng
+        mission.goldPenalty = 0; // Không phạt
+        mission.durationMs = 24 * 60 * 60 * 1000; // 24 giờ (có thể để vô hạn nếu muốn)
+
         return mission;
     }
-    
+
     /**
-     * Lấy danh sách tiêu đề quest đa dạng cho từng building
+     * Tạo Emergency mission (có thời hạn, có phạt nếu quá hạn)
      */
-    private String[] getQuestTitlesForBuilding(String buildingId, String buildingName) {
-        switch (buildingId) {
-            case "house":
-                return new String[]{
-                    "🏠 Làm quiz về Nhà Cửa - Kiếm vàng!",
-                    "🏠 Trả lời câu hỏi về Nhà Cửa",
-                    "🏠 Ôn tập kiến thức Nhà Cửa"
-                };
-            case "bakery":
-                return new String[]{
-                    "🍞 Làm quiz về Tiệm Bánh - Kiếm vàng!",
-                    "🍞 Trả lời câu hỏi về Tiệm Bánh",
-                    "🍞 Ôn tập kiến thức Tiệm Bánh"
-                };
-            case "school":
-                return new String[]{
-                    "🏫 Làm quiz về Trường Học - Kiếm vàng!",
-                    "🏫 Trả lời câu hỏi về Trường Học",
-                    "🏫 Ôn tập kiến thức Trường Học"
-                };
-            case "library":
-                return new String[]{
-                    "📚 Làm quiz về Thư Viện - Kiếm vàng!",
-                    "📚 Trả lời câu hỏi về Thư Viện",
-                    "📚 Ôn tập kiến thức Thư Viện"
-                };
-            case "park":
-                return new String[]{
-                    "🌳 Làm quiz về Công Viên - Kiếm vàng!",
-                    "🌳 Trả lời câu hỏi về Công Viên",
-                    "🌳 Ôn tập kiến thức Công Viên"
-                };
-            case "coffee":
-                return new String[]{
-                    "☕ Làm quiz về Tiệm Cafe - Kiếm vàng!",
-                    "☕ Trả lời câu hỏi về Tiệm Cafe",
-                    "☕ Ôn tập kiến thức Tiệm Cafe"
-                };
-            case "farmer":
-                return new String[]{
-                    "🌾 Làm quiz về Nông Trại - Kiếm vàng!",
-                    "🌾 Trả lời câu hỏi về Nông Trại",
-                    "🌾 Ôn tập kiến thức Nông Trại"
-                };
-            case "clothers":
-                return new String[]{
-                    "👕 Làm quiz về Shop Quần Áo - Kiếm vàng!",
-                    "👕 Trả lời câu hỏi về Shop Quần Áo",
-                    "👕 Ôn tập kiến thức Shop Quần Áo"
-                };
-            default:
-                return new String[]{
-                    "💰 Làm quiz về " + buildingName + " - Kiếm vàng!",
-                    "💰 Trả lời câu hỏi về " + buildingName,
-                    "💰 Ôn tập kiến thức " + buildingName
-                };
-        }
+    private Mission createEmergencyMission(Building building) {
+        String[] titles = getEmergencyTitles(building.getId(), building.getName());
+        String title = titles[(int) (Math.random() * titles.length)];
+
+        Mission mission = new Mission(title, building.getId(), Mission.Type.EMERGENCY);
+        mission.goldReward = 150 + (int) (Math.random() * 101); // 150-250 vàng
+        mission.goldPenalty = 50; // Phạt 50 vàng nếu quá hạn
+        mission.durationMs = 12 * 60 * 60 * 1000; // 12 giờ
+
+        return mission;
     }
-    
-    /**
-     * Lấy thông tin chi tiết về quest để hiển thị
-     */
-    public QuestInfo getQuestInfo(String buildingId, Building building) {
-        String lessonName = building.getRequiredLessonName();
-        
-        QuestInfo info = new QuestInfo();
-        info.questType = QuestType.QUIZ_FOR_GOLD;
-        info.buildingName = building.getName();
-        info.buildingLevel = building.getLevel();
-        info.requiredLessonName = lessonName;
-        info.isLocked = building.isLocked();
-        
-        // Description cho quiz quest
-        info.description = "Làm quiz về " + building.getName() + " để kiếm vàng!";
-        info.actionText = "Làm Quiz Ngay";
-        
-        return info;
+
+    // Tiêu đề cho Daily mission
+    private String[] getDailyQuestTitles(String buildingId, String buildingName) {
+        return new String[]{
+                "🌟 Ôn tập về " + buildingName + " hôm nay",
+                "📚 Làm quiz " + buildingName + " - Kiếm vàng!",
+                "✅ Kiểm tra kiến thức về " + buildingName
+        };
     }
-    
-    public static class QuestInfo {
-        public QuestType questType;
-        public String buildingName;
-        public int buildingLevel;
-        public String requiredLessonName;
-        public boolean isLocked;
-        public String description;
-        public String actionText;
+
+    // Tiêu đề cho Emergency mission
+    private String[] getEmergencyTitles(String buildingId, String buildingName) {
+        return new String[]{
+                "⚠️ Sự cố khẩn cấp tại " + buildingName + "!",
+                "🔥 Cần xử lý ngay vấn đề ở " + buildingName,
+                "🚨 Báo động đỏ: " + buildingName + " gặp sự cố!"
+        };
+    }
+
+    // Callback để trả mission về ViewModel
+    public interface OnMissionGeneratedListener {
+        void onGenerated(Mission mission);
     }
 }
-

@@ -130,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
         LinearLayout navExplore = findViewById(R.id.nav_item_explore);
         navExplore.setOnClickListener(v -> navigateToFragment(R.id.nav_item_explore, new RoadMapFragment()));
 
-
         LinearLayout navProfile = findViewById(R.id.nav_item_profile);
         navProfile.setOnClickListener(v -> navigateToFragment(R.id.nav_item_profile, new ProfileFragment()));
     }
@@ -169,9 +168,6 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_item_explore) {
                 icon = findViewById(R.id.nav_icon_explore);
                 text = findViewById(R.id.nav_text_explore);
-            } else if (itemId == R.id.nav_item_chat) {
-                icon = findViewById(R.id.nav_icon_chat);
-                text = findViewById(R.id.nav_text_chat);
             } else if (itemId == R.id.nav_item_profile) {
                 icon = findViewById(R.id.nav_icon_profile);
                 text = findViewById(R.id.nav_text_profile);
@@ -189,9 +185,9 @@ public class MainActivity extends AppCompatActivity {
     // GIỮ NGUYÊN: Reset toàn bộ UI thanh điều hướng
     private void resetAllItems() {
         int[] icons = {R.id.nav_icon_home, R.id.nav_icon_search, R.id.nav_icon_explore,
-                R.id.nav_icon_chat, R.id.nav_icon_profile};
+                R.id.nav_icon_profile};
         int[] texts = {R.id.nav_text_home, R.id.nav_text_search, R.id.nav_text_explore,
-                R.id.nav_text_chat, R.id.nav_text_profile};
+                R.id.nav_text_profile};
 
         for (int id : icons) {
             ImageView img = findViewById(id);

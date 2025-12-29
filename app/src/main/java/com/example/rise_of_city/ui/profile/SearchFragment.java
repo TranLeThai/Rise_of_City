@@ -281,8 +281,9 @@ public class SearchFragment extends Fragment {
                 topicNames.put("park", "Công Viên");
                 topicNames.put("bakery", "Tiệm Bánh");
                 topicNames.put("coffee", "Quán Cafe");
-                topicNames.put("general", "Từ Vựng Tổng Hợp");
-                
+                topicNames.put("farm", "Nông Trại");
+                topicNames.put("clothes", "Shop Quần Áo");
+
                 java.util.Map<String, String> topicDescriptions = new java.util.HashMap<>();
                 topicDescriptions.put("house", "Học từ vựng về ngôi nhà và nội thất");
                 topicDescriptions.put("school", "Học từ vựng về trường học và lớp học");
@@ -290,7 +291,8 @@ public class SearchFragment extends Fragment {
                 topicDescriptions.put("park", "Học từ vựng về công viên và thiên nhiên");
                 topicDescriptions.put("bakery", "Học từ vựng về tiệm bánh và đồ ăn");
                 topicDescriptions.put("coffee", "Học từ vựng về quán cà phê");
-                topicDescriptions.put("general", "Từ vựng đa dạng với hình ảnh minh họa");
+                topicDescriptions.put("farm", "Học từ vựng về nông trại và nông nghiệp");
+                topicDescriptions.put("clothes", "Học từ vựng về quần áo và thời trang");
                 
                 // Nếu không có topics trong DB, sử dụng danh sách mặc định
                 if (allTopicIds.isEmpty()) {
@@ -299,6 +301,9 @@ public class SearchFragment extends Fragment {
                     allTopicIds.add("library");
                     allTopicIds.add("park");
                     allTopicIds.add("bakery");
+                    allTopicIds.add("coffee");
+                    allTopicIds.add("farm");
+                    allTopicIds.add("clothes");
                 }
                 
                 for (String topicId : allTopicIds) {
@@ -562,9 +567,6 @@ public class SearchFragment extends Fragment {
                 String subtitle = "";
                 if (topic.getDescription() != null) {
                     subtitle = topic.getDescription();
-                }
-                if (topic.getLessonCount() > 0) {
-                    subtitle += subtitle.isEmpty() ? topic.getLessonCount() + " từ vựng" : " • " + topic.getLessonCount() + " từ vựng";
                 }
                 if (topic.getLevel() != null && !topic.getLevel().isEmpty()) {
                     subtitle += subtitle.isEmpty() ? topic.getLevel() : " • " + topic.getLevel();
